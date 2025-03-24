@@ -7,7 +7,7 @@ function Interface:InitPlayerPos(player)
     local function initCharacterPos(character)
         local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
         local landSpawn = workspace:WaitForChild("LandSpawnLocation")
-        local height = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig')).TerrainType.Land.Height
+        local height = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig')).TerrainType.Land.Size.Y
         local position = landSpawn.Position
         humanoidRootPart.CFrame = CFrame.new(Vector3.new(position.X, height + 6, position.Z))
     end
@@ -24,7 +24,8 @@ end
 -- 初始化船的位置
 function Interface:InitBoatWaterPos(character, boat, driverSeat)
     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
-    local height = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig')).TerrainType.Water.Height
+
+    local height = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig')).TerrainType.Water.Height + 5
     local position = waterSpawn.Position
 
     local currentCFrame = boat:GetPivot()

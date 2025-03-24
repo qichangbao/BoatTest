@@ -31,13 +31,10 @@ function LandGenerator:Init()
     self.materialType = self.config.Material or Enum.Material.Grass
     
     -- 区块基础尺寸（单位：stud）
-    self.chunkSize = self.config.ChunkSize or 20
+    self.size = self.config.Size or Vector3.new(10, 10, 10)
     
     -- 区块加载距离（单位：区块数量）
     self.loadDistance = self.config.LoadDistance or 1
-    
-    -- 地形基准高度（单位：stud）
-    self.terrainHeight = self.config.Height or 0
 end
 
 -- 生成指定位置的地形区块
@@ -45,10 +42,11 @@ end
 -- @return Instance 新创建的地形区块实例
 function LandGenerator:GenerateTerrainChunk(position)
     local chunk = Instance.new("MeshPart")
+    chunk.Name = "Land"
     chunk.Position = position
     chunk.Anchored = true
     chunk.Material = self.materialType
-    chunk.Size = Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize)
+    chunk.Size = self.size
     
     return chunk
 end
@@ -56,7 +54,7 @@ end
 function LandGenerator:FillBlock(position)
     game:GetService("Workspace").Terrain:FillBlock(
         CFrame.new(position),
-        Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize),
+        Vector3.new(self.size),
         self.materialType
     )
 end

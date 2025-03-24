@@ -38,7 +38,7 @@ local function resetPlayerPosition(player)
 end
 
 local function destroyBoatAssets(player)
-    local playerBoat = workspace:WaitForChild('PlayerBoat')
+    local playerBoat = workspace:WaitForChild('PlayerBoat_'..player.UserId)
     if playerBoat then
         for _, instance in ipairs(playerBoat:GetChildren()) do
             if instance:IsA('MeshPart') then

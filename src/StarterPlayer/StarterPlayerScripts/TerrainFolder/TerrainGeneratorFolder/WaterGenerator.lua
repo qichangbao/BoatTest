@@ -124,11 +124,12 @@ function WaterGenerator:UpdateChunks(playerPosition)
     end
     self.lastPlayerChunk = currentChunk
 
+    local y = -self.config.Depth / 2 + self.config.Height
     for x = -self.loadDistance, self.loadDistance do
         for z = -self.loadDistance, self.loadDistance do
             local chunkPos = Vector3.new(
                 currentChunk.X * self.chunkSize + x * self.chunkSize,
-                0,
+                y,
                 currentChunk.Z * self.chunkSize + z * self.chunkSize
             )
 
@@ -153,7 +154,7 @@ function WaterGenerator:UpdateChunks(playerPosition)
     for pos, chunk in pairs(self.activeChunks) do
         local chunkPos = Vector3.new(
             math.floor(pos.X / self.chunkSize),
-            0,
+            y,
             math.floor(pos.Z / self.chunkSize)
         )
         if (chunkPos - currentChunk).Magnitude > self.loadDistance * 1.2 then

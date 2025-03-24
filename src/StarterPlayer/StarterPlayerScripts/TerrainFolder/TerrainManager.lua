@@ -13,7 +13,6 @@ local StarterPlayerScripts = game:GetService("StarterPlayer"):WaitForChild("Star
 local TerrainGeneratorFolder = StarterPlayerScripts:WaitForChild("TerrainFolder"):WaitForChild("TerrainGeneratorFolder")
 local LandGenerator = require(TerrainGeneratorFolder:WaitForChild("LandGenerator"))
 local WaterGenerator = require(TerrainGeneratorFolder:WaitForChild("WaterGenerator"))
-local ChunkPool = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("ChunkPool"))
 
 local TerrainManager = {}
 TerrainManager.__index = TerrainManager
@@ -27,6 +26,10 @@ TerrainManager.__index = TerrainManager
 ]]
 function TerrainManager.new(config)
     local self = setmetatable({}, TerrainManager)
+
+    -- 移除默认场景
+    local Baseplate = game.Workspace:WaitForChild("Baseplate")
+    Baseplate:Destroy()
     
     self.config = config or {}
     self.landPosition = self.config.TerrainType.Land.Position or Vector3.new(0, 0, 0)
@@ -36,17 +39,29 @@ function TerrainManager.new(config)
     for _, island in ipairs(config.Islands) do
         table.insert(self.islandConfigs, {
             position = island.Position,
-            radius = island.Size / 2,
+            radius = island.Size.Magnitude / 2,
             spawnChance = island.SpawnChance
         })
     end
     
-    self.chunkPool = ChunkPool.new()
     return self
 end
 
 local function IsInViewRange(playerPos, targetPos, viewDistance)
     return (playerPos - targetPos).Magnitude <= viewDistance
+end
+
+function TerrainManager:GetNearestLand(position)
+    local nearestLand = nil
+    local minDistance = math.huge
+    
+    -- 三维空间欧氏距离计算：√(Δx² + Δy² + Δz²)
+    local distance = (position - self.landPosition).Magnitude
+    if distance < minDistance then
+        minDistance = distance
+        nearestLand = self.landGenerator
+    end
+    return nearestLand
 end
 
 function TerrainManager:GetNearestIsland(position)
@@ -55,7 +70,7 @@ function TerrainManager:GetNearestIsland(position)
     
     for _, island in ipairs(self.islandConfigs) do
         -- 三维空间欧氏距离计算：√(Δx² + Δy² + Δz²)
-local distance = (position - island.position).Magnitude
+        local distance = (position - island.position).Magnitude
         if distance < island.radius and distance < minDistance then
             minDistance = distance
             nearestIsland = island
@@ -73,12 +88,15 @@ function TerrainManager:Init()
     
     -- 初始化岛屿生成器
     self.IslandGenerator = LandGenerator.new({
-        ChunkSize = self.config.TerrainType.Land.ChunkSize,
+        ChunkSize = self.config.TerrainType.Land.Size,
         LoadDistance = self.config.TerrainType.Land.LoadDistance,
         MaterialType = Enum.Material.Grass
     })
     
     local spawnLocation = game.Workspace:WaitForChild("LandSpawnLocation")
+    local chunk = self.landGenerator:GenerateTerrainChunk(spawnLocation.Position)
+    chunk.Parent = game.Workspace
+    self.landGenerator:FillBlock(spawnLocation.Position)
     self:GenerateChunk(spawnLocation.Position)
 end
 
@@ -112,7 +130,9 @@ end
 function TerrainManager:GenerateChunk(position)
     local nearestIsland = self:GetNearestIsland(position)
     local generator = self:GetGenerator(position)
-    local viewDistance = generator.config.LoadDistance * generator.config.ChunkSize
+    local loadDistance = generator.config.LoadDistance or 1
+    local size = generator.config.ChunkSize or generator.config.Size or Vector3.new(100, 5, 100)
+    local viewDistance = loadDistance * size
     
     -- 优先检测视野范围内的岛屿
     if nearestIsland and IsInViewRange(position, nearestIsland.position, viewDistance) then
@@ -122,28 +142,8 @@ function TerrainManager:GenerateChunk(position)
             chunk.Size = Vector3.new(nearestIsland.radius * 2, self.config.LandHeight, nearestIsland.radius * 2)
             chunk.Material = Enum.Material.Grass
             chunk.Parent = game.Workspace
-            return chunk
         end
     end
-    
-    -- 动态判断地形类型
-    local chunk = self.chunkPool:GetChunk()  -- 使用区块复用池获取可用区块
-    if not chunk then
-        local shouldGenerateWater = not self:IsInLandArea(position)
-        chunk = (shouldGenerateWater and self.waterGenerator or generator):GenerateTerrainChunk(position)
-        chunk.Parent = game.Workspace
-    else
-        chunk.Position = position
-        chunk.Size = Vector3.new(
-            generator.chunkSize, 
-            generator.terrainHeight or generator.waterDepth, 
-            generator.chunkSize
-        )
-        chunk.Material = generator.MaterialType
-    end
-    
-    generator:FillBlock(position)
-    return chunk
 end
 
 return TerrainManager

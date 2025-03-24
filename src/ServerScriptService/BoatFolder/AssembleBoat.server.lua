@@ -4,24 +4,27 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ServerStorage = game:GetService('ServerStorage')
 local Players = game:GetService('Players')
+local keyboardService = game:GetService("UserInputService")
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
+-- 初始化远程事件
 local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
-local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
-if not assembleEvent then
-    assembleEvent = Instance.new('RemoteEvent')
-    assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
-    assembleEvent.Parent = ReplicatedStorage
-end
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME) or Instance.new('RemoteEvent')
+assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
+assembleEvent.Parent = ReplicatedStorage
 
+-- 初始化库存绑定函数
 local INVENTORY_BF_NAME = 'InventoryBindableFunction'
-local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME)
-if not inventoryBF then
-    inventoryBF = Instance.new('BindableFunction')
-    inventoryBF.Name = INVENTORY_BF_NAME
-    inventoryBF.Parent = ReplicatedStorage
-end
+local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME) or Instance.new('BindableFunction')
+inventoryBF.Name = INVENTORY_BF_NAME
+inventoryBF.Parent = ReplicatedStorage
+
+-- 创建控制远程事件
+local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
+local controlEvent = ReplicatedStorage:FindFirstChild(BOAT_CONTROL_RE_NAME) or Instance.new('RemoteEvent')
+controlEvent.Name = BOAT_CONTROL_RE_NAME
+controlEvent.Parent = ReplicatedStorage
 
 -- 执行船只组装核心逻辑
 -- @param player 发起组装请求的玩家对象
@@ -57,19 +60,29 @@ local function assembleBoat(player)
     -- 创建新模型容器并保持模板原始坐标关系
     -- 使用模板的CFrame保持部件相对位置，确保物理模拟准确性
     local assembledBoat = Instance.new('Model')
-    assembledBoat.Name = 'PlayerBoat'
+    assembledBoat.Name = 'PlayerBoat_'..player.UserId
     assembledBoat.Parent = workspace
     
     local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local primaryPart = nil
     for _, partInfo in ipairs(boatParts) do
         for _, templatePart in ipairs(boatTemplate:GetChildren()) do
-            if templatePart:IsA('BasePart') and partInfo.Type == templatePart.Name then
+            if templatePart:IsA('MeshPart') and partInfo.Type == templatePart.Name then
                 local partClone = templatePart:Clone()
                 partClone.CFrame = templatePart.CFrame
                 partClone.Parent = assembledBoat
 
                 if partInfo.Type == curBoatConfig[1].Name then
                     assembledBoat.PrimaryPart = partClone
+                    primaryPart = partClone  -- 保存主船体引用
+                end
+
+                -- 创建焊接约束
+                if primaryPart and partClone ~= primaryPart then
+                    local weld = Instance.new('WeldConstraint')
+                    weld.Part0 = primaryPart
+                    weld.Part1 = partClone
+                    weld.Parent = partClone
                 end
 
                 -- 移除库存中的船部件
@@ -84,12 +97,43 @@ local function assembleBoat(player)
     local driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
     driverSeat.Parent = assembledBoat
+
     local currentCFrame = driverSeat:GetPivot()
     driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 10, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    
+    -- 创建焊接约束
+    if primaryPart then
+        local weldConstraint = Instance.new('WeldConstraint')
+        weldConstraint.Part0 = primaryPart
+        weldConstraint.Part1 = driverSeat
+        weldConstraint.Parent = driverSeat
 
-    -- 将组装好的船放入工作区
-    -- 将最终组装结果放入工作区并添加物理约束
-    -- 确保船体各部件之间保持刚性连接，避免物理模拟时散架
+        local seatWeld = Instance.new('Weld')
+        seatWeld.Name = 'SeatWeld'
+        seatWeld.Part0 = driverSeat
+        seatWeld.Part1 = player.Character:WaitForChild('HumanoidRootPart')
+        seatWeld.Parent = driverSeat
+    end
+
+    -- 触发客户端事件传递座位引用
+    controlEvent:FireClient(player, 'SetDriverSeat')
+    
+    -- 添加座位占用监听
+    -- 监听玩家入座事件
+    driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
+        local humanoid = driverSeat.Occupant
+        if humanoid then
+            local character = humanoid.Parent
+            local seatedPlayer = Players:GetPlayerFromCharacter(character)
+            
+            -- 监听玩家离座事件
+            humanoid.Seated:Connect(function(isSeated)
+                if not isSeated then
+                    controlEvent:FireClient(seatedPlayer, 'ClearDriverSeat')
+                end
+            end)
+        end
+    end)
 
     -- 设置船的初始位置
     require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface')):InitBoatWaterPos(player.character, assembledBoat, driverSeat)
