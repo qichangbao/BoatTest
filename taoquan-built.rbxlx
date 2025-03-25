@@ -1,0 +1,1694 @@
+<roblox version="4">
+  <Item class="Lighting" referent="0">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0</R>
+        <G>0</G>
+        <B>0</B>
+      </Color3>
+      <float name="Brightness">2</float>
+      <bool name="GlobalShadows">true</bool>
+      <bool name="Outlines">false</bool>
+      <token name="Technology">1</token>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="2">
+      <Properties>
+        <string name="Name">Adventure</string>
+      </Properties>
+      <Item class="ModuleScript" referent="3">
+        <Properties>
+          <string name="Name">AdventureEventManager</string>
+          <string name="Source">local AdventureEventManager = {}
+AdventureEventManager.__index = AdventureEventManager
+
+function AdventureEventManager.new(eventManager)
+    local self = setmetatable({
+        _eventManager = eventManager,
+        _currentDayNight = "Day",
+        _obstacleTypes = {
+            {name = "风暴", damage = 0.15, minLevel = 2},
+            {name = "暗礁", damage = 0.3, minLevel = 3},
+            {name = "海盗船", damage = 0.4, minLevel = 5}
+        }
+    }, AdventureEventManager)
+    
+    self:_initEvents()
+    return self
+end
+
+function AdventureEventManager:_initEvents()
+    self._eventManager:RegisterEvent("ObstacleHit", function(player, obstacleType)
+        local shipManager = self._eventManager:GetShipManager(player)
+        local damage = obstacleType.damage * shipManager.shipData.totalHealth
+        shipManager.shipData.totalHealth = math.max(shipManager.shipData.totalHealth - damage, 0)
+        
+        if shipManager.shipData.totalHealth == 0 then
+            self._eventManager:TriggerEvent(player, "ShipDestroyed")
+        end
+    end)
+
+    self._eventManager:RegisterEvent("DayNightCycle", function(player)
+        self._currentDayNight = (self._currentDayNight == "Day") and "Night" or "Day"
+        self._eventManager:TriggerEvent(player, "VisualEffectChanged", {
+            type = "Lighting",
+            intensity = (self._currentDayNight == "Night") and 0.3 or 1.0
+        })
+    end)
+end
+
+function AdventureEventManager:GenerateRandomObstacle(playerLevel)
+    local validObstacles = {}
+    for _,obstacle in ipairs(self._obstacleTypes) do
+        if playerLevel >= obstacle.minLevel then
+            table.insert(validObstacles, obstacle)
+        end
+    end
+    return validObstacles[math.random(#validObstacles)]
+end
+
+function AdventureEventManager:StartDayNightCycle()
+    while true do
+        task.wait(300) -- 5分钟切换一次
+        self._eventManager:TriggerEvent(nil, "DayNightCycle")
+    end
+end
+
+return AdventureEventManager</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="4">
+      <Properties>
+        <string name="Name">Config</string>
+      </Properties>
+      <Item class="ModuleScript" referent="5">
+        <Properties>
+          <string name="Name">BuffConfig</string>
+          <string name="Source">local BuffConfig = {
+    attack_boost = {
+        displayName = "攻击强化",
+        effectType = "multiplier",
+        value = 1.2,
+        duration = 60,
+        icon = "rbxassetid://12345678"
+    },
+    speed_boost = {
+        displayName = "机动强化",
+        effectType = "additive",
+        value = 0.3,
+        duration = 45,
+        icon = "rbxassetid://87654321"
+    },
+    fishing_bonus = {
+        displayName = "渔获加成",
+        effectType = "chance",
+        value = 0.15,
+        duration = 90,
+        icon = "rbxassetid://13579246"
+    }
+}
+
+function BuffConfig.GetBuffConfig(buffId)
+    return BuffConfig[buffId]
+end
+
+return BuffConfig</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="6">
+        <Properties>
+          <string name="Name">FishConfig</string>
+          <string name="Source">local FishConfig = {
+    TropicalSea = {
+        fishingDifficulty = 2,
+        fishingLoot = {
+            {name = "金枪鱼", weight = 40},
+            {name = "海王类", weight = 10},
+            {name = "破旧宝箱", weight = 25},
+            {name = "海草", weight = 25}
+        }
+    },
+    ArcticSea = {
+        fishingDifficulty = 3,
+        fishingLoot = {
+            {name = "北极鳕鱼", weight = 35},
+            {name = "冰晶", weight = 15},
+            {name = "古老藏宝图", weight = 5},
+            {name = "海藻", weight = 45}
+        }
+    }
+}
+
+return FishConfig</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">GameConfig</string>
+          <string name="Source">return {
+    VERSION = 1.2,  -- 更新配置版本
+    
+    TerrainType = 
+    {
+        Water = {
+            -- 水域参数
+            ChunkSize = 512,                -- 区块尺寸
+            LoadDistance = 2,             -- 加载距离
+            WaterDepth = 5,
+            WaveSpeed = 1,
+        },
+
+        Wilderness = {
+            ChunkSize = 512,                 -- 区块尺寸
+            LoadDistance = 2,               -- 加载距离
+            VegetationDensity = 0.35,       -- 植被密度
+            RockProbability = 0.25,         -- 岩石生成概率
+        },
+    },
+
+    CurTerrain = "Wilderness"
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">MaterialConfig</string>
+          <string name="Source">local MaterialTiers = {
+    [1] = {name = "朽木", health = 50, unlockLevel = 1, expYield = 10},
+    [2] = {name = "铁板", health = 150, unlockLevel = 3, expYield = 30},
+    [3] = {name = "精钢", health = 300, unlockLevel = 5, expYield = 60},
+    [4] = {name = "星尘合金", health = 600, unlockLevel = 8, expYield = 100}
+}
+
+return {
+    GetTierData = function(tier)
+        return MaterialTiers[tier]
+    end,
+
+    GetTierByLevel = function(level)
+        local available = {}
+        for tier,data in pairs(MaterialTiers) do
+            if data.unlockLevel &lt;= level then
+                table.insert(available, data)
+            end
+        end
+        return available
+    end,
+    
+    RandomMaterial = function(currentLevel)
+        local validTiers = {}
+        for tier,data in pairs(MaterialTiers) do
+            if data.unlockLevel &lt;= currentLevel then
+                table.insert(validTiers, data)
+            end
+        end
+        return validTiers[math.random(#validTiers)]
+    end
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="9">
+        <Properties>
+          <string name="Name">SeaConfig</string>
+          <string name="Source">local SeaLevels = {
+    {
+        name = "起始海域",
+        unlockLevel = 1,
+        islands = {
+            {name = "新手岛", buffType = "HealthRegen", buffValue = 0.1}
+        }
+    },
+    {
+        name = "暴风海域",
+        unlockLevel = 3,
+        islands = {
+            {name = "铁锚岛", buffType = "DamageResist", buffValue = 0.2},
+            {name = "珍珠湾", buffType = "SpeedBoost", buffValue = 0.15}
+        }
+    },
+    {
+        name = "深渊海域", 
+        unlockLevel = 5,
+        islands = {
+            {name = "龙骨礁", buffType = "CritChance", buffValue = 0.25},
+            {name = "幽灵船坞", buffType = "Stealth", buffValue = 0.3}
+        }
+    }
+}
+
+return {
+    GetSeaByLevel = function(level)
+        local unlocked = {}
+        for _,sea in ipairs(SeaLevels) do
+            if sea.unlockLevel &lt;= level then
+                table.insert(unlocked, sea)
+            end
+        end
+        return unlocked
+    end,
+    
+    GetRandomIsland = function(seaName)
+        for _,sea in ipairs(SeaLevels) do
+            if sea.name == seaName then
+                return sea.islands[math.random(#sea.islands)]
+            end
+        end
+    end
+}</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="10">
+      <Properties>
+        <string name="Name">MiniGame</string>
+      </Properties>
+      <Item class="ModuleScript" referent="11">
+        <Properties>
+          <string name="Name">FishingMiniGame</string>
+          <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PlayerDataManager = require(ReplicatedStorage:WaitForChild("Player"):WaitForChild("PlayerDataManager"))
+local LootSystem = require(ReplicatedStorage:WaitForChild("MiniGame"):WaitForChild("LootSystem"))
+
+local FishingMiniGame = {}
+FishingMiniGame.__index = FishingMiniGame
+
+function FishingMiniGame.new(seaConfig)
+    local self = setmetatable({
+        _seaConfig = seaConfig,
+        _fishingRod = nil,
+        _catchTimer = 0,
+        _startTime = 0,
+        _remoteEvent = Instance.new('RemoteEvent')
+    }, FishingMiniGame)
+    
+    self._remoteEvent.Name = 'FishingEvent'
+    self._remoteEvent.Parent = ReplicatedStorage
+    return self
+end
+
+function FishingMiniGame:StartCast(player)
+    local baitLevel = PlayerDataManager.GetBaitLevel(player)
+    local difficulty = self._seaConfig.fishingDifficulty
+    
+    self._startTime = os.time()
+    self._catchTimer = math.random(3, 8) * (1 - (baitLevel * 0.1))
+    self:_showFishingUI(player, true)
+end
+
+function FishingMiniGame:EndCast(player)
+    local elapsedTime = os.time() - self._startTime
+    local success = elapsedTime > self._catchTimer
+    self:_showFishingUI(player, false)
+    
+    if success then
+        local lootTable = self._seaConfig.fishingLoot
+        LootSystem.GenerateLoot(player, lootTable)
+    end
+end
+
+function FishingMiniGame:_showFishingUI(player, show)
+    local gui = player:WaitForChild('PlayerGui').ScreenGui
+    
+    if show then
+        -- 创建钓鱼进度条
+        self._fishingBar = Instance.new('Frame')
+        self._fishingBar.Size = UDim2.new(0.4, 0, 0.1, 0)
+        self._fishingBar.Position = UDim2.new(0.3, 0, 0.8, 0)
+        self._fishingBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        
+        local innerBar = Instance.new('Frame')
+        innerBar.Size = UDim2.new(0, 0, 1, 0)
+        innerBar.BackgroundColor3 = Color3.fromRGB(0, 200, 80)
+        innerBar.Parent = self._fishingBar
+        
+        self._fishingBar.Parent = gui
+        self:_startCatchingAnimation(innerBar)
+    else
+        if self._fishingBar then
+            self._fishingBar:Destroy()
+            self._fishingBar = nil
+        end
+    end
+end
+
+function FishingMiniGame:_startCatchingAnimation(innerBar)
+    spawn(function()
+        local startTime = os.time()
+        while os.time() - startTime &lt; self._catchTimer do
+            local progress = (os.time() - startTime) / self._catchTimer
+            innerBar.Size = UDim2.new(progress, 0, 1, 0)
+            wait(0.1)
+        end
+    end)
+end
+
+return FishingMiniGame</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="12">
+        <Properties>
+          <string name="Name">LootSystem</string>
+          <string name="Source">local LootSystem = {}
+
+function LootSystem.GenerateLoot(player, lootTable)
+    local totalWeight = 0
+    for _, item in pairs(lootTable) do
+        totalWeight += item.weight
+    end
+    
+    local randomValue = math.random() * totalWeight
+    local cumulative = 0
+    
+    for _, item in pairs(lootTable) do
+        cumulative += item.weight
+        if randomValue &lt;= cumulative then
+            -- 实际发放物品的逻辑
+            print("玩家", player.Name, "获得了", item.name)
+            return
+        end
+    end
+end
+
+return LootSystem</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="13">
+      <Properties>
+        <string name="Name">Player</string>
+      </Properties>
+      <Item class="ModuleScript" referent="14">
+        <Properties>
+          <string name="Name">PlayerDataManager</string>
+          <string name="Source">local replicatedStorage = game:GetService("ReplicatedStorage")
+local MaterialConfig = require(replicatedStorage:WaitForChild("Config"):WaitForChild("MaterialConfig"))
+
+local PlayerData = {
+    Level = 1,
+    Exp = 0,
+    UnlockedMaterials = {},
+    UnlockedSeas = {"起始海域"}
+}
+
+local EXP_REQUIREMENTS = {
+    100, 300, 600, 1000, 1500
+}
+
+local function CalculateLevelUp(exp)
+    local newLevel = PlayerData.Level
+    while EXP_REQUIREMENTS[newLevel] and exp >= EXP_REQUIREMENTS[newLevel] do
+        exp = exp - EXP_REQUIREMENTS[newLevel]
+        newLevel = newLevel + 1
+    end
+    return newLevel, exp
+end
+
+return {
+    AddExp = function(amount)
+        PlayerData.Exp = PlayerData.Exp + amount
+        local newLevel = CalculateLevelUp(PlayerData.Exp)
+        if newLevel > PlayerData.Level then
+            PlayerData.Level = newLevel
+            -- 触发等级提升事件
+        end
+    end,
+
+    GetAvailableMaterials = function()
+        return MaterialConfig.GetTierByLevel(PlayerData.Level)
+    end,
+
+    UnlockNewSea = function(seaName)
+        if not table.find(PlayerData.UnlockedSeas, seaName) then
+            table.insert(PlayerData.UnlockedSeas, seaName)
+        end
+    end
+}</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="15">
+      <Properties>
+        <string name="Name">Ship</string>
+      </Properties>
+      <Item class="ModuleScript" referent="16">
+        <Properties>
+          <string name="Name">ShipManager</string>
+          <string name="Source">local MaterialConfig = require(script.Parent.Parent:WaitForChild("Config"):WaitForChild("MaterialConfig"))
+local ShipManager = {}
+ShipManager.__index = ShipManager
+
+function ShipManager.new()
+    local self = setmetatable({}, ShipManager)
+    self.shipData = {
+        materials = {},
+        totalHealth = 100,
+        unlockedParts = 1
+    }
+    return self
+end
+
+function ShipManager:AddMaterial(materialTier)
+    table.insert(self.shipData.materials, materialTier)
+    
+    -- 计算新属性
+    local newHealth = 0
+    for _,tier in pairs(self.shipData.materials) do
+        newHealth = newHealth + MaterialConfig.GetTierData(tier).health
+    end
+    
+    self.shipData.totalHealth = math.max(newHealth, self.shipData.totalHealth)
+    self.shipData.unlockedParts = math.min(#self.shipData.materials + 1, 4)
+end
+
+function ShipManager:CanBuildPart()
+    return #self.shipData.materials >= (self.shipData.unlockedParts * 3)
+end
+
+return ShipManager</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="17">
+      <Properties>
+        <string name="Name">Tool</string>
+      </Properties>
+      <Item class="ModuleScript" referent="18">
+        <Properties>
+          <string name="Name">ChunkPool</string>
+          <string name="Source">local ChunkPool = {}
+ChunkPool.__index = ChunkPool
+
+function ChunkPool.new()
+    local self = setmetatable({}, ChunkPool)
+    self.pool = {}
+    self.inUse = {}
+    return self
+end
+
+function ChunkPool:GetChunk()
+    if #self.pool > 0 then
+        local chunk = table.remove(self.pool)
+        self.inUse[chunk] = true
+        return chunk
+    end
+    return nil
+end
+
+function ChunkPool:ReturnChunk(chunk)
+    if self.inUse[chunk] then
+        self.inUse[chunk] = nil
+        table.insert(self.pool, chunk)
+    end
+end
+
+return ChunkPool</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="19">
+        <Properties>
+          <string name="Name">EventManager</string>
+          <string name="Source">local EventManager = {
+    _eventHandlers = {},
+}
+
+function EventManager.new()
+    local self = setmetatable({}, { __index = EventManager })
+    self.triggersCount = 0
+    return self
+end
+
+function EventManager:RegisterEvent(eventType, handler)
+    if not self._eventHandlers[eventType] then
+        self._eventHandlers[eventType] = {}
+    end
+    table.insert(self._eventHandlers[eventType], handler)
+end
+
+function EventManager:TriggerEvent(player, eventType, ...)
+    local handlers = self._eventHandlers[eventType]
+    if handlers then
+        for _, handler in ipairs(handlers) do
+            handler(player, ...)
+        end
+    end
+end
+
+return EventManager</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="20">
+      <Properties>
+        <string name="Name">Trigger</string>
+      </Properties>
+      <Item class="Folder" referent="21">
+        <Properties>
+          <string name="Name">Action</string>
+        </Properties>
+        <Item class="ModuleScript" referent="22">
+          <Properties>
+            <string name="Name">ActionBase</string>
+            <string name="Source">local ActionBase = {}
+
+function ActionBase.new(config)
+    local self = setmetatable({}, ActionBase)
+    self.config = config
+    return self
+end
+
+function ActionBase:Execute()
+    error("Execute方法必须被子类实现")
+end
+
+return ActionBase</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="23">
+          <Properties>
+            <string name="Name">CreatePartAction</string>
+            <string name="Source">print("加载CreatePartAction")
+local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
+
+local CreatePartAction = {}
+setmetatable(CreatePartAction, ActionBase)
+CreatePartAction.__index = CreatePartAction
+
+function CreatePartAction.new(config)
+    local self = setmetatable(ActionBase.new(config), CreatePartAction)
+    return self
+end
+
+function CreatePartAction:Execute()
+    local part = Instance.new("Part")
+    part.Size = self.config.Size or Vector3.new(5,5,5)
+    part.Position = self.config.Position or Vector3.new(0,10,0)
+    part.Anchored = true
+    part.BrickColor = BrickColor.new(self.config.Color or "Bright blue")
+    part.Material = Enum.Material.Neon
+    part.Transparency = self.config.Transparency or 0.5
+    part.Parent = workspace
+    
+    if self.config.Lifetime then
+        delay(self.config.Lifetime, function()
+            part:Destroy()
+        end)
+    end
+    
+    return part
+end
+
+return CreatePartAction</string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="Folder" referent="24">
+        <Properties>
+          <string name="Name">Condition</string>
+        </Properties>
+        <Item class="ModuleScript" referent="25">
+          <Properties>
+            <string name="Name">CompositeCondition</string>
+            <string name="Source">print("加载CompositeCondition")
+local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
+local PositionCondition = require(script.Parent:WaitForChild("PositionCondition"))
+local PlayerActionCondition = require(script.Parent:WaitForChild("PlayerActionCondition"))
+
+local CompositeCondition = {}
+setmetatable(CompositeCondition, ConditionBase)
+CompositeCondition.__index = CompositeCondition
+
+function CompositeCondition.new(config)
+    local self = setmetatable(ConditionBase.new(config), CompositeCondition)
+    
+    -- 组合触发器配置
+    self.conditionMode = self.config.ConditionMode or "Sequential" -- Sequential或Parallel
+    self.resetOnFail = self.config.ResetOnFail or false
+    self.cooldown = self.config.Cooldown or 0
+    self.lastConditionTime = 0
+    
+    -- 子触发器状态跟踪
+    self.childConditions = {}
+    self.conditionStates = {}
+    self.currentConditionIndex = 1 -- 用于Sequential模式
+    
+    -- 初始化子触发器
+    self:InitializeChildConditions(self.config.Conditions)
+    
+    return self
+end
+
+function CompositeCondition:InitializeChildConditions(conditionConfigs)
+    for i, conditionConfig in ipairs(conditionConfigs) do
+        local condition
+        
+        -- 根据触发器类型创建相应的触发器实例
+        if conditionConfig.ConditionType == "Position" then
+            condition = PositionCondition.new(conditionConfig)
+        elseif conditionConfig.ConditionType == "PlayerAction" then
+            condition = PlayerActionCondition.new(conditionConfig)
+        else
+            warn("未知的触发器类型:", conditionConfig.ConditionType)
+            continue
+        end
+        
+        -- 添加到子触发器列表
+        table.insert(self.childConditions, condition)
+        self.conditionStates[i] = false
+    end
+end
+
+function CompositeCondition:StartMonitoring()
+    -- 启动所有子触发器的监控
+    for i, condition in ipairs(self.childConditions) do
+        condition:StartMonitoring()
+        
+        -- 连接子触发器事件
+        condition:Connect(function(data)
+            self:HandleChildCondition(i, data)
+        end)
+    end
+end
+
+function CompositeCondition:HandleChildCondition(conditionIndex, data)
+    local currentTime = tick()
+    
+    -- 检查冷却时间
+    if currentTime - self.lastConditionTime &lt; self.cooldown then
+        return
+    end
+    
+    if self.conditionMode == "Sequential" then
+        -- 顺序模式：必须按顺序触发
+        if conditionIndex == self.currentConditionIndex then
+            self.conditionStates[conditionIndex] = true
+            self.currentConditionIndex = self.currentConditionIndex + 1
+            
+            -- 检查是否所有触发器都已触发
+            if self.currentConditionIndex > #self.childConditions then
+                self:FireCompositeCondition(data)
+                self:ResetConditionStates()
+            end
+        elseif self.resetOnFail then
+            -- 如果触发了错误的顺序且设置了失败重置，则重置所有状态
+            self:ResetConditionStates()
+        end
+    elseif self.conditionMode == "Parallel" then
+        -- 并行模式：所有触发器都必须被触发，不考虑顺序
+        self.conditionStates[conditionIndex] = true
+        
+        -- 检查是否所有触发器都已触发
+        local allConditioned = true
+        for _, state in pairs(self.conditionStates) do
+            if not state then
+                allConditioned = false
+                break
+            end
+        end
+        
+        if allConditioned then
+            self:FireCompositeCondition(data)
+            self:ResetConditionStates()
+        end
+    end
+end
+
+function CompositeCondition:FireCompositeCondition(data)
+    self.lastConditionTime = tick()
+    
+    print("触发了CompositeCondition")
+    -- 触发组合事件
+    self.bindableEvent:Fire({
+        ConditionType = "Composite",
+        ConditionMode = self.conditionMode,
+        ChildData = data,
+        Timestamp = self.lastConditionTime
+    })
+end
+
+function CompositeCondition:ResetConditionStates()
+    -- 重置所有子触发器状态
+    for i in pairs(self.conditionStates) do
+        self.conditionStates[i] = false
+    end
+    self.currentConditionIndex = 1
+end
+
+return CompositeCondition</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="26">
+          <Properties>
+            <string name="Name">ConditionBase</string>
+            <string name="Source">local ConditionBase = {}
+ConditionBase.__index = ConditionBase
+
+function ConditionBase.new(config)
+    local self = setmetatable({}, ConditionBase)
+    self.config = config
+    self.bindableEvent = Instance.new("BindableEvent")
+    return self
+end
+
+function ConditionBase:StartMonitoring()
+    error("必须由子类实现监测逻辑")
+end
+
+function ConditionBase:Connect(callback)
+    return self.bindableEvent.Event:Connect(callback)
+end
+
+return ConditionBase</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="27">
+          <Properties>
+            <string name="Name">PlayerActionCondition</string>
+            <string name="Source">print("加载PlayerActionCondition")
+local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
+
+local PlayerActionCondition = {}
+setmetatable(PlayerActionCondition, ConditionBase)
+PlayerActionCondition.__index = PlayerActionCondition
+
+function PlayerActionCondition.new(config)
+    local self = setmetatable(ConditionBase.new(config), PlayerActionCondition)
+    
+    self.subConditionType = self.config.SubConditionType or ""
+    self.requiredActions = self.config.RequiredActions or 1
+    self.timeWindow = self.config.TimeWindow or 5
+    self.resetOnLeave = self.config.ResetOnLeave or false
+    
+    -- 初始化动作计数和时间记录
+    self.actionCount = 0
+    self.lastActionTime = 0  -- 修正变量名，移除多余的't'
+    
+    return self
+end
+
+function PlayerActionCondition:StartMonitoring()
+    local RunService = game:GetService("RunService")
+    local function monitorPlayer(player)
+        player.CharacterAdded:Connect(function(character)
+            local function actionStart()
+                local currentTime = tick()
+                -- 检查时间窗口
+                if currentTime - self.lastActionTime > self.timeWindow then  -- 修正变量名
+                    -- 超出时间窗口，重置计数
+                    self.actionCount = 1
+                else
+                    -- 在时间窗口内，增加计数
+                    self.actionCount = self.actionCount + 1
+                end
+                
+                self.lastActionTime = currentTime  -- 修正变量名
+                
+                -- 检查是否达到触发条件
+                if self.actionCount >= self.requiredActions then
+                    print("触发了PlayerActionCondition")
+                    self.bindableEvent:Fire({
+                        Player = player,
+                        JumpCount = self.actionCount,  -- 修改为正确的计数值
+                        TimeElapsed = currentTime - self.lastActionTime  -- 修正变量名
+                    })
+                    
+                    -- 触发后重置
+                    self.lastActionTime = 0  -- 修正变量名
+                    self.actionCount = 0  -- 重置计数器
+                end
+            end
+
+            local humanoid = character:WaitForChild("Humanoid")
+            if self.subConditionType == "Jump" then
+                -- 修改Jumping事件的连接方式
+                humanoid.Jumping:Connect(function()
+                    actionStart()
+                end)
+            end
+
+            if self.resetOnLeave then
+                humanoid.StateChanged:Connect(function(_, newState)
+                    if newState == Enum.HumanoidStateType.Freefall then
+                        self.lastActionTime = 0  -- 修正变量名
+                        self.actionCount = 0  -- 重置计数器
+                    end
+                end)
+            end
+        end)
+    end
+    
+    if RunService:IsServer() then
+        -- 服务器端通过PlayerAdded监听
+        game:GetService("Players").PlayerAdded:Connect(monitorPlayer)
+    else
+        -- 客户端保持原有逻辑
+        monitorPlayer(game.Players.LocalPlayer)
+    end
+end
+
+return PlayerActionCondition</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="28">
+          <Properties>
+            <string name="Name">PositionCondition</string>
+            <string name="Source">print("加载PositionCondition")
+local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
+
+local PositionCondition = {}
+setmetatable(PositionCondition, ConditionBase)
+PositionCondition.__index = PositionCondition
+
+function PositionCondition.new(config)
+    local self = setmetatable(ConditionBase.new(config), PositionCondition)
+    
+    self.position = self.config.Position
+    self.radius = self.config.Radius
+    self.maxConditions = self.config.MaxConditions or 1
+    self.cooldown = self.config.Cooldown or 0
+    self.conditionCount = 0
+    self.lastConditionTime = 0
+    
+    return self
+end
+
+function PositionCondition:StartMonitoring()
+    local RunService = game:GetService("RunService")
+    
+    local function monitorPlayer(player)
+        player.CharacterAdded:Connect(function(character)
+            RunService.Heartbeat:Connect(function()
+                local rootPart = character:WaitForChild("HumanoidRootPart")
+                -- 检查是否超过最大触发次数
+                if self.conditionCount >= self.maxConditions then
+                    return
+                end
+                
+                -- 检查冷却时间
+                local currentTime = tick()
+                if currentTime - self.lastConditionTime &lt; self.cooldown then
+                    return
+                end
+                
+                -- 检查玩家是否在触发范围内
+                local distance = (rootPart.Position - self.position).Magnitude
+                if distance &lt;= self.radius then
+                    self.conditionCount = self.conditionCount + 1
+                    self.lastConditionTime = currentTime
+                    
+                    print("触发了PositionCondition")
+                    self.bindableEvent:Fire({
+                        Player = player,
+                        Position = rootPart.Position,
+                        ConditionPosition = self.position,
+                        ConditionCount = self.conditionCount
+                    })
+                end
+            end)
+        end)
+    end
+    
+    if RunService:IsServer() then
+        -- 服务器端通过PlayerAdded监听
+        game:GetService("Players").PlayerAdded:Connect(monitorPlayer)
+    else
+        -- 客户端保持原有逻辑
+        monitorPlayer(game.Players.LocalPlayer)
+    end
+end
+
+return PositionCondition</string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="ModuleScript" referent="29">
+        <Properties>
+          <string name="Name">ConfigTriggers</string>
+          <string name="Source">return {
+    -- -- 单独的位置触发器
+    -- {
+    --     ConditionType = "Position", -- 条件类型：基于位置的触发器
+    --     Position = Vector3.new(0, 0, 0), -- 触发位置
+    --     Radius = 5, -- 触发区域的半径，与Position共同定义触发区域
+    --     MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
+    --     Cooldown = 5, -- 触发冷却时间（秒），在此时间内不会再次触发
+    --     Action = {
+    --         ActionType = "CreatePart",
+    --     },
+    -- },
+    
+    -- -- 单独的玩家动作触发器
+    -- {
+    --     ConditionType = "PlayerAction", -- 条件类型：基于玩家动作的触发器
+    --     SubConditionType = "Jump", -- 子触发器类型
+    --     RequiredActions = 2, -- 需要玩家动作的次数才能触发
+    --     TimeWindow = 3, -- 完成所需动作的时间窗口（秒）
+    --     ResetOnLeave = true, -- 当玩家离开区域时是否重置触发器状态
+    --     Action = {
+    --         ActionType = "CreatePart",
+    --         Size = Vector3.new(3,3,3),
+    --         Position = Vector3.new(0, 10, 0),
+    --         Color = Color3.new(0, 1, 0),
+    --         Duration = 10
+    --     },
+    -- },
+    
+    -- -- 组合触发器示例：玩家到达特定区域后跳跃才触发
+    -- {
+    --     ConditionType = "Composite", -- 条件类型：组合多个触发条件的复合触发器
+    --     ConditionMode = "Sequential", -- 触发模式：Sequential(按顺序触发), Parallel(同时满足条件)
+    --     Conditions = { -- 子触发器列表
+    --         {
+    --             ConditionType = "Position", -- 第一个子触发器：位置条件
+    --             Position = Vector3.new(5, 0, 5), -- 触发位置
+    --             Radius = 10, -- 触发区域的半径
+    --             MaxConditions = 1 -- 最大触发次数，这里设为1表示只触发一次
+    --         },
+    --         {
+    --             ConditionType = "PlayerAction", -- 第二个子触发器：玩家动作条件
+    --             SubConditionType = "Jump", -- 子触发器类型
+    --             RequiredActions = 1, -- 需要玩家动作1次
+    --             TimeWindow = 5, -- 5秒内完成跳跃
+    --             ResetOnLeave = false -- 玩家离开区域后不重置状态
+    --         }
+    --     },
+    --     ResetOnFail = true, -- 如果任一子触发器失败，重置所有子触发器状态
+    --     Cooldown = 10, -- 组合触发器的冷却时间（秒）
+    --     Action = {
+    --         ActionType = "CreatePart",
+    --         Size = Vector3.new(1,5,1),
+    --         Position = Vector3.new(5, 5, 5),
+    --         Color = Color3.new(0, 0, 1)
+    --     },
+    -- },
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="30">
+        <Properties>
+          <string name="Name">TriggerManager</string>
+          <string name="Source">print("加载TriggerManager")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TriggerFolder = ReplicatedStorage:WaitForChild("Trigger")
+local ConfigTriggers = require(TriggerFolder:WaitForChild("ConfigTriggers"))
+
+local ConditionFolder = TriggerFolder:WaitForChild("Condition")
+local PositionCondition = require(ConditionFolder:WaitForChild("PositionCondition"))
+local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerActionCondition"))
+local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
+
+local ActionFolder = TriggerFolder:WaitForChild("Action")
+local CreatePartAction = require(ActionFolder:WaitForChild("CreatePartAction"))
+
+local TriggerManager = {}
+
+function TriggerManager.new()
+    local self = setmetatable({}, { __index = TriggerManager })
+    self.triggersCount = 0
+    return self
+end
+
+function TriggerManager:Initialize()
+    self:InitCondition()
+    print("触发器管理器初始化完成，共", #ConfigTriggers, "个触发器,", "成功加载", self.triggersCount, "个触发器")
+    return self
+end
+
+-- 加载条件
+function TriggerManager:InitCondition()
+    -- 遍历所有触发器配置
+    for i, triggerConfig in ipairs(ConfigTriggers) do
+        local condition
+        
+        -- 根据触发器类型创建相应的触发器实例
+        if triggerConfig.ConditionType == "Position" then
+            condition = PositionCondition.new(triggerConfig)
+        elseif triggerConfig.ConditionType == "PlayerAction" then
+            condition = PlayerActionCondition.new(triggerConfig)
+        elseif triggerConfig.ConditionType == "Composite" then
+            condition = CompositeCondition.new(triggerConfig)
+        else
+            warn("未知的触发器类型:", triggerConfig.ConditionType)
+            continue
+        end
+        
+        -- 启动触发器监控
+        condition:StartMonitoring()
+
+        local action
+        if triggerConfig.Action then
+            action = self:InitAction(triggerConfig.Action)
+        end
+        
+        -- 连接触发器事件
+        condition:Connect(function(data)
+            if triggerConfig.ConditionType == "Position" then
+                print("位置触发器被触发!", data.Player.Name, "在位置", data.Position)
+            elseif triggerConfig.ConditionType == "PlayerAction" then
+                print("玩家动作触发器被触发!", data.Player.Name)
+            elseif triggerConfig.ConditionType == "Composite" then
+                print("组合触发器被触发!", "模式:", data.ConditionMode)
+            end
+            
+            -- 执行关联动作
+            if action then
+                action:Execute()
+            end
+        end)
+        
+        self.triggersCount += 1
+    end
+end
+
+-- 加载动作
+function TriggerManager:InitAction(actionConfig)
+    local action
+    if actionConfig.ActionType == "CreatePart" then
+        action = CreatePartAction.new(actionConfig)
+    end
+
+    return action
+end
+
+return TriggerManager</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="31">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Script" referent="32">
+      <Properties>
+        <string name="Name">TriggerTest</string>
+        <token name="RunContext">0</token>
+        <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local EventManager = require(ReplicatedStorage:WaitForChild("Tool"):WaitForChild("EventManager"))
+local eventManager = EventManager.new()
+
+-- 模拟玩家对象
+local testPlayer = {UserId = 123}
+
+-- 触发材料获取事件（随机获取1-3阶材料）
+eventManager:TriggerEvent(testPlayer, "MaterialAcquired", math.random(1,3))
+
+-- 触发等级提升到5级（解锁新海域）
+eventManager:TriggerEvent(testPlayer, "LevelUp", 5)
+
+print("触发器测试脚本初始化完成")</string>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="SoundService" referent="33">
+    <Properties>
+      <string name="Name">SoundService</string>
+      <bool name="RespectFilteringEnabled">true</bool>
+    </Properties>
+  </Item>
+  <Item class="StarterGui" referent="34">
+    <Properties>
+      <string name="Name">StarterGui</string>
+    </Properties>
+    <Item class="Folder" referent="35">
+      <Properties>
+        <string name="Name">ShipBuilder</string>
+      </Properties>
+      <Item class="LocalScript" referent="36">
+        <Properties>
+          <string name="Name">ShipBuilderUI</string>
+          <string name="Source">local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ShipManager = require(ReplicatedStorage:WaitForChild("Ship"):WaitForChild("ShipManager"))
+
+local ShipBuilderUI = {}
+ShipBuilderUI.__index = ShipBuilderUI
+
+function ShipBuilderUI.new()
+    local self = setmetatable({
+        _components = {},
+        _currentShip = nil,
+        _previewModel = nil,
+        _connection = nil
+    }, ShipBuilderUI)
+    
+    self:InitializeUI()
+    return self
+end
+
+function ShipBuilderUI:InitializeUI()
+    -- 创建基础UI容器
+    self._mainFrame = Instance.new('Frame')
+    self._mainFrame.Size = UDim2.new(0.8, 0, 0.9, 0)
+    self._mainFrame.Position = UDim2.new(0.1, 0, 0.05, 0)
+    self._mainFrame.Parent = game.Players.LocalPlayer:WaitForChild('PlayerGui').ScreenGui
+
+    -- 部件选择面板
+    self._partsPanel = Instance.new('ScrollingFrame')
+    self._partsPanel.Size = UDim2.new(0.3, 0, 1, 0)
+    -- ...更多UI元素初始化代码...
+
+    self:LoadAvailableParts()
+    self:SetupEventHandlers()
+end
+
+function ShipBuilderUI:LoadAvailableParts()
+    local shipManager = ShipManager.GetForLocalPlayer()
+    self._components = shipManager:GetUnlockedComponents()
+    
+    -- 在UI面板中生成部件按钮
+    for partId, partData in pairs(self._components) do
+        self:CreatePartButton(partId, partData)
+    end
+end
+
+function ShipBuilderUI:CreatePartButton(partId, partData)
+    local button = Instance.new('TextButton')
+    button.Text = partData.displayName
+    button.Size = UDim2.new(1, -20, 0, 40)
+    button.BackgroundColor3 = Color3.fromRGB(62, 125, 177)
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.Parent = self._partsPanel
+    
+    local partPreview = Instance.new('Part')
+    partPreview.Size = Vector3.new(2, 2, 2)
+    partPreview.Position = Vector3.new(0, 5, 0)
+    partPreview.Parent = workspace:WaitForChild('PreviewArea')
+    
+    button.MouseEnter:Connect(function()
+        partPreview.Transparency = 0.5
+        partPreview.Color = Color3.fromRGB(255, 165, 0)
+    end)
+    
+    button.MouseLeave:Connect(function()
+        partPreview:Destroy()
+    end)
+    button.MouseButton1Click:Connect(function()
+        ShipManager.GetForLocalPlayer():AssembleComponent(partId)
+        self:UpdatePreviewModel(partId)
+    end)
+end
+
+function ShipBuilderUI:SetupEventHandlers()
+    self._connection = ShipManager.OnComponentUnlocked:Connect(function(newPart)
+        self:AddNewPartButton(newPart)
+    end)
+end
+
+return ShipBuilderUI</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="StarterPlayer" referent="37">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterCharacterScripts" referent="38">
+      <Properties>
+        <string name="Name">StarterCharacterScripts</string>
+      </Properties>
+    </Item>
+    <Item class="StarterPlayerScripts" referent="39">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="Folder" referent="40">
+        <Properties>
+          <string name="Name">TerrainGeneratorType</string>
+        </Properties>
+        <Item class="ModuleScript" referent="41">
+          <Properties>
+            <string name="Name">BaseTerrainGenerator</string>
+            <string name="Source">local BaseTerrainGenerator = {}
+BaseTerrainGenerator.isTerrainGenerator = true
+
+function BaseTerrainGenerator.new(config)
+    local self = setmetatable({}, BaseTerrainGenerator)
+    self.config = config
+    return self
+end
+
+function BaseTerrainGenerator:Init()
+    self.MaterialType = Enum.Material.Plastic
+    self.chunkSize = 32
+    self.loadDistance = 5
+
+    -- 通用容器设置
+    self.terrainFolder = workspace:FindFirstChild("TerrainPart") or Instance.new("Folder")
+    self.terrainFolder.Name = "TerrainPart"
+    self.terrainFolder.Parent = workspace
+
+    self.noise = Random.new()
+    self.activeChunks = {}
+    self.poolChunks = {}
+    self.lastPlayerChunk = nil
+    
+    self:SetupChunkLoader()
+end
+
+function BaseTerrainGenerator:SetupChunkLoader()
+    -- 基础区块加载器实现
+    self.chunkLoaderConnection = game:GetService("RunService").RenderStepped:Connect(function()
+        if game.Players.LocalPlayer.Character then
+            local humanoidRootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                self:UpdateChunks(humanoidRootPart.Position)
+            end
+        end
+    end)
+end
+
+function BaseTerrainGenerator:Destroy()
+    if self.chunkLoaderConnection then
+        self.chunkLoaderConnection:Disconnect()
+        self.chunkLoaderConnection = nil
+    end
+end
+
+function BaseTerrainGenerator:UpdateChunks(playerPosition)
+    local currentChunk = Vector3.new(
+        math.floor(playerPosition.X / self.chunkSize),
+        0,
+        math.floor(playerPosition.Z / self.chunkSize)
+    )
+    
+    if self.lastPlayerChunk and currentChunk == self.lastPlayerChunk then
+        return
+    end
+    self.lastPlayerChunk = currentChunk
+
+    for x = -self.loadDistance, self.loadDistance do
+        for z = -self.loadDistance, self.loadDistance do
+            local chunkPos = Vector3.new(
+                currentChunk.X * self.chunkSize + x * self.chunkSize,
+                0,
+                currentChunk.Z * self.chunkSize + z * self.chunkSize
+            )
+            
+            if not self.activeChunks[chunkPos] then
+                local newChunk = self.poolChunks[1] or self:GenerateTerrainChunk(chunkPos)
+                newChunk:ClearAllChildren()  -- 清除残留子部件
+                newChunk.Position = Vector3.new(chunkPos.X, 0, chunkPos.Z)
+                newChunk.Transparency = 0  -- 确保不透明度
+                self:FillBlock(chunkPos)
+                table.remove(self.poolChunks, 1)
+                newChunk.Parent = self.terrainFolder
+                self.activeChunks[chunkPos] = newChunk
+            end
+        end
+    end
+
+    for pos, chunk in pairs(self.activeChunks) do
+        local chunkPos = Vector3.new(
+            math.floor(pos.X / self.chunkSize),
+            0,
+            math.floor(pos.Z / self.chunkSize)
+        )
+        if (chunkPos - currentChunk).Magnitude > self.loadDistance * 1.2 then
+            table.insert(self.poolChunks, chunk)
+            self.activeChunks[pos] = nil
+        end
+    end
+end
+
+function BaseTerrainGenerator:FillBlock(position)
+    -- 地形填充 (未实现)
+end
+
+return BaseTerrainGenerator</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="42">
+          <Properties>
+            <string name="Name">LandGenerator</string>
+            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local LandGenerator = {}
+setmetatable(LandGenerator, {__index = BaseTerrainGenerator})
+LandGenerator.__index = LandGenerator
+LandGenerator.isTerrainGenerator = true
+
+function LandGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), LandGenerator)
+    return self
+end
+
+function LandGenerator:Init()
+    BaseTerrainGenerator.Init(self)
+    
+    self.MaterialType = Enum.Material.Grass
+    self.chunkSize = self.config.ChunkSize or 8
+    self.loadDistance = math.ceil(self.config.LoadDistance or 12)
+    self.terrainHeight = self.config.TerrainHeight or 10
+end
+
+function LandGenerator:GenerateTerrainChunk(position)
+    local chunk = Instance.new("MeshPart")
+    chunk.Position = position
+    chunk.Anchored = true
+    chunk.Material = self.MaterialType
+    chunk.Size = Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize)
+    
+    return chunk
+end
+
+function LandGenerator:FillBlock(position)
+    game:GetService("Workspace").Terrain:FillBlock(
+        CFrame.new(position),
+        Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize),
+        self.MaterialType
+    )
+end
+
+return LandGenerator</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="43">
+          <Properties>
+            <string name="Name">TerrainManager</string>
+            <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local starterplayer = game:GetService("StarterPlayer")
+local TerrainGeneratorType = starterplayer:WaitForChild("TerrainGeneratorType")
+local LandGenerator = require(TerrainGeneratorType.LandGenerator)
+local WaterGenerator = require(TerrainGeneratorType.WaterGenerator)
+local ChunkPool = require(ReplicatedStorage:WaitForChild("Tool"):WaitForChild("ChunkPool"))
+
+local TerrainManager = {}
+TerrainManager.__index = TerrainManager
+
+function TerrainManager.new(config)
+    local self = setmetatable({}, TerrainManager)
+    self.terrainGenerators = {}
+    self.currentTerrain = nil
+    
+    self.config = config or {}
+    self.centerOffset = Vector3.new(0, 0, 0)
+    self.landSize = config.landSize or 100
+    
+    self.landGenerator = LandGenerator.new({
+        ChunkSize = config.chunkSize or 8,
+        LoadDistance = config.loadDistance or 12,
+        TerrainHeight = 10,
+        landSize = self.landSize
+    })
+    
+    self.waterGenerator = WaterGenerator.new({
+        ChunkSize = config.chunkSize or 8,
+        LoadDistance = config.loadDistance or 12,
+        WaterDepth = 50
+    })
+    
+    self.chunkPool = ChunkPool.new()
+    return self
+end
+
+function TerrainManager:LoadGenerators()
+    local generatorsFolder = script.Parent.Generators
+    
+    for _, module in ipairs(generatorsFolder:GetChildren()) do
+        if module:IsA("ModuleScript") and module.Name ~= "BaseTerrainGenerator" then
+            local success, generator = pcall(function()
+                local GeneratorClass = require(module)
+                if GeneratorClass.isTerrainGenerator then
+                    return GeneratorClass
+                end
+            end)
+            
+            if success and generator then
+                self.terrainGenerators[module.Name] = generator
+            end
+        end
+    end
+end
+
+function TerrainManager:Init(config)
+    self:LoadGenerators()
+    
+    local terrainType = config.CurTerrain.."Generator"
+    if self.terrainGenerators[terrainType] then
+        self.currentTerrain = self.terrainGenerators[terrainType].new(config.TerrainType[config.CurTerrain])
+        self.currentTerrain:Init(config)
+    else
+        warn("未找到匹配的地形生成器:", terrainType)
+    end
+end
+
+function TerrainManager:SwitchTerrain(newTerrainGenerator, config)
+    if self.currentTerrain then
+        self.currentTerrain:Destroy()
+    end
+    
+    if self.terrainGenerators[newTerrainGenerator] then
+        self.currentTerrain = self.terrainGenerators[newTerrainGenerator].new(config)
+        self.currentTerrain:Init(config)
+        return true
+    end
+    return false
+end
+
+function TerrainManager:Destroy()
+    if self.currentTerrain then
+        self.currentTerrain:Destroy()
+    end
+    self.terrainGenerators = nil
+end
+
+function TerrainManager:IsLandArea(position)
+    local centerX = self.centerOffset.X
+    local centerZ = self.centerOffset.Z
+    local halfSize = self.landSize/2
+    
+    return position.X >= (centerX - halfSize) and position.X &lt;= (centerX + halfSize)
+       and position.Z >= (centerZ - halfSize) and position.Z &lt;= (centerZ + halfSize)
+end
+
+function TerrainManager:GenerateChunk(position)
+    local generator = self:IsLandArea(position) and self.landGenerator or self.waterGenerator
+    
+    local chunk = self.chunkPool:GetChunk()
+    if not chunk then
+        chunk = generator:GenerateTerrainChunk(position)
+        chunk.Parent = game.Workspace
+    else
+        chunk.Position = position
+        chunk.Size = Vector3.new(
+            generator.chunkSize, 
+            generator.terrainHeight or generator.waterDepth, 
+            generator.chunkSize
+        )
+        chunk.Material = generator.MaterialType
+    end
+    
+    generator:FillBlock(position)
+    return chunk
+end
+return TerrainManager</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="44">
+          <Properties>
+            <string name="Name">WaterGenerator</string>
+            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local WaterGenerator = {}
+setmetatable(WaterGenerator, {__index = BaseTerrainGenerator})
+WaterGenerator.__index = WaterGenerator
+WaterGenerator.isTerrainGenerator = true
+
+function WaterGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), WaterGenerator)
+    return self
+end
+
+function WaterGenerator:Init()
+    BaseTerrainGenerator.Init(self)
+    
+    self.MaterialType = Enum.Material.Water
+    -- 从配置应用参数
+    self.chunkSize = self.config.ChunkSize or self.chunkSize
+    self.loadDistance = math.ceil(self.config.LoadDistance or self.loadDistance)  -- 确保加载距离为整数
+    self.waterDepth = self.config.WaterDepth or 50
+    self.waveSpeed = self.config.WaveSpeed or 0.4
+end
+
+function WaterGenerator:GenerateTerrainChunk(position)
+    local chunk = Instance.new("MeshPart")
+    chunk.Position = position
+    chunk.Anchored = true
+    chunk.Material = self.MaterialType
+    chunk.Reflectance = 0.3
+    chunk.Transparency = 1
+
+    return chunk
+end
+
+function WaterGenerator:FillBlock(position)
+    -- 水域地形填充
+    game:GetService("Workspace").Terrain:FillBlock(
+        CFrame.new(position),
+        Vector3.new(self.chunkSize * 1.1, self.waterDepth, self.chunkSize * 1.1),
+        self.MaterialType
+    )
+
+    -- 波浪动画协程
+    coroutine.wrap(function()
+        while true do
+            local time = tick() * self.waveSpeed
+            local waveHeight = math.sin(time) * 1.5 + 5
+            game:GetService("Workspace").Terrain:FillBlock(
+                CFrame.new(position),
+                Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
+                self.MaterialType
+            )
+            wait(0.3)
+        end
+    end)()
+end
+
+return WaterGenerator</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="45">
+          <Properties>
+            <string name="Name">WildernessGenerator</string>
+            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local WildernessGenerator = {}
+setmetatable(WildernessGenerator, {__index = BaseTerrainGenerator})
+WildernessGenerator.__index = WildernessGenerator
+WildernessGenerator.isTerrainGenerator = true
+
+function WildernessGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), WildernessGenerator)
+    return self
+end
+
+function WildernessGenerator:Init()
+    BaseTerrainGenerator.Init(self)
+
+    self.MaterialType = Enum.Material.Sandstone
+    -- 从配置应用参数
+    self.chunkSize = self.config.ChunkSize or self.chunkSize
+    self.loadDistance = math.ceil(self.config.LoadDistance or self.loadDistance)  -- 确保加载距离为整数
+    self.vegetationDensity = self.config.VegetationDensity
+    self.rockProbability = self.config.RockProbability
+end
+
+function WildernessGenerator:GenerateTerrainChunk(position)
+    local noiseValue = self.noise:NextNumber(-1, 1)
+    local terrainHeight = math.floor(5 + noiseValue * 3)
+    
+    local chunk = Instance.new("MeshPart")
+    chunk.Size = Vector3.new(self.chunkSize, 0, self.chunkSize)
+    chunk.Position = position
+    chunk.Anchored = true
+    chunk.Material = self.MaterialType
+    chunk.Transparency = 0  -- 确保不透明度完全关闭
+    --chunk.Color = Color3.fromRGB(34, 139, 34)
+    
+    -- -- 生成随机植被
+    -- if math.random() &lt; self.vegetationDensity then
+    --     local vegetationTypes = {
+    --         {Size = Vector3.new(2,4,2), Color = Color3.fromRGB(50, 205, 50)},
+    --         {Size = Vector3.new(3,6,3), Color = Color3.fromRGB(34, 139, 34)},
+    --         {Size = Vector3.new(1.5,3,1.5), Color = Color3.fromRGB(107, 142, 35)}
+    --     }
+    --     local veg = vegetationTypes[math.random(#vegetationTypes)]
+    --     local plant = Instance.new("Part")
+    --     plant.Size = veg.Size
+    --     plant.Position = position + Vector3.new(
+    --         math.random(-self.chunkSize/2, self.chunkSize/2),
+    --         terrainHeight,
+    --         math.random(-self.chunkSize/2, self.chunkSize/2)
+    --     )
+    --     plant.Orientation = Vector3.new(0, math.random(0,360), 0)
+    --     plant.Material = Enum.Material.Neon
+    --     plant.Color = veg.Color
+    --     plant.Parent = chunk
+    -- end
+    
+    -- -- 生成随机岩石
+    -- if math.random() &lt; self.rockProbability then
+    --     local rock = Instance.new("Part")
+    --     rock.Size = Vector3.new(
+    --         math.random(3,6),
+    --         math.random(2,4),
+    --         math.random(3,6)
+    --     )
+    --     rock.Position = position + Vector3.new(
+    --         math.random(-self.chunkSize/2, self.chunkSize/2),
+    --         terrainHeight,
+    --         math.random(-self.chunkSize/2, self.chunkSize/2)
+    --     )
+    --     rock.Material = Enum.Material.Slate
+    --     rock.Color = Color3.fromRGB(105, 105, 105)
+    --     rock.Parent = chunk
+    -- end
+    
+    return chunk
+end
+
+function WildernessGenerator:FillBlock(position)
+    -- 地形填充 (未实现)
+end
+
+return WildernessGenerator</string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="LocalScript" referent="46">
+        <Properties>
+          <string name="Name">main</string>
+          <string name="Source">print("客户端初始化中...")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Configs = ReplicatedStorage:WaitForChild("Config")
+
+-- 加载地形配置模块
+local GameConfig = require(Configs:WaitForChild("GameConfig"))
+
+-- 初始化地形系统
+local terrainFolder = script.Parent:WaitForChild("TerrainGeneratorType")
+if not terrainFolder then
+    error("地形生成器文件夹不存在！")
+end
+local TerrainManager = require(terrainFolder:WaitForChild("TerrainManager", 5)).new()
+TerrainManager:Init(GameConfig)
+
+print("客户端初始化完成")</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="47">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="FilteringEnabled">true</bool>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="48">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">6512483</Color3uint8>
+        <bool name="Locked">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-10</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>512</X>
+          <Y>20</Y>
+          <Z>512</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

@@ -1,0 +1,830 @@
+<roblox version="4">
+  <Item class="Lighting" referent="0">
+    <Properties>
+      <string name="Name">Lighting</string>
+      <Color3 name="Ambient">
+        <R>0</R>
+        <G>0</G>
+        <B>0</B>
+      </Color3>
+      <float name="Brightness">2</float>
+      <bool name="GlobalShadows">true</bool>
+      <bool name="Outlines">false</bool>
+      <token name="Technology">1</token>
+    </Properties>
+  </Item>
+  <Item class="ReplicatedStorage" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedStorage</string>
+    </Properties>
+    <Item class="Folder" referent="2">
+      <Properties>
+        <string name="Name">Shared</string>
+      </Properties>
+      <Item class="Folder" referent="3">
+        <Properties>
+          <string name="Name">Configs</string>
+        </Properties>
+        <Item class="ModuleScript" referent="4">
+          <Properties>
+            <string name="Name">BoatConfig</string>
+            <string name="Source">-- 版本号用于配置兼容性检查
+VERSION = 1.0
+
+return {
+    ResourceCost = {
+        Wood = 50,
+        Iron = 20,
+        Rope = 10
+    },
+    Construction = {
+        Cooldown = 60, -- 建造冷却时间（秒）
+        MaxRetries = 3,
+        BaseHealth = 1000
+    },
+    Requirements = {
+        MinLevel = 5,
+        RequiredItems = {
+            "Hammer",
+            "Blueprint"
+        }
+    }
+}</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="5">
+          <Properties>
+            <string name="Name">BuildingSystem</string>
+            <string name="Source">return {
+    Buildings = {
+        Dock = {
+            Name = "船坞",
+            Cost = {
+                Wood = 150,
+                Iron = 80
+            },
+            BuildTime = 30
+        },
+        Warehouse = {
+            Name = "仓库",
+            Cost = {
+                Wood = 200
+            },
+            BuildTime = 45,
+            StorageCapacity = 1000
+        }
+    },
+    -- 进阶建筑配置
+    AdvancedBuildings = {
+        DefenseTower = {
+            UnlockLevel = 3,
+            SpecialEffects = {"自动防御", "视野增强"}
+        }
+    }
+}</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="6">
+          <Properties>
+            <string name="Name">GameSettings</string>
+            <string name="Source">return {
+    Version = "1.0.0",
+    DebugMode = true,
+    MaxPlayers = 8,
+    StartingResources = {
+        Wood = 100,
+        Iron = 50
+    },
+    -- 可扩展字段
+    EnvironmentSettings = {
+        DayNightCycle = true,
+        WeatherEffects = false
+    }
+}</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="7">
+          <Properties>
+            <string name="Name">ResourceTypes</string>
+            <string name="Source">return {
+    Resources = {
+        Wood = {
+            BaseValue = 1,
+            Weight = 0.8,
+            StackSize = 100
+        },
+        Iron = {
+            BaseValue = 3,
+            Weight = 2.5,
+            StackSize = 50
+        }
+    },
+    -- 资源分类配置
+    Categories = {
+        Basic = {
+            Wood = true,
+            Stone = true
+        }
+    }
+}</string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="ModuleScript" referent="8">
+        <Properties>
+          <string name="Name">Localization</string>
+          <string name="Source">local Localization = {}
+
+function Localization.GetText(key)
+    -- 添加本地化逻辑
+    return key
+end
+
+return Localization</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="ServerScriptService" referent="9">
+    <Properties>
+      <string name="Name">ServerScriptService</string>
+    </Properties>
+    <Item class="Folder" referent="10">
+      <Properties>
+        <string name="Name">Server</string>
+      </Properties>
+      <Item class="Script" referent="11">
+        <Properties>
+          <string name="Name">tracksystem</string>
+          <token name="RunContext">0</token>
+          <string name="Source">local TrackSystem = {}
+
+function TrackSystem:GenerateTrack(origin, direction, length)
+    -- 基础轨道生成算法实现
+    local tracks = {}
+    for i=1, length do
+        table.insert(tracks, {
+            Position = origin + direction * (i * 10),
+            Rotation = CFrame.fromEulerAnglesXYZ(0, math.rad(i*5), 0)
+        })
+    end
+    return tracks
+end
+
+return TrackSystem</string>
+        </Properties>
+      </Item>
+      <Item class="Script" referent="12">
+        <Properties>
+          <string name="Name">treasuresync</string>
+          <token name="RunContext">0</token>
+          <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local TreasureEvent = Instance.new("RemoteEvent")
+TreasureEvent.Name = "TreasureFoundEvent"
+TreasureEvent.Parent = ReplicatedStorage
+
+local TreasureStatus = {}
+
+TreasureEvent.OnServerEvent:Connect(function(player, treasurePart)
+    if treasurePart:GetAttribute("IsFound") then return end
+    
+    treasurePart:SetAttribute("IsFound", true)
+    TreasureStatus[treasurePart] = {
+        Finder = player,
+        FoundTime = os.time()
+    }
+    
+    -- 同步给所有客户端
+    TreasureEvent:FireAllClients({
+        Position = treasurePart.Position,
+        Finder = player.Name,
+        FoundTime = os.date("%X")
+    })
+end)
+
+return TreasureStatus</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="SoundService" referent="13">
+    <Properties>
+      <string name="Name">SoundService</string>
+      <bool name="RespectFilteringEnabled">true</bool>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="14">
+    <Properties>
+      <string name="Name">StarterPlayer</string>
+    </Properties>
+    <Item class="StarterPlayerScripts" referent="15">
+      <Properties>
+        <string name="Name">StarterPlayerScripts</string>
+      </Properties>
+      <Item class="ModuleScript" referent="16">
+        <Properties>
+          <string name="Name">BoatBuilder</string>
+          <string name="Source">print("开始初始化船只建造系统")
+local BoatBuilder = {}
+
+function BoatBuilder:Init(Config)
+    self.config = Config
+    self.buildMode = "Idle"  -- 建造模式状态
+    self.selectedPart = nil  -- 当前选中零件
+    self.partsLibrary = {
+        Hull = require(script.Parent:WaitForChild("Parts"):WaitForChild("Hull")),
+        Sail = require(script.Parent:WaitForChild("Parts"):WaitForChild("Sail")),
+        Rudder = require(script.Parent:WaitForChild("Parts"):WaitForChild("Rudder"))
+    }
+    
+    -- 连接资源系统
+    self.ResourceManager = require(script.Parent:WaitForChild("ResourceManager"))
+end
+
+function BoatBuilder:CheckBuildResources(partType)
+    local required = self.partsLibrary[partType].requiredResources
+    return self.ResourceManager:HasResources(required)
+end
+
+function BoatBuilder:ConsumeBuildResources(partType)
+    local required = self.partsLibrary[partType].requiredResources
+    self.ResourceManager:ConsumeResources(required)
+    self:UpdateBuildUI()
+end
+
+local PartsLibrary = require(script.Parent:WaitForChild("Parts"):WaitForChild("PartsLibrary"))
+
+function BoatBuilder:StartBuilding()
+    if not self.config then
+        error("配置未初始化")
+    end
+    print("开始船只建造流程")
+    self.buildMode = "PlacingHull"
+    PartsLibrary.ShowPartsLibrary()
+end
+
+function BoatBuilder:SelectPart(partType)
+    if self.partsLibrary[partType] then
+        -- 使用事务处理资源扣除
+        local transaction = self.ResourceManager:BeginTransaction()
+        
+        if not self:CheckBuildResources(partType) then
+            warn("资源不足无法建造："..partType)
+            transaction:Rollback()
+            return
+        end
+        
+        -- 尝试创建零件
+        local success, part = pcall(function()
+            return self.partsLibrary[partType].new()
+        end)
+        
+        if success then
+            self.selectedPart = part
+            self.buildMode = "Placing"..partType
+            self:ActivatePlacementMode()
+            self:ConsumeBuildResources(partType)
+            transaction:Commit()
+        else
+            warn("零件创建失败："..tostring(part))
+            transaction:Rollback()
+        end
+    end
+end
+
+function BoatBuilder:ToggleBuildMode()
+    local newMode = (self.buildMode == "Idle") and "PlacingHull" or "Idle"
+    
+    -- 模式切换前验证
+    if newMode == "Idle" and self.selectedPart then
+        if not self:ValidatePartPosition() then
+            warn("零件位置无效，无法退出建造模式")
+            return
+        end
+    end
+    
+    self.buildMode = newMode
+    
+    -- 清理所有连接
+    if self.buildMode == "Idle" then
+        if self.placementConnection then
+            self.placementConnection:Disconnect()
+            self.placementConnection = nil
+        end
+        if self.dragBeginConnection then
+            self.dragBeginConnection:Disconnect()
+            self.dragBeginConnection = nil
+        end
+        if self.dragEndConnection then
+            self.dragEndConnection:Disconnect()
+            self.dragEndConnection = nil
+        end
+        self.selectedPart = nil
+    end
+    
+    self:UpdateBuildUI()
+end
+
+function BoatBuilder:UpdateBuildUI()
+    -- 更新建造模式UI状态
+    local uiController = require(script.Parent:WaitForChild("BuildUIController"))
+    
+    -- 显示当前建造模式
+    uiController:SetBuildModeText(self.buildMode)
+    
+    -- 更新资源显示
+    uiController:UpdateResourceDisplay({
+        Wood = self.ResourceManager:GetResource("Wood"),
+        Cloth = self.ResourceManager:GetResource("Cloth")
+    })
+    
+    -- 显示资源不足警告
+    if self.buildMode:find("Placing") then
+        uiController:ShowResourceWarning(not self:CheckBuildResources(self.selectedPart.type))
+    end
+end
+
+function BoatBuilder:ActivatePlacementMode()
+    -- 启用水面物理效果
+    self:EnableBuoyancy()
+    self:ApplyWaterDrag()
+    
+    -- 连接物理模拟事件
+    self.placementConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        self:UpdatePartPhysics()
+    end)
+    print("进入零件放置模式:", self.buildMode)
+end
+
+function BoatBuilder:EnableBuoyancy()
+    if self.selectedPart then
+        -- 动态浮力计算（基于零件体积和水面高度）
+        local partVolume = self.selectedPart:CalculateVolume()
+        local waterHeight = workspace.Water.Position.Y
+        local buoyancyForce = partVolume * 980 * (waterHeight - self.selectedPart.Position.Y)
+        
+        self.selectedPart:ApplyBuoyancyForce(Vector3.new(0, buoyancyForce, 0))
+        
+        -- 添加动态涟漪效果
+        self.selectedPart:CreateWaterRippleEffect(waterHeight)
+        
+        -- 同步物理状态并添加客户端预测
+        self.selectedPart:SyncPhysicsState(true)
+        
+        -- 初始化拖放定位系统
+        self:InitDragDropSystem()
+    end
+end
+
+function BoatBuilder:InitDragDropSystem()
+    -- 创建零件选择框可视化
+    self.selectionBox = Instance.new("SelectionBox")
+    self.selectionBox.Adornee = self.selectedPart.PrimaryPart
+    self.selectionBox.Parent = self.selectedPart.PrimaryPart
+    
+    -- 连接输入事件
+    self.dragBeginConnection = self.selectedPart.MouseDrag:Connect(function()
+        self.isDragging = true
+        self.originalCFrame = self.selectedPart:GetPrimaryPartCFrame()
+    end)
+    
+    self.dragEndConnection = game:GetService("UserInputService").InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            self.isDragging = false
+            self:FinalizePartPosition()
+        end
+    end)
+end
+
+function BoatBuilder:UpdatePartPhysics()
+    -- 实时更新零件物理状态
+    if self.selectedPart and self.buildMode ~= "Idle" then
+        self.selectedPart:UpdateWaterInteraction()
+    end
+end
+
+function BoatBuilder:FinalizePartPosition()
+    -- 验证零件位置是否合法
+    if self:ValidatePartPosition() then
+        -- 锁定零件物理状态
+        self.selectedPart:LockPhysics()
+        
+        -- 生成锚点连接效果
+        self:CreateAttachmentPoints()
+        
+        -- 更新建造进度
+        self:UpdateConstructionProgress()
+    else
+        -- 回滚到原始位置
+        self.selectedPart:SetPrimaryPartCFrame(self.originalCFrame)
+        warn("零件放置位置无效")
+    end
+end
+
+function BoatBuilder:ValidatePartPosition()
+    -- 检查是否与其他零件碰撞
+    local overlap = self.selectedPart:CheckCollision()
+    
+    -- 验证水面高度
+    local waterHeight = workspace.Water.Position.Y
+    local partPosition = self.selectedPart.PrimaryPart.Position.Y
+    
+    -- 验证倾斜角度
+    local upVector = self.selectedPart.PrimaryPart.CFrame.UpVector
+    local angle = math.deg(math.acos(upVector:Dot(Vector3.new(0, 1, 0))))
+    
+    return not overlap and 
+           partPosition &lt; waterHeight + 2 and
+           angle &lt; 30
+end
+
+return BoatBuilder</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="17">
+        <Properties>
+          <string name="Name">BuildUIController</string>
+          <string name="Source">local BuildUIController = {}
+
+function BuildUIController:Init()
+    self.gui = script.Parent:WaitForChild("BoatBuilderGUI")
+    
+    -- 初始化核心UI组件
+    self.resourcePanel = self.gui:WaitForChild("ResourcePanel")
+    self.partsLibraryWindow = self.gui:WaitForChild("PartsLibrary")
+    self.constructionProgress = self.gui:WaitForChild("ConstructionProgress")
+    
+    -- 加载零件图标
+    self.partIcons = {
+        Hull = "rbxassetid://12345678",
+        Sail = "rbxassetid://87654321",
+        Rudder = "rbxassetid://11223344"
+    }
+    
+    self:SetupPartsLibrary()
+    self:HideAllUI()
+end
+
+function BuildUIController:HideAllUI()
+    self.resourcePanel.Visible = false
+    self.partsLibraryWindow.Visible = false
+    self.constructionProgress.Visible = false
+end
+
+function BuildUIController:UpdateResourceDisplay(resources)
+    self.resourcePanel.Wood.ValueLabel.Text = tostring(resources.Wood)
+    self.resourcePanel.Cloth.ValueLabel.Text = tostring(resources.Cloth)
+    self.resourcePanel.Visible = true
+end
+
+function BuildUIController:ShowPartsLibrary()
+    self.partsLibraryWindow.Visible = true
+    self.partsLibraryWindow.ClearAllChildren()
+    
+    for partType, icon in pairs(self.partIcons) do
+        local button = Instance.new("ImageButton")
+        button.Name = partType.."Button"
+        button.Image = icon
+        button.Size = UDim2.new(0, 100, 0, 100)
+        button.Parent = self.partsLibraryWindow
+        
+        button.MouseButton1Click:Connect(function()
+            require(script.Parent.BoatBuilder):SelectPart(partType)
+        end)
+    end
+end
+
+function BuildUIController:SetBuildModeText(mode)
+    self.constructionProgress.ModeLabel.Text = "当前模式: "..mode
+    self.constructionProgress.Visible = true
+end
+
+function BuildUIController:ShowResourceWarning(show)
+    self.resourcePanel.WarningIcon.Visible = show
+end
+
+function BuildUIController:CreateDragPreview(partType)
+    local dragPreview = Instance.new("ImageLabel")
+    dragPreview.Image = self.partIcons[partType]
+    dragPreview.Size = UDim2.new(0, 50, 0, 50)
+    dragPreview.Parent = self.gui
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragPreview.Position = UDim2.new(0, input.Position.X, 0, input.Position.Y)
+        end
+    end)
+    
+    return dragPreview
+end
+
+return BuildUIController</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="18">
+        <Properties>
+          <string name="Name">ExplorationSystem</string>
+          <string name="Source">print("开始初始化探索系统")
+local ExplorationSystem = {}
+
+function ExplorationSystem:Init()
+    print("探索系统初始化完成")
+    -- 后续可添加地图生成、事件触发等核心逻辑
+end
+
+return ExplorationSystem</string>
+        </Properties>
+      </Item>
+      <Item class="Folder" referent="19">
+        <Properties>
+          <string name="Name">Parts</string>
+        </Properties>
+        <Item class="ModuleScript" referent="20">
+          <Properties>
+            <string name="Name">Hull</string>
+            <string name="Source">print("开始初始化Hull")
+local Hull = {}
+
+Hull.type = "Hull"
+Hull.requiredResources = {
+    Wood = 100,
+    Metal = 50
+}
+
+function Hull.new()
+    return setmetatable({}, { __index = Hull })
+end
+
+return Hull</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="21">
+          <Properties>
+            <string name="Name">PartsLibrary</string>
+            <string name="Source">local PartsLibrary = {}
+
+function PartsLibrary.ShowPartsLibrary()
+    -- 创建零件选择界面
+    local screenGui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    
+    frame.Size = UDim2.new(0.3, 0, 0.5, 0)
+    frame.Position = UDim2.new(0.35, 0, 0.25, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(46, 46, 46)
+    frame.Parent = screenGui
+    
+    -- 添加零件按钮
+    local buttonTemplates = {
+        {Type = "Hull", Name = "船体", Cost = "木材x20"},
+        {Type = "Sail", Name = "船帆", Cost = "布料x10"},
+        {Type = "Rudder", Name = "船舵", Cost = "木材x5 铁x2"}
+    }
+    
+    local layout = Instance.new("UIListLayout")
+    layout.Padding = UDim.new(0, 10)
+    layout.Parent = frame
+    
+    for i, template in ipairs(buttonTemplates) do
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0.9, 0, 0.2, 0)
+        button.Position = UDim2.new(0.05, 0, 0.05 + (i-1)*0.25, 0)
+        button.Text = string.format("%s (%s)", template.Name, template.Cost)
+        button.Font = Enum.Font.SourceSansBold
+        button.TextColor3 = Color3.new(1,1,1)
+        button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        
+        button.MouseButton1Click:Connect(function()
+            require(game.ReplicatedStorage.BoatBuilder):SelectPart(template.Type)
+            screenGui:Destroy()
+        end)
+        
+        button.Parent = frame
+    end
+    
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    -- 添加关闭按钮
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+    closeButton.Position = UDim2.new(0.9, 0, 0, 0)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.new(1,0,0)
+    closeButton.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+        require(script.Parent.Parent:WaitForChild("BoatBuilder")):ToggleBuildMode()
+    end)
+    closeButton.Parent = frame
+end
+
+return PartsLibrary</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="22">
+          <Properties>
+            <string name="Name">Rudder</string>
+            <string name="Source">print("开始初始化Rudder")
+local Rudder = {}
+
+Rudder.type = "Rudder"
+Rudder.requiredResources = {
+    Wood = 60,
+    Metal = 30
+}
+
+function Rudder.new()
+    return setmetatable({}, { __index = Rudder })
+end
+
+return Rudder</string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="23">
+          <Properties>
+            <string name="Name">Sail</string>
+            <string name="Source">print("开始初始化Sail")
+local Sail = {}
+
+Sail.type = "Sail"
+Sail.requiredResources = {
+    Cloth = 80,
+    Rope = 30
+}
+
+function Sail.new()
+    return setmetatable({}, { __index = Sail })
+end
+
+return Sail</string>
+          </Properties>
+        </Item>
+      </Item>
+      <Item class="ModuleScript" referent="24">
+        <Properties>
+          <string name="Name">ResourceManager</string>
+          <string name="Source">local ResourceManager = {}
+
+local resources = {
+    Wood = 0,
+    Cloth = 0,
+    Iron = 0
+}
+
+function ResourceManager:Init()
+    -- 从数据存储加载资源
+    resources = {
+        Wood = 100,
+        Cloth = 50,
+        Iron = 30
+    }
+end
+
+function ResourceManager:GetResource(resourceType)
+    return resources[resourceType] or 0
+end
+
+function ResourceManager:HasResources(required)
+    for resourceType, amount in pairs(required) do
+        if self:GetResource(resourceType) &lt; amount then
+            return false
+        end
+    end
+    return true
+end
+
+function ResourceManager:ConsumeResources(required)
+    for resourceType, amount in pairs(required) do
+        if resources[resourceType] then
+            resources[resourceType] = math.max(0, resources[resourceType] - amount)
+        end
+    end
+end
+
+return ResourceManager</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="25">
+        <Properties>
+          <string name="Name">WaterGenerator</string>
+          <string name="Source">local WaterGenerator = {}
+
+function WaterGenerator:Init()
+    self.chunkSize = 512
+    self.loadDistance = 3
+    self.activeChunks = {}
+    self.waterMaterial = Enum.Material.Water
+    self.waterMaterial.Name = "DynamicWater"
+    self.waterMaterial.Reflectance = 0.3
+    
+    -- 使用柏林噪声生成波浪
+    self.noise = Random.new()
+    self.waveScale = 0.5
+    self.waveSpeed = 0.25
+    
+    self:SetupChunkLoader()
+end
+
+function WaterGenerator:GenerateWaterChunk(position)
+    local chunk = Instance.new("Part")
+    chunk.Size = Vector3.new(self.chunkSize, 1, self.chunkSize)
+    chunk.Position = position
+    chunk.Anchored = true
+    chunk.Material = self.waterMaterial
+    chunk.Transparency = 0.3
+    
+    -- 添加波浪位移贴图
+    -- 创建水面位移效果
+    local displacement = Instance.new("SurfaceAppearance")
+    displacement.Scale = Vector3.new(50, 50, 50)
+    displacement.Parent = chunk
+    
+    -- 实时更新波浪动画
+    game:GetService("RunService").Heartbeat:Connect(function()
+        local time = tick() * self.waveSpeed
+        displacement.Offset = Vector3.new(
+            math.noise(time, 0, 0) * self.waveScale,
+            math.noise(0, time, 0) * self.waveScale,
+            math.noise(0, 0, time) * self.waveScale
+        )
+    end)
+    
+    return chunk
+end
+
+function WaterGenerator:UpdateChunks(playerPosition)
+    -- 动态加载/卸载水域区块逻辑
+    local currentChunk = Vector3.new(
+        math.floor(playerPosition.X / self.chunkSize),
+        0,
+        math.floor(playerPosition.Z / self.chunkSize)
+    )
+    
+    -- 生成环形区块加载模式
+    for x = -self.loadDistance, self.loadDistance do
+        for z = -self.loadDistance, self.loadDistance do
+            local chunkPos = currentChunk + Vector3.new(x * self.chunkSize, 0, z * self.chunkSize)
+            if not self.activeChunks[chunkPos] then
+                local newChunk = self:GenerateWaterChunk(chunkPos)
+                self.activeChunks[chunkPos] = newChunk
+                newChunk.Parent = workspace.Water
+            end
+        end
+    end
+end
+
+return WaterGenerator</string>
+        </Properties>
+      </Item>
+      <Item class="LocalScript" referent="26">
+        <Properties>
+          <string name="Name">main</string>
+          <string name="Source">print("客户端初始化中...")
+
+-- 使用带重试的加载方式
+
+local BoatBuilder = require(script.Parent:WaitForChild("BoatBuilder"))
+local ExplorationSystem = require(script.Parent:WaitForChild("ExplorationSystem"))
+
+-- 加载配置模块
+local Config = require(script.Parent.Parent.Configs:WaitForChild("BoatConfig"))
+
+-- 版本校验
+if Config.VERSION &lt; 1.0 then
+    error("配置文件版本不兼容，请更新客户端")
+end
+
+BoatBuilder:Init(Config)
+BoatBuilder:StartBuilding()
+ExplorationSystem:Init()
+
+print("客户端初始化完成")</string>
+        </Properties>
+      </Item>
+    </Item>
+  </Item>
+  <Item class="Workspace" referent="27">
+    <Properties>
+      <string name="Name">Workspace</string>
+      <bool name="FilteringEnabled">true</bool>
+      <bool name="NeedsPivotMigration">false</bool>
+    </Properties>
+    <Item class="Part" referent="28">
+      <Properties>
+        <string name="Name">Baseplate</string>
+        <bool name="Anchored">true</bool>
+        <Color3uint8 name="Color3uint8">6512483</Color3uint8>
+        <bool name="Locked">true</bool>
+        <Vector3 name="Position">
+          <X>0</X>
+          <Y>-10</Y>
+          <Z>0</Z>
+        </Vector3>
+        <Vector3 name="size">
+          <X>512</X>
+          <Y>20</Y>
+          <Z>512</Z>
+        </Vector3>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>
