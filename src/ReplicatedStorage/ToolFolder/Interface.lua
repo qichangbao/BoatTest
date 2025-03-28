@@ -28,13 +28,14 @@ function Interface:InitBoatWaterPos(character, boat, driverSeat)
     local currentCFrame = boat:GetPivot()
     local newPosition = Vector3.new(position.X, position.Y + boat:GetExtentsSize().Y / 2 - 5, position.Z)
     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    --local newCFrame = CFrame.new(Vector3.new(0, newPosition.Y, 0))
     boat:PivotTo(newCFrame)
 
     -- 玩家自动入座
     if character then
         local humanoid = character:FindFirstChild('Humanoid')
         if humanoid then
-            humanoid.Sit = true
+            --humanoid.Sit = true
             character:WaitForChild('HumanoidRootPart').CFrame = driverSeat.CFrame * CFrame.new(0, 2, 0)
         end
     end

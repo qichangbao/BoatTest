@@ -3,6 +3,13 @@
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ServerStorage = game:GetService('ServerStorage')
+local PhysicsService = game:GetService('PhysicsService')
+
+-- 注册碰撞组
+if not PhysicsService:IsCollisionGroupRegistered("WaterCollider") then
+    PhysicsService:RegisterCollisionGroup("WaterCollider")
+end
+PhysicsService:CollisionGroupSetCollidable("WaterCollider", "WaterCollider", false)
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
@@ -102,16 +109,17 @@ local function assembleBoat(player)
 
                 if partInfo.Type == curBoatConfig[1].Name then
                     assembledBoat.PrimaryPart = partClone
+                    assembledBoat.PrimaryPart.CollisionGroup = "WaterCollider"
                     primaryPart = partClone  -- 保存主船体引用
                 end
 
-                -- 创建焊接约束
-                if primaryPart and partClone ~= primaryPart then
-                    local weld = Instance.new('WeldConstraint')
-                    weld.Part0 = primaryPart
-                    weld.Part1 = partClone
-                    weld.Parent = partClone
-                end
+                -- -- 创建焊接约束
+                -- if primaryPart and partClone ~= primaryPart then
+                --     local weldConstraint = Instance.new('WeldConstraint')
+                --     weldConstraint.Part0 = primaryPart
+                --     weldConstraint.Part1 = partClone
+                --     weldConstraint.Parent = partClone
+                -- end
 
                 -- 移除库存中的船部件
                 inventoryBF:Invoke(player, 'RemoveItem', templatePart.Name)
@@ -122,19 +130,36 @@ local function assembleBoat(player)
 
     -- 创建驾驶座位
     local primaryCFrame = assembledBoat.PrimaryPart.CFrame
+    --local primaryCFrame = primaryPart.CFrame
     local driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
     driverSeat.Parent = assembledBoat
+    driverSeat.Anchored = false
+    driverSeat.Torque = 100
+
+    driverSeat.Touched:Connect(function(hit)
+        local humanoid = hit.Parent:FindFirstChild("Humanoid")
+        if humanoid and not humanoid.Sit then
+            --humanoid.Sit = true
+            print("Player has sat on the seat.")
+        end
+    end)
 
     local currentCFrame = driverSeat:GetPivot()
-    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 10, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
     
     -- 创建焊接约束
     if primaryPart then
         local weldConstraint = Instance.new('WeldConstraint')
-        weldConstraint.Part0 = primaryPart
-        weldConstraint.Part1 = driverSeat
+        weldConstraint.Part0 = driverSeat
+        weldConstraint.Part1 = primaryPart
         weldConstraint.Parent = driverSeat
+
+        -- local SeatWeld = Instance.new('Weld')
+        -- SeatWeld.Part0 = driverSeat
+        -- SeatWeld.Part1 = player.Character:WaitForChild("HumanoidRootPart")
+        -- SeatWeld.Parent = driverSeat
+        -- SeatWeld.Archivable = false
     end
 
     -- 触发客户端事件传递座位引用
@@ -154,6 +179,40 @@ local function assembleBoat(player)
         end
     end)
 
+    -- 创建双层防渗透碰撞体
+    local function createWaterproofCollider(offsetY, sizeMultiplier)
+        local collider = Instance.new('Part')
+        collider.Size = assembledBoat.PrimaryPart.Size * sizeMultiplier
+        collider.Transparency = 0.5
+        collider.Color = Color3.new(0, 0.5, 1)
+        collider.CanCollide = true
+        collider.Anchored = false
+        collider.Parent = assembledBoat
+        collider.CFrame = assembledBoat.PrimaryPart.CFrame * CFrame.new(0, offsetY, 0)
+        collider.CollisionGroup = "WaterCollider"
+        
+        -- 添加船体焊接约束
+        if primaryPart and collider then
+            local weldConstraint = Instance.new('WeldConstraint')
+            weldConstraint.Part0 = primaryPart
+            weldConstraint.Part1 = collider
+            weldConstraint.Parent = collider
+        end
+        
+        return collider
+    end
+
+    -- 创建底部和顶部双层防渗水
+    -- 为防渗层添加焊接约束
+    for _, collider in ipairs({createWaterproofCollider(-0.7, Vector3.new(1.2, 0.5, 1.2))}) do
+        if primaryPart then
+            local weld = Instance.new('WeldConstraint')
+            weld.Part0 = primaryPart
+            weld.Part1 = collider
+            weld.Parent = collider
+        end
+    end
+
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, assembledBoat, driverSeat)
 
@@ -168,6 +227,14 @@ local function handleStopBoatRequest(player)
         return
     end
 
+	for _, instance in ipairs(playerBoat:GetChildren()) do
+		if instance:IsA('MeshPart') then
+			if instance:GetAttribute("BoatName") then
+				inventoryBF:Invoke(player, 'AddItem', instance.Name)
+			end
+			instance:Destroy()
+		end
+	end
     playerBoat:Destroy()
 end
 

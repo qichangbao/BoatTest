@@ -29,11 +29,13 @@ local function createPhysicsObjects(boatModel)
 end
 
 controlEvent.OnServerEvent:Connect(function(player, direction, state)
+    if 1 then
+        return
+    end
     local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not boat then return end
     
-    local boatName = boat.Name
-    local controlData = activeBoats[boatName] or {
+    local controlData = activeBoats[boat] or {
         velocity = nil,
         angular = nil,
         connections = {}
@@ -41,7 +43,7 @@ controlEvent.OnServerEvent:Connect(function(player, direction, state)
     
     if not controlData.velocity then
         controlData.velocity, controlData.angular = createPhysicsObjects(boat)
-        activeBoats[boatName] = controlData
+        activeBoats[boat] = controlData
     end
     
     local forceMultiplier = state and 10000 or 0
@@ -64,7 +66,7 @@ controlEvent.OnServerEvent:Connect(function(player, direction, state)
             if not boat.Parent then
                 controlData.velocity:Destroy()
                 controlData.angular:Destroy()
-                activeBoats[boatName] = nil
+                activeBoats[boat] = nil
                 return
             end
             
@@ -77,13 +79,13 @@ end)
 
 -- 清理物理组件当驾驶座释放时
 game:GetService('Players').PlayerRemoving:Connect(function(player)
-    local boatName = 'PlayerBoat_'..player.UserId
-    if activeBoats[boatName] then
-        activeBoats[boatName].velocity:Destroy()
-        activeBoats[boatName].angular:Destroy()
-        if activeBoats[boatName].connections.updateLoop then
-            activeBoats[boatName].connections.updateLoop:Disconnect()
+    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if boat and activeBoats[boat] then
+        activeBoats[boat].velocity:Destroy()
+        activeBoats[boat].angular:Destroy()
+        if activeBoats[boat].connections.updateLoop then
+            activeBoats[boat].connections.updateLoop:Disconnect()
         end
-        activeBoats[boatName] = nil
+        activeBoats[boat] = nil
     end
 end)

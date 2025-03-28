@@ -73,7 +73,15 @@ function WaterGenerator:GenerateTerrainChunk(position)
     chunk.Reflectance = 0.3
     chunk.Transparency = 1  -- 确保不透明度
     chunk.CastShadow = false
-    --chunk.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Water)
+    chunk.CollisionGroup = "WaterCollider"
+    chunk.CustomPhysicalProperties = PhysicalProperties.new(
+        100,  -- 调整后的密度值
+        0.9,  -- 增加摩擦系数
+        0.3,  -- 降低弹性系数
+        1,  -- 最大摩擦权重
+        1   -- 降低弹性权重
+    )
+    print(chunk.CustomPhysicalProperties)
 
     return chunk
 end
@@ -91,19 +99,19 @@ function WaterGenerator:FillBlock(position)
         self.materialType
     )
 
-    -- 波浪动画协程
-    coroutine.wrap(function()
-        while true do
-            local time = tick() * self.waveSpeed
-            local waveHeight = math.sin(time) * 1.5 + 5
-            game:GetService("Workspace").Terrain:FillBlock(
-                CFrame.new(position),
-                Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
-                self.materialType
-            )
-            wait(0.3)
-        end
-    end)()
+    -- -- 波浪动画协程
+    -- coroutine.wrap(function()
+    --     while true do
+    --         local time = tick() * self.waveSpeed
+    --         local waveHeight = math.sin(time) * 1.5 + 5
+    --         game:GetService("Workspace").Terrain:FillBlock(
+    --             CFrame.new(position),
+    --             Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
+    --             self.materialType
+    --         )
+    --         wait(0.3)
+    --     end
+    -- end)()
 end
 
 function WaterGenerator:SetupChunkLoader()

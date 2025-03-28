@@ -146,7 +146,9 @@ Button.Position = UDim2.new(0.05, 0, 0.45, 0)  -- Y轴下移0.1保持间距
 
 -- 初始化止航远程事件
 local STOP_BOAT_RE_NAME = 'StopBoatEvent'
-local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME)
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
+stopEvent.Name = STOP_BOAT_RE_NAME
+stopEvent.Parent = ReplicatedStorage
 
 local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
 local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME) or Instance.new('BindableEvent')
