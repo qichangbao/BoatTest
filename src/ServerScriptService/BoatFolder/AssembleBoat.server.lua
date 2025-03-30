@@ -79,7 +79,7 @@ local function assembleBoat(player)
     if #boatParts == 0 then
         warn("玩家没有可用的船部件")
         return
-    end
+    end 
 
     -- 克隆模板并定位部件
     -- 创建新模型容器并保持模板原始坐标关系
