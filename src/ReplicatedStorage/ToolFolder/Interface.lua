@@ -4,19 +4,12 @@ local Interface = {}
 
 -- 初始化玩家位置
 function Interface:InitPlayerPos(player)
-    local function initCharacterPos(character)
-        local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5) or warn("HumanoidRootPart not found in character")
-        if not humanoidRootPart then return end
-        local landSpawn = workspace:WaitForChild("LandSpawnLocation")
-        local position = landSpawn.Position
-        humanoidRootPart.CFrame = CFrame.new(Vector3.new(position.X, position.Y + 6, position.Z))
-    end
-
-    -- 初始化已存在的角色
-    if player.Character then
-        initCharacterPos(player.Character)
-    else
-        player.CharacterAdded:Once(initCharacterPos)
+    local spawnLocation = player.RespawnLocation
+    if spawnLocation and player.Character then
+        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            humanoidRootPart.CFrame = spawnLocation.CFrame
+        end
     end
 end
 
@@ -36,7 +29,7 @@ function Interface:InitBoatWaterPos(character, boat, driverSeat)
         local humanoid = character:FindFirstChild('Humanoid')
         if humanoid then
             --humanoid.Sit = true
-            character:WaitForChild('HumanoidRootPart').CFrame = driverSeat.CFrame * CFrame.new(0, 2, 0)
+            --character:WaitForChild('HumanoidRootPart').CFrame = driverSeat.CFrame * CFrame.new(0, 2, 0)
         end
     end
 end

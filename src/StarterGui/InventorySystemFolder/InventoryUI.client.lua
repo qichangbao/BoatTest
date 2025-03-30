@@ -1,13 +1,21 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 
+-- 通知客户端更新UI
 local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
-local updateEvent = ReplicatedStorage:WaitForChild(INVENTORY_UPDATE_RE_NAME)
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
+updateInventoryEvent.Name = INVENTORY_UPDATE_RE_NAME
+updateInventoryEvent.Parent = ReplicatedStorage
+
+-- 请求库存数据
+local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME) or Instance.new('RemoteEvent')
+requestInventoryEvent.Name = GET_INVENTORY_RE_NAME
+requestInventoryEvent.Parent = ReplicatedStorage
 
 local localPlayer = Players.LocalPlayer
 local gui = Instance.new('ScreenGui')
 gui.Name = 'InventoryUI'
-
 gui.Parent = localPlayer:WaitForChild('PlayerGui')
 
 local inventoryFrame = Instance.new('Frame')
@@ -88,11 +96,18 @@ local function UpdateInventoryUI(inventoryData)
 end
 
 -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
-updateEvent.OnClientEvent:Connect(function(action, inventoryData)
-    if action == 'Update' then
-        -- 更新本地UI显示
-        UpdateInventoryUI(inventoryData)
-    end
+-- 监听库存数据更新事件
+updateInventoryEvent.OnClientEvent:Connect(function(inventoryData)
+    UpdateInventoryUI(inventoryData)
 end)
 
-return gui
+-- 监听界面显示/隐藏事件
+local INVENTORY_BE_NAME = 'InventoryEvent'
+local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME) or Instance.new('BindableEvent')
+inventoryEvent.Name = INVENTORY_BE_NAME
+inventoryEvent.Parent = ReplicatedStorage
+inventoryEvent.Event:Connect(function(isVisible)
+    inventoryFrame.Visible = isVisible
+end)
+
+requestInventoryEvent:FireServer()

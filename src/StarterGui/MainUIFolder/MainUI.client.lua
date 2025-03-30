@@ -10,23 +10,48 @@
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 
-local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
 -- 初始化远程事件通信通道（客户端->服务端）
-local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
+local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME) or Instance.new('RemoteEvent')
+assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
+assembleEvent.Parent = ReplicatedStorage
+
+-- 初始化更新UI事件
+local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME) or Instance.new('RemoteEvent')
+updateMainUIEvent.Name = UPDATE_MAINUI_RE_NAME
+updateMainUIEvent.Parent = ReplicatedStorage
+
+-- 初始化库存界面远程事件
+local INVENTORY_BE_NAME = 'InventoryEvent'
+local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME) or Instance.new('BindableEvent')
+inventoryEvent.Name = INVENTORY_BE_NAME
+inventoryEvent.Parent = ReplicatedStorage
 
 local ScreenGui = Instance.new('ScreenGui')
 ScreenGui.Name = 'BoatControlUI'
 ScreenGui.Parent = Players.LocalPlayer:WaitForChild('PlayerGui')
 
-local Button = Instance.new('TextButton')
+local StartButton = Instance.new('TextButton')
 -- 启航按钮布局
-Button.Size = UDim2.new(0.2, 0, 0.1, 0)
-Button.Position = UDim2.new(0.05, 0, 0.45, 0)
-Button.Text = '启航'
-Button.Font = Enum.Font.SourceSansBold
-Button.TextSize = 24
-Button.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-Button.Parent = ScreenGui
+StartButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+StartButton.Position = UDim2.new(0.05, 0, 0.45, 0)
+StartButton.Text = '启航'
+StartButton.Font = Enum.Font.SourceSansBold
+StartButton.TextSize = 24
+StartButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+StartButton.Parent = ScreenGui
+
+-- 止航按钮
+local StopButton = Instance.new('TextButton')
+StopButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+StopButton.Position = UDim2.new(0.05, 0, 0.45, 0)  -- 原启航按钮Y轴位置调整为0.35
+StopButton.Text = '止航'
+StopButton.Font = Enum.Font.SourceSansBold
+StopButton.TextSize = 24
+StopButton.BackgroundColor3 = Color3.fromRGB(215, 0, 0)
+StopButton.Visible = false  -- 初始隐藏止航按钮
+StopButton.Parent = ScreenGui
 
 -- 抽奖按钮
 local LootButton = Instance.new('TextButton')
@@ -60,8 +85,36 @@ for i = 1, 4 do
 end
 
 -- 点击事件处理：向服务端发送船只组装请求
-Button.MouseButton1Click:Connect(function()
+StartButton.MouseButton1Click:Connect(function()
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+    if boat then
+        return
+    end
     assembleEvent:FireServer()
+end)
+
+-- 初始化止航远程事件
+local STOP_BOAT_RE_NAME = 'StopBoatEvent'
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
+stopEvent.Name = STOP_BOAT_RE_NAME
+stopEvent.Parent = ReplicatedStorage
+
+local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
+local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME) or Instance.new('BindableEvent')
+stopEventBE.Name = STOP_BOAT_BE_NAME
+stopEventBE.Parent = ReplicatedStorage
+
+-- 止航按钮点击事件
+StopButton.MouseButton1Click:Connect(function()
+    stopEventBE:Fire()
+    stopEvent:FireServer()
+end)
+
+updateMainUIEvent.OnClientEvent:Connect(function(data)
+    StartButton.Visible = not data.explore
+    StopButton.Visible = data.explore
+    -- 通过事件通知隐藏库存界面
+    inventoryEvent:Fire(not data.explore)
 end)
 
 -- 初始化抽奖远程事件
@@ -84,7 +137,6 @@ for _, boxButton in ipairs(LootPopup:GetChildren()) do
     end
 end
 
-
 -- 金币显示标签
 local GoldLabel = Instance.new('TextLabel')
 GoldLabel.Size = UDim2.new(0.25, 0, 0.08, 0)
@@ -98,7 +150,9 @@ GoldLabel.Parent = ScreenGui
 
 -- 初始化金币更新远程事件
 local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
-local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME)
+local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
+goldEvent.Name = GOLD_UPDATE_RE_NAME
+goldEvent.Parent = ReplicatedStorage
 
 -- 金币更新处理方法
 local function updateGoldDisplay(newAmount)
@@ -107,7 +161,6 @@ end
 
 -- 监听金币更新事件
 goldEvent.OnClientEvent:Connect(updateGoldDisplay)
-
 
 -- 创建关闭按钮
 local CloseButton = Instance.new('TextButton')
@@ -129,34 +182,4 @@ CloseButton.MouseButton1Down:Connect(function()
     CloseButton.Size = UDim2.new(0.09, 0, 0.09, 0)
     wait(0.1)
     CloseButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-end)
-
--- 止航按钮
-local StopButton = Instance.new('TextButton')
-StopButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-StopButton.Position = UDim2.new(0.05, 0, 0.35, 0)  -- 原启航按钮Y轴位置调整为0.35
-StopButton.Text = '止航'
-StopButton.Font = Enum.Font.SourceSansBold
-StopButton.TextSize = 24
-StopButton.BackgroundColor3 = Color3.fromRGB(215, 0, 0)
-StopButton.Parent = ScreenGui
-
--- 调整原启航按钮位置到下方
-Button.Position = UDim2.new(0.05, 0, 0.45, 0)  -- Y轴下移0.1保持间距
-
--- 初始化止航远程事件
-local STOP_BOAT_RE_NAME = 'StopBoatEvent'
-local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
-stopEvent.Name = STOP_BOAT_RE_NAME
-stopEvent.Parent = ReplicatedStorage
-
-local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
-local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME) or Instance.new('BindableEvent')
-stopEventBE.Name = STOP_BOAT_BE_NAME
-stopEventBE.Parent = ReplicatedStorage
-
--- 止航按钮点击事件
-StopButton.MouseButton1Click:Connect(function()
-    stopEventBE:Fire()
-    stopEvent:FireServer()
 end)

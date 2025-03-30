@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 -- 初始化金币更新远程事件
@@ -20,5 +21,8 @@ Players.PlayerAdded:Connect(function(player)
     else
         player.CharacterAdded:Connect(setupCharacter)
     end
-    Interface:InitPlayerPos(player)
+
+    -- 初始化重生点
+    local LandSpawnLocation = Workspace.LandSpawnLocation
+    player.RespawnLocation = LandSpawnLocation
 end)

@@ -13,12 +13,15 @@ InventoryManager.__index = InventoryManager
 
 -- 通知客户端更新UI
 local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
-local updateEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME)
-if not updateEvent then
-    updateEvent = Instance.new('RemoteEvent')
-    updateEvent.Name = INVENTORY_UPDATE_RE_NAME
-    updateEvent.Parent = ReplicatedStorage
-end
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
+updateInventoryEvent.Name = INVENTORY_UPDATE_RE_NAME
+updateInventoryEvent.Parent = ReplicatedStorage
+
+-- 请求库存数据
+local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME) or Instance.new('RemoteEvent')
+requestInventoryEvent.Name = GET_INVENTORY_RE_NAME
+requestInventoryEvent.Parent = ReplicatedStorage
 
 local INVENTORY_BF_NAME = 'InventoryBindableFunction'
 local inventoryBF = ReplicatedStorage:FindFirstChild(INVENTORY_BF_NAME)
@@ -32,6 +35,11 @@ end
 function InventoryManager.new()
     local self = setmetatable({}, InventoryManager)
     self.playersInventory = {}
+
+    requestInventoryEvent.OnServerEvent:Connect(function(player)
+        local inventory = self:GetPlayerInventory(player)
+        updateInventoryEvent:FireClient(player, inventory)
+    end)
     
     -- 绑定远程函数调用处理
     inventoryBF.OnInvoke = function(player, action, ...)
@@ -69,7 +77,7 @@ function InventoryManager:AddItemToInventory(player, itemType)
         icon = "rbxassetid://12345678", -- 临时图标，需替换为正式配置
     }
     
-    updateEvent:FireClient(player, 'Update', self.playersInventory[player])
+    updateInventoryEvent:FireClient(player, self.playersInventory[player])
     
     return true
 end
@@ -87,7 +95,7 @@ function InventoryManager:RemoveItemFromInventory(player, itemType)
             self.playersInventory[player][itemType] = nil
         end
         
-        updateEvent:FireClient(player, 'Update', self.playersInventory[player])
+        updateInventoryEvent:FireClient(player, self.playersInventory[player])
     end
 end
 

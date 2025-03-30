@@ -6,15 +6,18 @@ local ServerStorage = game:GetService('ServerStorage')
 local PhysicsService = game:GetService('PhysicsService')
 
 -- 注册碰撞组
+if not PhysicsService:IsCollisionGroupRegistered("BoatCollider") then
+    PhysicsService:RegisterCollisionGroup("BoatCollider")
+end
 if not PhysicsService:IsCollisionGroupRegistered("WaterCollider") then
     PhysicsService:RegisterCollisionGroup("WaterCollider")
 end
-PhysicsService:CollisionGroupSetCollidable("WaterCollider", "WaterCollider", false)
+PhysicsService:CollisionGroupSetCollidable("WaterCollider", "BoatCollider", false)
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
--- 初始化远程事件
+-- 初始化组装事件
 local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
 local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME) or Instance.new('RemoteEvent')
 assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
@@ -32,16 +35,26 @@ local controlEvent = ReplicatedStorage:FindFirstChild(BOAT_CONTROL_RE_NAME) or I
 controlEvent.Name = BOAT_CONTROL_RE_NAME
 controlEvent.Parent = ReplicatedStorage
 
--- 初始化远程事件
+-- 初始化止航事件
 local STOP_BOAT_RE_NAME = 'StopBoatEvent'
 local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
 stopEvent.Name = STOP_BOAT_RE_NAME
 stopEvent.Parent = ReplicatedStorage
 
+-- 初始化更新UI事件
+local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME) or Instance.new('RemoteEvent')
+updateMainUIEvent.Name = UPDATE_MAINUI_RE_NAME
+updateMainUIEvent.Parent = ReplicatedStorage
+
 -- 执行船只组装核心逻辑
 -- @param player 发起组装请求的玩家对象
 -- @return Model 组装完成的船只模型
 local function assembleBoat(player)
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    if boat then
+        return
+    end
     -- 确保ServerStorage中存在船舶模板
     local boatTemplate = ServerStorage:FindFirstChild('船')
     -- 校验服务器预置的船只模板是否存在
@@ -71,32 +84,9 @@ local function assembleBoat(player)
     -- 克隆模板并定位部件
     -- 创建新模型容器并保持模板原始坐标关系
     -- 使用模板的CFrame保持部件相对位置，确保物理模拟准确性
-    local assembledBoat = Instance.new('Model')
-    assembledBoat.Name = 'PlayerBoat_'..player.UserId
-    assembledBoat.Parent = workspace
-
-    -- 监听船模型销毁事件，销毁船模型时将船部件返还给玩家的库存
-    assembledBoat.AncestryChanged:Connect(function(child, parent)
-        if parent == nil then
-            for _, instance in ipairs(assembledBoat:GetChildren()) do
-                if instance:IsA('MeshPart') then
-                    if instance:GetAttribute("BoatName") then
-                        inventoryBF:Invoke(player, 'AddItem', instance.Name)
-                    end
-                    instance:Destroy()
-                end
-            end
-
-            local character = player.Character
-            if character then
-                local humanoid = character:FindFirstChild('Humanoid')
-                if humanoid then
-                    humanoid.Sit = false
-                end
-            end
-            Interface:InitPlayerPos(player)
-        end
-    end)
+    local boat = Instance.new('Model')
+    boat.Name = 'PlayerBoat_'..player.UserId
+    boat.Parent = workspace
     
     local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
     local primaryPart = nil
@@ -105,45 +95,39 @@ local function assembleBoat(player)
             if templatePart:IsA('MeshPart') and partInfo.Type == templatePart.Name then
                 local partClone = templatePart:Clone()
                 partClone.CFrame = templatePart.CFrame
-                partClone.Parent = assembledBoat
+                partClone.Parent = boat
+                partClone.CustomPhysicalProperties = PhysicalProperties.new(
+                    0.01,
+                    0.35,
+                    0.2
+                )
+                print(partClone.CustomPhysicalProperties)
 
                 if partInfo.Type == curBoatConfig[1].Name then
-                    assembledBoat.PrimaryPart = partClone
-                    assembledBoat.PrimaryPart.CollisionGroup = "WaterCollider"
-                    primaryPart = partClone  -- 保存主船体引用
+                    boat.PrimaryPart = partClone
+                    boat.PrimaryPart.CollisionGroup = "BoatCollider"
+                    primaryPart = boat.PrimaryPart  -- 保存主船体引用
                 end
 
-                -- -- 创建焊接约束
-                -- if primaryPart and partClone ~= primaryPart then
-                --     local weldConstraint = Instance.new('WeldConstraint')
-                --     weldConstraint.Part0 = primaryPart
-                --     weldConstraint.Part1 = partClone
-                --     weldConstraint.Parent = partClone
-                -- end
-
-                -- 移除库存中的船部件
-                inventoryBF:Invoke(player, 'RemoveItem', templatePart.Name)
+                -- 创建焊接约束
+                if primaryPart and partClone ~= primaryPart then
+                    local weldConstraint = Instance.new('WeldConstraint')
+                    weldConstraint.Part0 = primaryPart
+                    weldConstraint.Part1 = partClone
+                    weldConstraint.Parent = partClone
+                end
                 break
             end
         end
     end
 
     -- 创建驾驶座位
-    local primaryCFrame = assembledBoat.PrimaryPart.CFrame
+    local primaryCFrame = boat.PrimaryPart.CFrame
     --local primaryCFrame = primaryPart.CFrame
     local driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
-    driverSeat.Parent = assembledBoat
+    driverSeat.Parent = boat
     driverSeat.Anchored = false
-    driverSeat.Torque = 100
-
-    driverSeat.Touched:Connect(function(hit)
-        local humanoid = hit.Parent:FindFirstChild("Humanoid")
-        if humanoid and not humanoid.Sit then
-            --humanoid.Sit = true
-            print("Player has sat on the seat.")
-        end
-    end)
 
     local currentCFrame = driverSeat:GetPivot()
     driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
@@ -182,14 +166,14 @@ local function assembleBoat(player)
     -- 创建双层防渗透碰撞体
     local function createWaterproofCollider(offsetY, sizeMultiplier)
         local collider = Instance.new('Part')
-        collider.Size = assembledBoat.PrimaryPart.Size * sizeMultiplier
+        collider.Size = boat.PrimaryPart.Size * sizeMultiplier
         collider.Transparency = 0.5
         collider.Color = Color3.new(0, 0.5, 1)
         collider.CanCollide = true
         collider.Anchored = false
-        collider.Parent = assembledBoat
-        collider.CFrame = assembledBoat.PrimaryPart.CFrame * CFrame.new(0, offsetY, 0)
-        collider.CollisionGroup = "WaterCollider"
+        collider.Parent = boat
+        collider.CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, offsetY, 0)
+        collider.CollisionGroup = "BoatCollider"
         
         -- 添加船体焊接约束
         if primaryPart and collider then
@@ -198,43 +182,38 @@ local function assembleBoat(player)
             weldConstraint.Part1 = collider
             weldConstraint.Parent = collider
         end
+        local buoyancy = Instance.new('BodyForce')
+        buoyancy.Force = Vector3.new(0, 100000, 0)
+        buoyancy.Parent = collider
         
         return collider
     end
 
-    -- 创建底部和顶部双层防渗水
-    -- 为防渗层添加焊接约束
-    for _, collider in ipairs({createWaterproofCollider(-0.7, Vector3.new(1.2, 0.5, 1.2))}) do
-        if primaryPart then
-            local weld = Instance.new('WeldConstraint')
-            weld.Part0 = primaryPart
-            weld.Part1 = collider
-            weld.Parent = collider
-        end
-    end
+    -- 创建底部防渗水
+    --createWaterproofCollider(-19, Vector3.new(1.5, 0.5, 1.5))
 
     -- 设置船的初始位置
-    Interface:InitBoatWaterPos(player.character, assembledBoat, driverSeat)
+    Interface:InitBoatWaterPos(player.character, boat, driverSeat)
 
-    return assembledBoat
+    -- 触发客户端事件更新主界面UI
+    updateMainUIEvent:FireClient(player, {explore = true})
+
+    return boat
 end
 
 assembleEvent.OnServerEvent:Connect(assembleBoat)
 
 local function handleStopBoatRequest(player)
+    -- 触发客户端事件更新主界面UI
+    updateMainUIEvent:FireClient(player, {explore = false})
+
+    Interface:InitPlayerPos(player)
+
     local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not playerBoat then
         return
     end
 
-	for _, instance in ipairs(playerBoat:GetChildren()) do
-		if instance:IsA('MeshPart') then
-			if instance:GetAttribute("BoatName") then
-				inventoryBF:Invoke(player, 'AddItem', instance.Name)
-			end
-			instance:Destroy()
-		end
-	end
     playerBoat:Destroy()
 end
 

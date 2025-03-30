@@ -27,8 +27,10 @@ function TerrainManager.new(config)
     local self = setmetatable({}, TerrainManager)
 
     -- 移除默认场景
-    local Baseplate = game.Workspace:WaitForChild("Baseplate")
-    Baseplate:Destroy()
+    local Baseplate = game.Workspace:FindFirstChild("Baseplate")
+    if Baseplate then
+        Baseplate:Destroy()
+    end
     
     self.config = config or {}
     self.landPosition = self.config.TerrainType.Land.Position or Vector3.new(0, 0, 0)
@@ -50,8 +52,8 @@ function TerrainManager:Init()
     local spawnLocation = game.Workspace:WaitForChild("LandSpawnLocation")
     local position = Vector3.new(spawnLocation.Position.X, -self.config.TerrainType.Land.Size.Y / 2 - spawnLocation.Position.Y, spawnLocation.Position.Z)
     -- 直接初始化陆地生成器
-    self.landGenerator = LandGenerator.new(self.config.TerrainType.Land)
-    self.landGenerator:Init(position)
+    -- self.landGenerator = LandGenerator.new(self.config.TerrainType.Land)
+    -- self.landGenerator:Init(position)
     self.waterGenerator = WaterGenerator.new(self.config.TerrainType.Water)
     self.waterGenerator:Init(self, position.Y)
     

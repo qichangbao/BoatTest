@@ -71,16 +71,11 @@ function WaterGenerator:GenerateTerrainChunk(position)
     chunk.Anchored = true
     chunk.Material = self.materialType
     chunk.Reflectance = 0.3
-    chunk.Transparency = 1  -- 确保不透明度
+    chunk.Transparency = 0  -- 确保不透明度
+    chunk.Color = Color3.new(0.007843, 0.007843, 0.007843)
     chunk.CastShadow = false
     chunk.CollisionGroup = "WaterCollider"
-    chunk.CustomPhysicalProperties = PhysicalProperties.new(
-        100,  -- 调整后的密度值
-        0.9,  -- 增加摩擦系数
-        0.3,  -- 降低弹性系数
-        1,  -- 最大摩擦权重
-        1   -- 降低弹性权重
-    )
+    chunk.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Water)
     print(chunk.CustomPhysicalProperties)
 
     return chunk
