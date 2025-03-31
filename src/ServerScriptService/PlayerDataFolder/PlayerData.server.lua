@@ -23,6 +23,5 @@ Players.PlayerAdded:Connect(function(player)
     end
 
     -- 初始化重生点
-    local LandSpawnLocation = Workspace.LandSpawnLocation
-    player.RespawnLocation = LandSpawnLocation
+    player.RespawnLocation = Workspace.LandSpawnLocation
 end)

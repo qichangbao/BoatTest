@@ -14,6 +14,14 @@ local activeBoats = {}
 local function createPhysicsObjects(boatModel)
     local boatBase = boatModel
     
+    -- 设置船体物理属性
+    for _, part in ipairs(boatModel:GetDescendants()) do
+        if part:IsA('BasePart') then
+            part.Material = Enum.Material.Wood
+            part.CustomPhysicalProperties = PhysicalProperties.new(450, 0.3, 0.5)
+        end
+    end
+
     -- 添加浮力效果(考虑体积因素)
     local buoyancy = Instance.new('BodyForce')
     local waterLevel = workspace:FindFirstChild('WaterSpawnLocation').Position.Y

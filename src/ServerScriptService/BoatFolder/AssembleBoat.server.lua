@@ -14,6 +14,7 @@ if not PhysicsService:IsCollisionGroupRegistered("WaterCollider") then
 end
 PhysicsService:CollisionGroupSetCollidable("WaterCollider", "BoatCollider", false)
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+--local BuoyantController = require(script.Parent:WaitForChild('BuoyantController'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
@@ -96,11 +97,7 @@ local function assembleBoat(player)
                 local partClone = templatePart:Clone()
                 partClone.CFrame = templatePart.CFrame
                 partClone.Parent = boat
-                partClone.CustomPhysicalProperties = PhysicalProperties.new(
-                    0.01,
-                    0.35,
-                    0.2
-                )
+                partClone.CustomPhysicalProperties = PhysicalProperties.new(0.5, 0.3, 0.2) -- 密度0.5g/cm³，摩擦力0.3，弹性0.2
                 print(partClone.CustomPhysicalProperties)
 
                 if partInfo.Type == curBoatConfig[1].Name then
@@ -194,6 +191,9 @@ local function assembleBoat(player)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat, driverSeat)
+    
+    -- 应用动态浮力计算
+    --BuoyantController.applyBuoyancy(primaryPart, boat)
 
     -- 触发客户端事件更新主界面UI
     updateMainUIEvent:FireClient(player, {explore = true})
@@ -204,17 +204,32 @@ end
 assembleEvent.OnServerEvent:Connect(assembleBoat)
 
 local function handleStopBoatRequest(player)
+    warn("[船只销毁] 玩家 "..player.Name.."("..player.UserId..") 触发停止事件")
     -- 触发客户端事件更新主界面UI
     updateMainUIEvent:FireClient(player, {explore = false})
+    
+    -- 调试日志：检查玩家当前船只状态
+    warn("[船只销毁] 正在查找玩家船只: PlayerBoat_"..player.UserId)
 
     Interface:InitPlayerPos(player)
 
     local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not playerBoat then
+        warn("[船只销毁] 未找到玩家船只")
         return
     end
 
-    playerBoat:Destroy()
+    warn("[船只销毁] 开始销毁船只: "..playerBoat:GetFullName())
+    warn("销毁前模型有效性:", playerBoat:IsDescendantOf(game) and "有效" or "无效")
+    warn("销毁前父级:", playerBoat.Parent and playerBoat.Parent:GetFullName() or "nil")
+            playerBoat:Destroy()
+    warn("销毁后模型有效性:", playerBoat:IsDescendantOf(game) and "有效" or "无效")
+    warn("[船只销毁] 船只销毁完成")
 end
 
-stopEvent.OnServerEvent:Connect(handleStopBoatRequest)
+warn("[船只停止事件] 开始监听停止事件")
+stopEvent.OnServerEvent:Connect(function(player)
+    warn("[船只停止事件] 收到来自玩家 "..player.Name.."("..player.UserId..") 的请求")
+    debug.traceback("当前堆栈跟踪：")
+    handleStopBoatRequest(player)
+end)

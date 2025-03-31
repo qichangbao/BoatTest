@@ -15,11 +15,11 @@ end
 
 -- 初始化船的位置
 function Interface:InitBoatWaterPos(character, boat, driverSeat)
-    local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+    local waterSpawn = workspace:WaitForChild('LandSpawnLocation')
     local position = waterSpawn.Position
 
     local currentCFrame = boat:GetPivot()
-    local newPosition = Vector3.new(position.X, position.Y + boat:GetExtentsSize().Y / 2 - 5, position.Z)
+    local newPosition = Vector3.new(position.X, position.Y, position.Z)
     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
     --local newCFrame = CFrame.new(Vector3.new(0, newPosition.Y, 0))
     boat:PivotTo(newCFrame)
