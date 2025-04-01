@@ -1,13 +1,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+require(game.ServerScriptService:WaitForChild('Start'))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 -- 初始化金币更新远程事件
 local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
-local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
-goldEvent.Name = GOLD_UPDATE_RE_NAME
-goldEvent.Parent = ReplicatedStorage
+local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME)
 
 Players.PlayerAdded:Connect(function(player)
     local function setupCharacter(character)

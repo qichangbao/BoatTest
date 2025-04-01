@@ -3,50 +3,32 @@
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ServerStorage = game:GetService('ServerStorage')
-local PhysicsService = game:GetService('PhysicsService')
+require(game.ServerScriptService:WaitForChild('Start'))
 
--- 注册碰撞组
-if not PhysicsService:IsCollisionGroupRegistered("BoatCollider") then
-    PhysicsService:RegisterCollisionGroup("BoatCollider")
-end
-if not PhysicsService:IsCollisionGroupRegistered("WaterCollider") then
-    PhysicsService:RegisterCollisionGroup("WaterCollider")
-end
-PhysicsService:CollisionGroupSetCollidable("WaterCollider", "BoatCollider", false)
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
---local BuoyantController = require(script.Parent:WaitForChild('BuoyantController'))
+--local BuoyantController = require(game.ServerScriptService:WaitForChild("BoatFolder"):WaitForChild('buoyantController'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
 -- 初始化组装事件
 local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
-local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME) or Instance.new('RemoteEvent')
-assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
-assembleEvent.Parent = ReplicatedStorage
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
 
 -- 初始化库存绑定函数
 local INVENTORY_BF_NAME = 'InventoryBindableFunction'
-local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME) or Instance.new('BindableFunction')
-inventoryBF.Name = INVENTORY_BF_NAME
-inventoryBF.Parent = ReplicatedStorage
+local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME)
 
 -- 创建控制远程事件
 local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
-local controlEvent = ReplicatedStorage:FindFirstChild(BOAT_CONTROL_RE_NAME) or Instance.new('RemoteEvent')
-controlEvent.Name = BOAT_CONTROL_RE_NAME
-controlEvent.Parent = ReplicatedStorage
+local controlEvent = ReplicatedStorage:FindFirstChild(BOAT_CONTROL_RE_NAME)
 
 -- 初始化止航事件
 local STOP_BOAT_RE_NAME = 'StopBoatEvent'
-local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
-stopEvent.Name = STOP_BOAT_RE_NAME
-stopEvent.Parent = ReplicatedStorage
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME)
 
 -- 初始化更新UI事件
 local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
-local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME) or Instance.new('RemoteEvent')
-updateMainUIEvent.Name = UPDATE_MAINUI_RE_NAME
-updateMainUIEvent.Parent = ReplicatedStorage
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME)
 
 -- 执行船只组装核心逻辑
 -- @param player 发起组装请求的玩家对象
@@ -97,12 +79,10 @@ local function assembleBoat(player)
                 local partClone = templatePart:Clone()
                 partClone.CFrame = templatePart.CFrame
                 partClone.Parent = boat
-                partClone.CustomPhysicalProperties = PhysicalProperties.new(0.5, 0.3, 0.2) -- 密度0.5g/cm³，摩擦力0.3，弹性0.2
-                print(partClone.CustomPhysicalProperties)
+                partClone.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Wood)
 
                 if partInfo.Type == curBoatConfig[1].Name then
                     boat.PrimaryPart = partClone
-                    boat.PrimaryPart.CollisionGroup = "BoatCollider"
                     primaryPart = boat.PrimaryPart  -- 保存主船体引用
                 end
 
@@ -120,7 +100,6 @@ local function assembleBoat(player)
 
     -- 创建驾驶座位
     local primaryCFrame = boat.PrimaryPart.CFrame
-    --local primaryCFrame = primaryPart.CFrame
     local driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
     driverSeat.Parent = boat
@@ -170,7 +149,6 @@ local function assembleBoat(player)
         collider.Anchored = false
         collider.Parent = boat
         collider.CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, offsetY, 0)
-        collider.CollisionGroup = "BoatCollider"
         
         -- 添加船体焊接约束
         if primaryPart and collider then
@@ -179,18 +157,81 @@ local function assembleBoat(player)
             weldConstraint.Part1 = collider
             weldConstraint.Parent = collider
         end
-        local buoyancy = Instance.new('BodyForce')
-        buoyancy.Force = Vector3.new(0, 100000, 0)
-        buoyancy.Parent = collider
+
+        -- game:GetService("RunService").Heartbeat:Connect(function()
+        --     if not boat or not collider then
+        --         return
+        --     end
+            
+        -- --     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+        -- --     local newPosition = Vector3.new(position.X, waterSpawn.Position.Y + boat.PrimaryPart.size.y, position.Z)
+        -- --     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(boatInitPivot:ToEulerAnglesXYZ())
+        -- --     boat:PivotTo(newCFrame)
+        --     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+        --     local newCFrame = collider.CFrame
+        --     collider.CFrame = CFrame.new(Vector3.new(newCFrame.Position.X, waterSpawn.Position.Y, newCFrame.Position.Z))
+        -- end)
         
         return collider
     end
 
     -- 创建底部防渗水
-    --createWaterproofCollider(-19, Vector3.new(1.5, 0.5, 1.5))
+    createWaterproofCollider(-5, Vector3.new(1.1, 1.1, 1.1))
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat, driverSeat)
+    local boatInitPivot = boat:GetPivot()
+    
+    local function addBuoyancyConstraint(part)
+        -- local buoyancy = Instance.new("BodyForce")
+        -- buoyancy.Name = "BuoyancyForce"
+        
+        -- -- 假设水面高度��
+        -- local waterLevel = 0
+        
+        -- -- 设置浮力常�
+        -- local buoyancyForce = part.AssemblyMass * workspace.Gravity
+        
+        -- 连接到心��
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if not boat or not boat.PrimaryPart then
+                return
+            end
+            -- 获取
+            --local position = part.Position
+            
+            -- 计算有�
+            -- local submergedRatio = math.clamp((waterLevel - (position.Y - part.Size.Y/2)) / part.Size.Y, 0, 1)
+            
+            -- -- 如果部件
+            -- if submergedRatio > 0 then
+            --     buoyancy.Force = Vector3.new(0, buoyancyForce * submergedRatio * 1.5, 0)
+            -- else
+            --     buoyancy.Force = Vector3.new(0, 0, 0)
+            -- end
+            -- print(buoyancy.Force)
+            local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+            local newPosition = Vector3.new(boat:GetPivot().Position.X, waterSpawn.Position.Y + boat.PrimaryPart.size.y, boat:GetPivot().Position.Z)
+            local newCFrame = CFrame.new(newPosition) * CFrame.Angles(boatInitPivot:ToEulerAnglesXYZ())
+            boat:PivotTo(newCFrame)
+            -- local newCFrame = boat.PrimaryPart.CFrame
+            -- boat.PrimaryPart.CFrame = CFrame.new(Vector3.new(newCFrame.Position.X, waterSpawn.Position.Y, newCFrame.Position.Z))
+        end)
+        
+        --buoyancy.Parent = part
+        return buoyancy
+    end
+    addBuoyancyConstraint(primaryPart)
+    
+    -- local buoyancy = Instance.new('BodyForce')
+    -- buoyancy.Name = 'BuoyancyForce'
+    -- buoyancy.Force = Vector3.new(0, primaryPart.Mass * 9.81, 0)
+    -- buoyancy.Parent = primaryPart
+
+    -- local buoyancy1 = Instance.new('BodyForce')
+    -- buoyancy1.Name = 'BuoyancyForce'
+    -- buoyancy1.Force = Vector3.new(0, driverSeat.Mass * 9.81, 0)
+    -- buoyancy1.Parent = driverSeat
     
     -- 应用动态浮力计算
     --BuoyantController.applyBuoyancy(primaryPart, boat)
@@ -204,12 +245,8 @@ end
 assembleEvent.OnServerEvent:Connect(assembleBoat)
 
 local function handleStopBoatRequest(player)
-    warn("[船只销毁] 玩家 "..player.Name.."("..player.UserId..") 触发停止事件")
     -- 触发客户端事件更新主界面UI
     updateMainUIEvent:FireClient(player, {explore = false})
-    
-    -- 调试日志：检查玩家当前船只状态
-    warn("[船只销毁] 正在查找玩家船只: PlayerBoat_"..player.UserId)
 
     Interface:InitPlayerPos(player)
 
@@ -219,17 +256,9 @@ local function handleStopBoatRequest(player)
         return
     end
 
-    warn("[船只销毁] 开始销毁船只: "..playerBoat:GetFullName())
-    warn("销毁前模型有效性:", playerBoat:IsDescendantOf(game) and "有效" or "无效")
-    warn("销毁前父级:", playerBoat.Parent and playerBoat.Parent:GetFullName() or "nil")
-            playerBoat:Destroy()
-    warn("销毁后模型有效性:", playerBoat:IsDescendantOf(game) and "有效" or "无效")
-    warn("[船只销毁] 船只销毁完成")
+    playerBoat:Destroy()
 end
 
-warn("[船只停止事件] 开始监听停止事件")
 stopEvent.OnServerEvent:Connect(function(player)
-    warn("[船只停止事件] 收到来自玩家 "..player.Name.."("..player.UserId..") 的请求")
-    debug.traceback("当前堆栈跟踪：")
     handleStopBoatRequest(player)
 end)

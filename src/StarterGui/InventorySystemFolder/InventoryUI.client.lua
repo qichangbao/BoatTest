@@ -3,15 +3,11 @@ local Players = game:GetService('Players')
 
 -- 通知客户端更新UI
 local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
-local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
-updateInventoryEvent.Name = INVENTORY_UPDATE_RE_NAME
-updateInventoryEvent.Parent = ReplicatedStorage
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME)
 
 -- 请求库存数据
 local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
-local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME) or Instance.new('RemoteEvent')
-requestInventoryEvent.Name = GET_INVENTORY_RE_NAME
-requestInventoryEvent.Parent = ReplicatedStorage
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME)
 
 local localPlayer = Players.LocalPlayer
 local gui = Instance.new('ScreenGui')

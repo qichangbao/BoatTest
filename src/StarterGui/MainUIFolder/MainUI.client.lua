@@ -12,21 +12,15 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 
 -- 初始化远程事件通信通道（客户端->服务端）
 local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
-local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME) or Instance.new('RemoteEvent')
-assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
-assembleEvent.Parent = ReplicatedStorage
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
 
 -- 初始化更新UI事件
 local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
-local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME) or Instance.new('RemoteEvent')
-updateMainUIEvent.Name = UPDATE_MAINUI_RE_NAME
-updateMainUIEvent.Parent = ReplicatedStorage
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME)
 
 -- 初始化库存界面远程事件
 local INVENTORY_BE_NAME = 'InventoryEvent'
-local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME) or Instance.new('BindableEvent')
-inventoryEvent.Name = INVENTORY_BE_NAME
-inventoryEvent.Parent = ReplicatedStorage
+local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME)
 
 local ScreenGui = Instance.new('ScreenGui')
 ScreenGui.Name = 'BoatControlUI'
@@ -95,14 +89,10 @@ end)
 
 -- 初始化止航远程事件
 local STOP_BOAT_RE_NAME = 'StopBoatEvent'
-local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME) or Instance.new('RemoteEvent')
-stopEvent.Name = STOP_BOAT_RE_NAME
-stopEvent.Parent = ReplicatedStorage
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME)
 
 local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
-local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME) or Instance.new('BindableEvent')
-stopEventBE.Name = STOP_BOAT_BE_NAME
-stopEventBE.Parent = ReplicatedStorage
+local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME)
 
 -- 止航按钮点击事件
 StopButton.MouseButton1Click:Connect(function()
@@ -150,9 +140,7 @@ GoldLabel.Parent = ScreenGui
 
 -- 初始化金币更新远程事件
 local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
-local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
-goldEvent.Name = GOLD_UPDATE_RE_NAME
-goldEvent.Parent = ReplicatedStorage
+local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME)
 
 -- 金币更新处理方法
 local function updateGoldDisplay(newAmount)

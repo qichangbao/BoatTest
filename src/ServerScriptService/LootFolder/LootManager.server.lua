@@ -9,31 +9,17 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local ServerStorage = game:GetService('ServerStorage')
 local Players = game:GetService('Players')
+require(game.ServerScriptService:WaitForChild('Start'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 
 local LOOT_RE_NAME = 'LootEvent'
 local lootEvent = ReplicatedStorage:FindFirstChild(LOOT_RE_NAME)
-if not lootEvent then
-    lootEvent = Instance.new('RemoteEvent')
-    lootEvent.Name = LOOT_RE_NAME
-    lootEvent.Parent = ReplicatedStorage
-end
 
 local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
 local goldEvent = ReplicatedStorage:WaitForChild(GOLD_UPDATE_RE_NAME)
-if not goldEvent then
-    goldEvent = Instance.new('RemoteEvent')
-    goldEvent.Name = GOLD_UPDATE_RE_NAME
-    goldEvent.Parent = ReplicatedStorage
-end
 
 local INVENTORY_BF_NAME = 'InventoryBindableFunction'
 local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME)
-if not inventoryBF then
-    inventoryBF = Instance.new('BindableFunction')
-    inventoryBF.Name = INVENTORY_BF_NAME
-    inventoryBF.Parent = ReplicatedStorage
-end
 
 -- 配件生成配置
 local BOAT_PARTS_FOLDER_NAME = '船'

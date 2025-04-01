@@ -10,16 +10,20 @@ function Interface:InitPlayerPos(player)
         if humanoidRootPart then
             humanoidRootPart.CFrame = spawnLocation.CFrame
         end
+        local humanoid = player.Character:FindFirstChild('Humanoid')
+        if humanoid then
+            humanoid.Sit = false
+        end
     end
 end
 
 -- 初始化船的位置
 function Interface:InitBoatWaterPos(character, boat, driverSeat)
-    local waterSpawn = workspace:WaitForChild('LandSpawnLocation')
+    local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
     local position = waterSpawn.Position
 
     local currentCFrame = boat:GetPivot()
-    local newPosition = Vector3.new(position.X, position.Y, position.Z)
+    local newPosition = Vector3.new(position.X, position.Y + boat.PrimaryPart.size.y, position.Z)
     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
     --local newCFrame = CFrame.new(Vector3.new(0, newPosition.Y, 0))
     boat:PivotTo(newCFrame)
@@ -29,7 +33,7 @@ function Interface:InitBoatWaterPos(character, boat, driverSeat)
         local humanoid = character:FindFirstChild('Humanoid')
         if humanoid then
             --humanoid.Sit = true
-            --character:WaitForChild('HumanoidRootPart').CFrame = driverSeat.CFrame * CFrame.new(0, 2, 0)
+            character:WaitForChild('HumanoidRootPart').CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0)
         end
     end
 end

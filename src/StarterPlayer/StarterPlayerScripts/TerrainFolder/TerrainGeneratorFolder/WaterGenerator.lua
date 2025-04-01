@@ -74,9 +74,7 @@ function WaterGenerator:GenerateTerrainChunk(position)
     chunk.Transparency = 0  -- 确保不透明度
     chunk.Color = Color3.new(0.007843, 0.007843, 0.007843)
     chunk.CastShadow = false
-    chunk.CollisionGroup = "WaterCollider"
     chunk.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Water)
-    print(chunk.CustomPhysicalProperties)
 
     return chunk
 end

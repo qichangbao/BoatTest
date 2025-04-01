@@ -7,29 +7,21 @@
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
+require(game.ServerScriptService:WaitForChild('Start'))
 
 local InventoryManager = {}
 InventoryManager.__index = InventoryManager
 
 -- 通知客户端更新UI
 local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
-local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME) or Instance.new('RemoteEvent')
-updateInventoryEvent.Name = INVENTORY_UPDATE_RE_NAME
-updateInventoryEvent.Parent = ReplicatedStorage
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME)
 
 -- 请求库存数据
 local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
-local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME) or Instance.new('RemoteEvent')
-requestInventoryEvent.Name = GET_INVENTORY_RE_NAME
-requestInventoryEvent.Parent = ReplicatedStorage
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME)
 
 local INVENTORY_BF_NAME = 'InventoryBindableFunction'
 local inventoryBF = ReplicatedStorage:FindFirstChild(INVENTORY_BF_NAME)
-if not inventoryBF then
-    inventoryBF = Instance.new('BindableFunction')
-    inventoryBF.Name = INVENTORY_BF_NAME
-    inventoryBF.Parent = ReplicatedStorage
-end
 
 -- 创建新的库存管理器实例
 function InventoryManager.new()
