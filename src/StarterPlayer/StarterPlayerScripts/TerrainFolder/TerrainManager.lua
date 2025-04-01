@@ -54,8 +54,45 @@ function TerrainManager:Init()
     -- 直接初始化陆地生成器
     -- self.landGenerator = LandGenerator.new(self.config.TerrainType.Land)
     -- self.landGenerator:Init(position)
-    self.waterGenerator = WaterGenerator.new(self.config.TerrainType.Water)
-    self.waterGenerator:Init(self, position.Y)
+    -- self.waterGenerator = WaterGenerator.new(self.config.TerrainType.Water)
+    -- self.waterGenerator:Init(self, position.Y)
+
+    local terrain = game.Workspace.Terrain
+    local waterColor = Color3.new(0, 0, 1) -- 设置
+    local waterReflectance = 0.5 -- 设置�
+    local waterTransparency = 0.5 -- 设置�
+    local waterWaveSize = 1 -- 设置�
+    local waterWaveSpeed = 10 -- 设置�
+
+    terrain:FillRegion(Region3.new(Vector3.new(0,0,0), Vector3.new(200,200,200)), waterReflectance, Enum.Material.Water)
+    task.wait(1) -- 等待1�
+    
+    -- 分块生成水域
+    for x=0,1000,200 do
+        for z=0,1000,200 do
+            terrain:FillRegion(Region3.new(
+                Vector3.new(x, -200, z),
+                Vector3.new(x+200, 0, z+200)
+            ), waterReflectance, Enum.Material.Water)
+        end
+    end
+    task.wait(1)
+    -- while true do
+    --     terrain:FillRegion(Region3.new(Vector3.new(0,0,0), Vector3.new(200,200,200)), waterReflectance, Enum.Material.Water)
+    --     task.wait(1) -- 等待1�
+        
+    --     -- 分块生成水域
+    --     for x=0,1000,200 do
+    --         for z=0,1000,200 do
+    --             terrain:FillRegion(Region3.new(
+    --                 Vector3.new(x, -200, z),
+    --                 Vector3.new(x+200, 0, z+200)
+    --             ), waterReflectance, Enum.Material.Water)
+    --         end
+    --     end
+    --     task.wait(1)
+    -- end
+
     
     -- 初始化岛屿生成器
     self.IslandGenerator = LandGenerator.new({
