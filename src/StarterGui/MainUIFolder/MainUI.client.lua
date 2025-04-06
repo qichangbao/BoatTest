@@ -9,7 +9,7 @@
 print("MainUI.client.lua loaded")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Knit = require(ReplicatedStorage.Packages.Knit)
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
 local PlayerDataService = Knit.GetService('PlayerDataService')
 
@@ -89,11 +89,6 @@ GoldLabel.TextSize = 20
 GoldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 GoldLabel.BackgroundTransparency = 1
 GoldLabel.Parent = ScreenGui
-
--- 金币更新处理方法
-PlayerDataService.GoodChanged:Connect(function(gold)
-    GoldLabel.Text = string.format("黄金: %d", gold)
-end)
 
 -- 宝箱选择弹窗
 local LootPopup = Instance.new('Frame')
@@ -175,6 +170,10 @@ local function RefreshUI()
     StopButton.Visible = false
     LootButton.Visible = true
     LootPopup.Visible = false
+
+    PlayerDataService:GetAttribute('Gold'):andThen(function(gold)
+        GoldLabel.Text = "黄金: "..gold
+    end)
 end
 
 -- 处理初始角色
@@ -182,6 +181,9 @@ if Players.LocalPlayer.Character then
     RefreshUI()
 else
     Players.LocalPlayer.CharacterAdded:Connect(function(character)
+        PlayerDataService.Client:GoodChanged():Connect(function(gold)
+            GoldLabel.Text = "黄金: "..gold
+        end)
         RefreshUI()
     end)
 end

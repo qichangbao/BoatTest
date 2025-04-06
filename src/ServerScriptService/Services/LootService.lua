@@ -1,7 +1,7 @@
 print('LootService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService('ServerStorage')
-local Knit = require(ReplicatedStorage.Packages.Knit)
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 
 local LootService = Knit.CreateService({
@@ -60,9 +60,6 @@ function LootService.Client:Loot(player, price)
     -- 扣除黄金
     gold -= price
     player.character:SetAttribute('Gold', gold)
-    
-    local PlayerDataService = Knit.GetService('PlayerDataService')
-    PlayerDataService.Client.GoodChanged:Fire(player, gold)
     
     -- 获取随机配件
     local parts = getRandomParts(player, price)

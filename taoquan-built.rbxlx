@@ -13,20 +13,39 @@
       <token name="Technology">1</token>
     </Properties>
   </Item>
-  <Item class="ReplicatedStorage" referent="1">
+  <Item class="ReplicatedFirst" referent="1">
+    <Properties>
+      <string name="Name">ReplicatedFirst</string>
+    </Properties>
+    <Item class="LocalScript" referent="2">
+      <Properties>
+        <string name="Name">Start</string>
+        <string name="Source">print("start.lua loaded")</string>
+      </Properties>
+    </Item>
+  </Item>
+  <Item class="ReplicatedStorage" referent="3">
     <Properties>
       <string name="Name">ReplicatedStorage</string>
     </Properties>
-    <Item class="Folder" referent="2">
+    <Item class="Folder" referent="4">
       <Properties>
-        <string name="Name">Adventure</string>
+        <string name="Name">AdventureFolder</string>
       </Properties>
-      <Item class="ModuleScript" referent="3">
+      <Item class="ModuleScript" referent="5">
         <Properties>
           <string name="Name">AdventureEventManager</string>
-          <string name="Source">local AdventureEventManager = {}
+          <string name="Source">--[[
+冒险事件管理模块
+功能：处理障碍物碰撞、昼夜循环等冒险模式事件
+版本：1.0.0
+最后修改：2024/05/15
+]]
+local AdventureEventManager = {}
 AdventureEventManager.__index = AdventureEventManager
 
+-- 构造函数
+-- @param eventManager 事件管理器实例
 function AdventureEventManager.new(eventManager)
     local self = setmetatable({
         _eventManager = eventManager,
@@ -43,9 +62,10 @@ function AdventureEventManager.new(eventManager)
 end
 
 function AdventureEventManager:_initEvents()
+    -- 注册障碍物碰撞事件（伤害计算逻辑）
     self._eventManager:RegisterEvent("ObstacleHit", function(player, obstacleType)
         local shipManager = self._eventManager:GetShipManager(player)
-        local damage = obstacleType.damage * shipManager.shipData.totalHealth
+        local damage = obstacleType.damage * shipManager.shipData.totalHealth -- 基于总血量的百分比伤害计算
         shipManager.shipData.totalHealth = math.max(shipManager.shipData.totalHealth - damage, 0)
         
         if shipManager.shipData.totalHealth == 0 then
@@ -53,7 +73,8 @@ function AdventureEventManager:_initEvents()
         end
     end)
 
-    self._eventManager:RegisterEvent("DayNightCycle", function(player)
+    -- 注册昼夜循环事件（光照强度变化）
+self._eventManager:RegisterEvent("DayNightCycle", function(player)
         self._currentDayNight = (self._currentDayNight == "Day") and "Night" or "Day"
         self._eventManager:TriggerEvent(player, "VisualEffectChanged", {
             type = "Lighting",
@@ -62,6 +83,9 @@ function AdventureEventManager:_initEvents()
     end)
 end
 
+-- 生成随机关卡障碍物
+-- @param playerLevel 当前玩家等级
+-- @return 符合等级要求的随机障碍物配置
 function AdventureEventManager:GenerateRandomObstacle(playerLevel)
     local validObstacles = {}
     for _,obstacle in ipairs(self._obstacleTypes) do
@@ -72,9 +96,11 @@ function AdventureEventManager:GenerateRandomObstacle(playerLevel)
     return validObstacles[math.random(#validObstacles)]
 end
 
+-- 启动昼夜循环定时器
+-- 循环间隔：300秒（5分钟）
 function AdventureEventManager:StartDayNightCycle()
     while true do
-        task.wait(300) -- 5分钟切换一次
+        task.wait(300) -- 300秒（5分钟）定时器，nil参数表示全局事件
         self._eventManager:TriggerEvent(nil, "DayNightCycle")
     end
 end
@@ -83,11 +109,55 @@ return AdventureEventManager</string>
         </Properties>
       </Item>
     </Item>
-    <Item class="Folder" referent="4">
+    <Item class="Folder" referent="6">
       <Properties>
-        <string name="Name">Config</string>
+        <string name="Name">ConfigFolder</string>
       </Properties>
-      <Item class="ModuleScript" referent="5">
+      <Item class="ModuleScript" referent="7">
+        <Properties>
+          <string name="Name">BoatConfig</string>
+          <string name="Source">return {
+    ["船"] = {
+        { Name = "Polysurface351", Weight = 1 },
+        { Name = "Polysurface11", Weight = 1 },
+        { Name = "Polysurface121", Weight = 1 },
+        { Name = "Polysurface141", Weight = 1 },
+        { Name = "Polysurface161", Weight = 1 },
+        { Name = "Polysurface181", Weight = 1 },
+        { Name = "Polysurface201", Weight = 1 },
+        { Name = "Polysurface21", Weight = 1 },
+        { Name = "Polysurface31", Weight = 1 },
+        { Name = "Polysurface371", Weight = 1 },
+        { Name = "Polysurface381", Weight = 1 },
+        { Name = "Polysurface41", Weight = 1 },
+        { Name = "Polysurface51", Weight = 1 },
+        { Name = "对象001", Weight = 1 },
+        { Name = "对象002", Weight = 1 },
+        { Name = "对象003", Weight = 1 },
+        { Name = "对象004", Weight = 1 },
+        { Name = "对象005", Weight = 1 },
+        { Name = "对象006", Weight = 1 },
+        { Name = "对象007", Weight = 1 },
+        { Name = "对象008", Weight = 1 },
+        { Name = "对象009", Weight = 1 },
+        { Name = "对象010", Weight = 1 },
+        { Name = "对象011", Weight = 1 },
+        { Name = "对象012", Weight = 1 },
+        { Name = "对象013", Weight = 1 },
+        { Name = "对象014", Weight = 1 },
+        { Name = "对象015", Weight = 1 },
+        { Name = "对象016", Weight = 1 },
+        { Name = "对象017", Weight = 1 },
+        { Name = "对象018", Weight = 1 },
+        { Name = "对象019", Weight = 1 },
+        { Name = "对象020", Weight = 1 },
+        { Name = "对象022", Weight = 1 },
+        { Name = "对象023", Weight = 1 },
+    }
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="8">
         <Properties>
           <string name="Name">BuffConfig</string>
           <string name="Source">local BuffConfig = {
@@ -121,7 +191,7 @@ end
 return BuffConfig</string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="6">
+      <Item class="ModuleScript" referent="9">
         <Properties>
           <string name="Name">FishConfig</string>
           <string name="Source">local FishConfig = {
@@ -148,35 +218,47 @@ return BuffConfig</string>
 return FishConfig</string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="7">
+      <Item class="ModuleScript" referent="10">
         <Properties>
           <string name="Name">GameConfig</string>
-          <string name="Source">return {
-    VERSION = 1.2,  -- 更新配置版本
-    
-    TerrainType = 
-    {
+          <string name="Source">local GameConfig = {
+    -- 地形类型配置
+    TerrainType = {
+        Land = {
+            Position = Vector3.new(0, 0, 0),
+            Material = Enum.Material.Grass,
+            Size = Vector3.new(100, 100, 100),
+            LoadDistance = 2,
+        },
         Water = {
-            -- 水域参数
-            ChunkSize = 512,                -- 区块尺寸
-            LoadDistance = 2,             -- 加载距离
-            WaterDepth = 5,
+            Material = Enum.Material.Water,
+            ChunkSize = 256,
+            Depth = 100,
+            Height = 50,
             WaveSpeed = 1,
-        },
-
-        Wilderness = {
-            ChunkSize = 512,                 -- 区块尺寸
-            LoadDistance = 2,               -- 加载距离
-            VegetationDensity = 0.35,       -- 植被密度
-            RockProbability = 0.25,         -- 岩石生成概率
-        },
+            LoadDistance = 2
+        }
     },
+    
+    -- 岛屿配置
+    Islands = {
+        {
+            Position = Vector3.new(120, 0, 80),
+            Size = Vector3.new(40, 40, 40),
+            SpawnChance = 1.0
+        },
+        {
+            Position = Vector3.new(-200, 0, -70),
+            Size = Vector3.new(10, 10, 10),
+            SpawnChance = 0.8
+        }
+    }
+}
 
-    CurTerrain = "Wilderness"
-}</string>
+return GameConfig</string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="8">
+      <Item class="ModuleScript" referent="11">
         <Properties>
           <string name="Name">MaterialConfig</string>
           <string name="Source">local MaterialTiers = {
@@ -213,7 +295,7 @@ return {
 }</string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="9">
+      <Item class="ModuleScript" referent="12">
         <Properties>
           <string name="Name">SeaConfig</string>
           <string name="Source">local SeaLevels = {
@@ -264,185 +346,1012 @@ return {
         </Properties>
       </Item>
     </Item>
-    <Item class="Folder" referent="10">
+    <Item class="ModuleScript" referent="13">
       <Properties>
-        <string name="Name">MiniGame</string>
-      </Properties>
-      <Item class="ModuleScript" referent="11">
-        <Properties>
-          <string name="Name">FishingMiniGame</string>
-          <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local PlayerDataManager = require(ReplicatedStorage:WaitForChild("Player"):WaitForChild("PlayerDataManager"))
-local LootSystem = require(ReplicatedStorage:WaitForChild("MiniGame"):WaitForChild("LootSystem"))
+        <string name="Name">Knit</string>
+        <string name="Source"><![CDATA[local RunService = game:GetService("RunService")
 
-local FishingMiniGame = {}
-FishingMiniGame.__index = FishingMiniGame
+if RunService:IsServer() then
+	return require(script.KnitServer)
+else
+	local KnitServer = script:FindFirstChild("KnitServer")
+	if KnitServer and RunService:IsRunning() then
+		KnitServer:Destroy()
+	end
 
-function FishingMiniGame.new(seaConfig)
-    local self = setmetatable({
-        _seaConfig = seaConfig,
-        _fishingRod = nil,
-        _catchTimer = 0,
-        _startTime = 0,
-        _remoteEvent = Instance.new('RemoteEvent')
-    }, FishingMiniGame)
-    
-    self._remoteEvent.Name = 'FishingEvent'
-    self._remoteEvent.Parent = ReplicatedStorage
-    return self
+	return require(script.KnitClient)
 end
-
-function FishingMiniGame:StartCast(player)
-    local baitLevel = PlayerDataManager.GetBaitLevel(player)
-    local difficulty = self._seaConfig.fishingDifficulty
-    
-    self._startTime = os.time()
-    self._catchTimer = math.random(3, 8) * (1 - (baitLevel * 0.1))
-    self:_showFishingUI(player, true)
-end
-
-function FishingMiniGame:EndCast(player)
-    local elapsedTime = os.time() - self._startTime
-    local success = elapsedTime > self._catchTimer
-    self:_showFishingUI(player, false)
-    
-    if success then
-        local lootTable = self._seaConfig.fishingLoot
-        LootSystem.GenerateLoot(player, lootTable)
-    end
-end
-
-function FishingMiniGame:_showFishingUI(player, show)
-    local gui = player:WaitForChild('PlayerGui').ScreenGui
-    
-    if show then
-        -- 创建钓鱼进度条
-        self._fishingBar = Instance.new('Frame')
-        self._fishingBar.Size = UDim2.new(0.4, 0, 0.1, 0)
-        self._fishingBar.Position = UDim2.new(0.3, 0, 0.8, 0)
-        self._fishingBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        
-        local innerBar = Instance.new('Frame')
-        innerBar.Size = UDim2.new(0, 0, 1, 0)
-        innerBar.BackgroundColor3 = Color3.fromRGB(0, 200, 80)
-        innerBar.Parent = self._fishingBar
-        
-        self._fishingBar.Parent = gui
-        self:_startCatchingAnimation(innerBar)
-    else
-        if self._fishingBar then
-            self._fishingBar:Destroy()
-            self._fishingBar = nil
-        end
-    end
-end
-
-function FishingMiniGame:_startCatchingAnimation(innerBar)
-    spawn(function()
-        local startTime = os.time()
-        while os.time() - startTime &lt; self._catchTimer do
-            local progress = (os.time() - startTime) / self._catchTimer
-            innerBar.Size = UDim2.new(progress, 0, 1, 0)
-            wait(0.1)
-        end
-    end)
-end
-
-return FishingMiniGame</string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="12">
-        <Properties>
-          <string name="Name">LootSystem</string>
-          <string name="Source">local LootSystem = {}
-
-function LootSystem.GenerateLoot(player, lootTable)
-    local totalWeight = 0
-    for _, item in pairs(lootTable) do
-        totalWeight += item.weight
-    end
-    
-    local randomValue = math.random() * totalWeight
-    local cumulative = 0
-    
-    for _, item in pairs(lootTable) do
-        cumulative += item.weight
-        if randomValue &lt;= cumulative then
-            -- 实际发放物品的逻辑
-            print("玩家", player.Name, "获得了", item.name)
-            return
-        end
-    end
-end
-
-return LootSystem</string>
-        </Properties>
-      </Item>
-    </Item>
-    <Item class="Folder" referent="13">
-      <Properties>
-        <string name="Name">Player</string>
+]]></string>
       </Properties>
       <Item class="ModuleScript" referent="14">
         <Properties>
-          <string name="Name">PlayerDataManager</string>
-          <string name="Source">local replicatedStorage = game:GetService("ReplicatedStorage")
-local MaterialConfig = require(replicatedStorage:WaitForChild("Config"):WaitForChild("MaterialConfig"))
-
-local PlayerData = {
-    Level = 1,
-    Exp = 0,
-    UnlockedMaterials = {},
-    UnlockedSeas = {"起始海域"}
+          <string name="Name">KnitClient</string>
+          <string name="Source"><![CDATA[--[=[
+	@interface Middleware
+	.Inbound ClientMiddleware?
+	.Outbound ClientMiddleware?
+	@within KnitClient
+]=]
+type Middleware = {
+	Inbound: ClientMiddleware?,
+	Outbound: ClientMiddleware?,
 }
 
-local EXP_REQUIREMENTS = {
-    100, 300, 600, 1000, 1500
+--[=[
+	@type ClientMiddlewareFn (args: {any}) -> (shouldContinue: boolean, ...: any)
+	@within KnitClient
+
+	For more info, see [ClientComm](https://sleitnick.github.io/RbxUtil/api/ClientComm/) documentation.
+]=]
+type ClientMiddlewareFn = (args: { any }) -> (boolean, ...any)
+
+--[=[
+	@type ClientMiddleware {ClientMiddlewareFn}
+	@within KnitClient
+	An array of client middleware functions.
+]=]
+type ClientMiddleware = { ClientMiddlewareFn }
+
+--[=[
+	@type PerServiceMiddleware {[string]: Middleware}
+	@within KnitClient
+]=]
+type PerServiceMiddleware = { [string]: Middleware }
+
+--[=[
+	@interface ControllerDef
+	.Name string
+	.[any] any
+	@within KnitClient
+	Used to define a controller when creating it in `CreateController`.
+]=]
+type ControllerDef = {
+	Name: string,
+	[any]: any,
 }
 
-local function CalculateLevelUp(exp)
-    local newLevel = PlayerData.Level
-    while EXP_REQUIREMENTS[newLevel] and exp >= EXP_REQUIREMENTS[newLevel] do
-        exp = exp - EXP_REQUIREMENTS[newLevel]
-        newLevel = newLevel + 1
-    end
-    return newLevel, exp
+--[=[
+	@interface Controller
+	.Name string
+	.[any] any
+	@within KnitClient
+]=]
+type Controller = {
+	Name: string,
+	[any]: any,
+}
+
+--[=[
+	@interface Service
+	.[any] any
+	@within KnitClient
+]=]
+type Service = {
+	[any]: any,
+}
+
+--[=[
+	@interface KnitOptions
+	.ServicePromises boolean?
+	.Middleware Middleware?
+	.PerServiceMiddleware PerServiceMiddleware?
+	@within KnitClient
+
+	- `ServicePromises` defaults to `true` and indicates if service methods use promises.
+	- Each service will go through the defined middleware, unless the service
+	has middleware defined in `PerServiceMiddleware`.
+]=]
+type KnitOptions = {
+	ServicePromises: boolean,
+	Middleware: Middleware?,
+	PerServiceMiddleware: PerServiceMiddleware?,
+}
+
+local defaultOptions: KnitOptions = {
+	ServicePromises = true,
+	Middleware = nil,
+	PerServiceMiddleware = {},
+}
+
+local selectedOptions = nil
+
+--[=[
+	@class KnitClient
+	@client
+]=]
+local KnitClient = {}
+
+--[=[
+	@prop Player Player
+	@within KnitClient
+	@readonly
+	Reference to the LocalPlayer.
+]=]
+KnitClient.Player = game:GetService("Players").LocalPlayer
+
+--[=[
+	@prop Util Folder
+	@within KnitClient
+	@readonly
+	References the Util folder. Should only be accessed when using Knit as
+	a standalone module. If using Knit from Wally, modules should just be
+	pulled in via Wally instead of relying on Knit's Util folder, as this
+	folder only contains what is necessary for Knit to run in Wally mode.
+]=]
+KnitClient.Util = (script.Parent :: Instance).Parent
+
+local Promise = require(KnitClient.Util.Promise)
+local Comm = require(KnitClient.Util.Comm)
+local ClientComm = Comm.ClientComm
+
+local controllers: { [string]: Controller } = {}
+local services: { [string]: Service } = {}
+local servicesFolder = nil
+
+local started = false
+local startedComplete = false
+local onStartedComplete = Instance.new("BindableEvent")
+
+local function DoesControllerExist(controllerName: string): boolean
+	local controller: Controller? = controllers[controllerName]
+
+	return controller ~= nil
 end
 
-return {
-    AddExp = function(amount)
-        PlayerData.Exp = PlayerData.Exp + amount
-        local newLevel = CalculateLevelUp(PlayerData.Exp)
-        if newLevel > PlayerData.Level then
-            PlayerData.Level = newLevel
-            -- 触发等级提升事件
-        end
-    end,
+local function GetServicesFolder()
+	if not servicesFolder then
+		servicesFolder = (script.Parent :: Instance):WaitForChild("Services")
+	end
 
-    GetAvailableMaterials = function()
-        return MaterialConfig.GetTierByLevel(PlayerData.Level)
-    end,
+	return servicesFolder
+end
 
-    UnlockNewSea = function(seaName)
-        if not table.find(PlayerData.UnlockedSeas, seaName) then
-            table.insert(PlayerData.UnlockedSeas, seaName)
-        end
-    end
+local function GetMiddlewareForService(serviceName: string)
+	local knitMiddleware = if selectedOptions.Middleware ~= nil then selectedOptions.Middleware else {}
+	local serviceMiddleware = selectedOptions.PerServiceMiddleware[serviceName]
+
+	return if serviceMiddleware ~= nil then serviceMiddleware else knitMiddleware
+end
+
+local function BuildService(serviceName: string)
+	local folder = GetServicesFolder()
+	local middleware = GetMiddlewareForService(serviceName)
+	local clientComm = ClientComm.new(folder, selectedOptions.ServicePromises, serviceName)
+	local service = clientComm:BuildObject(middleware.Inbound, middleware.Outbound)
+
+	services[serviceName] = service
+
+	return service
+end
+
+--[=[
+	Creates a new controller.
+
+	:::caution
+	Controllers must be created _before_ calling `Knit.Start()`.
+	:::
+	```lua
+	-- Create a controller
+	local MyController = Knit.CreateController {
+		Name = "MyController",
+	}
+
+	function MyController:KnitStart()
+		print("MyController started")
+	end
+
+	function MyController:KnitInit()
+		print("MyController initialized")
+	end
+	```
+]=]
+function KnitClient.CreateController(controllerDef: ControllerDef): Controller
+	assert(type(controllerDef) == "table", `Controller must be a table; got {type(controllerDef)}`)
+	assert(type(controllerDef.Name) == "string", `Controller.Name must be a string; got {type(controllerDef.Name)}`)
+	assert(#controllerDef.Name > 0, "Controller.Name must be a non-empty string")
+	assert(not DoesControllerExist(controllerDef.Name), `Controller {controllerDef.Name} already exists`)
+	assert(not started, `Controllers cannot be created after calling "Knit.Start()"`)
+
+	local controller = controllerDef :: Controller
+	controllers[controller.Name] = controller
+
+	return controller
+end
+
+--[=[
+	Requires all the modules that are children of the given parent. This is an easy
+	way to quickly load all controllers that might be in a folder.
+	```lua
+	Knit.AddControllers(somewhere.Controllers)
+	```
+]=]
+function KnitClient.AddControllers(parent: Instance): { Controller }
+	assert(not started, `Controllers cannot be added after calling "Knit.Start()"`)
+
+	local addedControllers = {}
+	for _, v in parent:GetChildren() do
+		if not v:IsA("ModuleScript") then
+			continue
+		end
+
+		table.insert(addedControllers, require(v))
+	end
+
+	return addedControllers
+end
+
+--[=[
+	Requires all the modules that are descendants of the given parent.
+]=]
+function KnitClient.AddControllersDeep(parent: Instance): { Controller }
+	assert(not started, `Controllers cannot be added after calling "Knit.Start()"`)
+
+	local addedControllers = {}
+	for _, v in parent:GetDescendants() do
+		if not v:IsA("ModuleScript") then
+			continue
+		end
+
+		table.insert(addedControllers, require(v))
+	end
+
+	return addedControllers
+end
+
+--[=[
+	Returns a Service object which is a reflection of the remote objects
+	within the Client table of the given service. Throws an error if the
+	service is not found.
+
+	If a service's Client table contains RemoteSignals and/or RemoteProperties,
+	these values are reflected as
+	[ClientRemoteSignals](https://sleitnick.github.io/RbxUtil/api/ClientRemoteSignal) and
+	[ClientRemoteProperties](https://sleitnick.github.io/RbxUtil/api/ClientRemoteProperty).
+
+	```lua
+	-- Server-side service creation:
+	local MyService = Knit.CreateService {
+		Name = "MyService",
+		Client = {
+			MySignal = Knit.CreateSignal(),
+			MyProperty = Knit.CreateProperty("Hello"),
+		},
+	}
+	function MyService:AddOne(player, number)
+		return number + 1
+	end
+
+	-------------------------------------------------
+
+	-- Client-side service reflection:
+	local MyService = Knit.GetService("MyService")
+
+	-- Call a method:
+	local num = MyService:AddOne(5) --> 6
+
+	-- Fire a signal to the server:
+	MyService.MySignal:Fire("Hello")
+
+	-- Listen for signals from the server:
+	MyService.MySignal:Connect(function(message)
+		print(message)
+	end)
+
+	-- Observe the initial value and changes to properties:
+	MyService.MyProperty:Observe(function(value)
+		print(value)
+	end)
+	```
+
+	:::caution
+	Services are only exposed to the client if the service has remote-based
+	content in the Client table. If not, the service will not be visible
+	to the client. `KnitClient.GetService` will only work on services that
+	expose remote-based content on their Client tables.
+	:::
+]=]
+function KnitClient.GetService(serviceName: string): Service
+	local service = services[serviceName]
+	if service then
+		return service
+	end
+
+	assert(started, "Cannot call GetService until Knit has been started")
+	assert(type(serviceName) == "string", `ServiceName must be a string; got {type(serviceName)}`)
+
+	return BuildService(serviceName)
+end
+
+--[=[
+	Gets the controller by name. Throws an error if the controller
+	is not found.
+]=]
+function KnitClient.GetController(controllerName: string): Controller
+	local controller = controllers[controllerName]
+	if controller then
+		return controller
+	end
+
+	assert(started, "Cannot call GetController until Knit has been started")
+	assert(type(controllerName) == "string", `ControllerName must be a string; got {type(controllerName)}`)
+	error(`Could not find controller "{controllerName}". Check to verify a controller with this name exists.`, 2)
+end
+
+--[=[
+	Gets a table of all controllers.
+]=]
+function KnitClient.GetControllers(): { [string]: Controller }
+	assert(started, "Cannot call GetControllers until Knit has been started")
+
+	return controllers
+end
+
+--[=[
+	@return Promise
+	Starts Knit. Should only be called once per client.
+	```lua
+	Knit.Start():andThen(function()
+		print("Knit started!")
+	end):catch(warn)
+	```
+
+	By default, service methods exposed to the client will return promises.
+	To change this behavior, set the `ServicePromises` option to `false`:
+	```lua
+	Knit.Start({ServicePromises = false}):andThen(function()
+		print("Knit started!")
+	end):catch(warn)
+	```
+]=]
+function KnitClient.Start(options: KnitOptions?)
+	if started then
+		return Promise.reject("Knit already started")
+	end
+
+	started = true
+
+	table.freeze(controllers)
+
+	if options == nil then
+		selectedOptions = defaultOptions
+	else
+		assert(typeof(options) == "table", `KnitOptions should be a table or nil; got {typeof(options)}`)
+		selectedOptions = options
+		for k, v in defaultOptions do
+			if selectedOptions[k] == nil then
+				selectedOptions[k] = v
+			end
+		end
+	end
+	if type(selectedOptions.PerServiceMiddleware) ~= "table" then
+		selectedOptions.PerServiceMiddleware = {}
+	end
+
+	return Promise.new(function(resolve)
+		-- Init:
+		local promisesStartControllers = {}
+
+		for _, controller in controllers do
+			if type(controller.KnitInit) == "function" then
+				table.insert(
+					promisesStartControllers,
+					Promise.new(function(r)
+						debug.setmemorycategory(controller.Name)
+						controller:KnitInit()
+						r()
+					end)
+				)
+			end
+		end
+
+		resolve(Promise.all(promisesStartControllers))
+	end):andThen(function()
+		-- Start:
+		for _, controller in controllers do
+			if type(controller.KnitStart) == "function" then
+				task.spawn(function()
+					debug.setmemorycategory(controller.Name)
+					controller:KnitStart()
+				end)
+			end
+		end
+
+		startedComplete = true
+		onStartedComplete:Fire()
+
+		task.defer(function()
+			onStartedComplete:Destroy()
+		end)
+	end)
+end
+
+--[=[
+	@return Promise
+	Returns a promise that is resolved once Knit has started. This is useful
+	for any code that needs to tie into Knit controllers but is not the script
+	that called `Start`.
+	```lua
+	Knit.OnStart():andThen(function()
+		local MyController = Knit.GetController("MyController")
+		MyController:DoSomething()
+	end):catch(warn)
+	```
+]=]
+function KnitClient.OnStart()
+	if startedComplete then
+		return Promise.resolve()
+	else
+		return Promise.fromEvent(onStartedComplete.Event)
+	end
+end
+
+return KnitClient
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="15">
+        <Properties>
+          <string name="Name">KnitServer</string>
+          <string name="Source"><![CDATA[--[=[
+	@interface Middleware
+	.Inbound ServerMiddleware?
+	.Outbound ServerMiddleware?
+	@within KnitServer
+]=]
+type Middleware = {
+	Inbound: ServerMiddleware?,
+	Outbound: ServerMiddleware?,
+}
+
+--[=[
+	@type ServerMiddlewareFn (player: Player, args: {any}) -> (shouldContinue: boolean, ...: any)
+	@within KnitServer
+
+	For more info, see [ServerComm](https://sleitnick.github.io/RbxUtil/api/ServerComm/) documentation.
+]=]
+type ServerMiddlewareFn = (player: Player, args: { any }) -> (boolean, ...any)
+
+--[=[
+	@type ServerMiddleware {ServerMiddlewareFn}
+	@within KnitServer
+	An array of server middleware functions.
+]=]
+type ServerMiddleware = { ServerMiddlewareFn }
+
+--[=[
+	@interface ServiceDef
+	.Name string
+	.Client table?
+	.Middleware Middleware?
+	.[any] any
+	@within KnitServer
+	Used to define a service when creating it in `CreateService`.
+
+	The middleware tables provided will be used instead of the Knit-level
+	middleware (if any). This allows fine-tuning each service's middleware.
+	These can also be left out or `nil` to not include middleware.
+]=]
+type ServiceDef = {
+	Name: string,
+	Client: { [any]: any }?,
+	Middleware: Middleware?,
+	[any]: any,
+}
+
+--[=[
+	@interface Service
+	.Name string
+	.Client ServiceClient
+	.KnitComm Comm
+	.[any] any
+	@within KnitServer
+]=]
+type Service = {
+	Name: string,
+	Client: ServiceClient,
+	KnitComm: any,
+	[any]: any,
+}
+
+--[=[
+	@interface ServiceClient
+	.Server Service
+	.[any] any
+	@within KnitServer
+]=]
+type ServiceClient = {
+	Server: Service,
+	[any]: any,
+}
+
+--[=[
+	@interface KnitOptions
+	.Middleware Middleware?
+	@within KnitServer
+
+	- Middleware will apply to all services _except_ ones that define
+	their own middleware.
+]=]
+type KnitOptions = {
+	Middleware: Middleware?,
+}
+
+local defaultOptions: KnitOptions = {
+	Middleware = nil,
+}
+
+local selectedOptions = nil
+
+--[=[
+	@class KnitServer
+	@server
+	Knit server-side lets developers create services and expose methods and signals
+	to the clients.
+
+	```lua
+	local Knit = require(somewhere.Knit)
+
+	-- Load service modules within some folder:
+	Knit.AddServices(somewhere.Services)
+
+	-- Start Knit:
+	Knit.Start():andThen(function()
+		print("Knit started")
+	end):catch(warn)
+	```
+]=]
+local KnitServer = {}
+
+--[=[
+	@prop Util Folder
+	@within KnitServer
+	@readonly
+	References the Util folder. Should only be accessed when using Knit as
+	a standalone module. If using Knit from Wally, modules should just be
+	pulled in via Wally instead of relying on Knit's Util folder, as this
+	folder only contains what is necessary for Knit to run in Wally mode.
+]=]
+KnitServer.Util = (script.Parent :: Instance).Parent
+
+local SIGNAL_MARKER = newproxy(true)
+getmetatable(SIGNAL_MARKER).__tostring = function()
+	return "SIGNAL_MARKER"
+end
+
+local UNRELIABLE_SIGNAL_MARKER = newproxy(true)
+getmetatable(UNRELIABLE_SIGNAL_MARKER).__tostring = function()
+	return "UNRELIABLE_SIGNAL_MARKER"
+end
+
+local PROPERTY_MARKER = newproxy(true)
+getmetatable(PROPERTY_MARKER).__tostring = function()
+	return "PROPERTY_MARKER"
+end
+
+local knitRepServiceFolder = Instance.new("Folder")
+knitRepServiceFolder.Name = "Services"
+
+local Promise = require(KnitServer.Util.Promise)
+local Comm = require(KnitServer.Util.Comm)
+local ServerComm = Comm.ServerComm
+
+local services: { [string]: Service } = {}
+local started = false
+local startedComplete = false
+local onStartedComplete = Instance.new("BindableEvent")
+
+local function DoesServiceExist(serviceName: string): boolean
+	local service: Service? = services[serviceName]
+
+	return service ~= nil
+end
+
+--[=[
+	Constructs a new service.
+
+	:::caution
+	Services must be created _before_ calling `Knit.Start()`.
+	:::
+	```lua
+	-- Create a service
+	local MyService = Knit.CreateService {
+		Name = "MyService",
+		Client = {},
+	}
+
+	-- Expose a ToAllCaps remote function to the clients
+	function MyService.Client:ToAllCaps(player, msg)
+		return msg:upper()
+	end
+
+	-- Knit will call KnitStart after all services have been initialized
+	function MyService:KnitStart()
+		print("MyService started")
+	end
+
+	-- Knit will call KnitInit when Knit is first started
+	function MyService:KnitInit()
+		print("MyService initialize")
+	end
+	```
+]=]
+function KnitServer.CreateService(serviceDef: ServiceDef): Service
+	assert(type(serviceDef) == "table", `Service must be a table; got {type(serviceDef)}`)
+	assert(type(serviceDef.Name) == "string", `Service.Name must be a string; got {type(serviceDef.Name)}`)
+	assert(#serviceDef.Name > 0, "Service.Name must be a non-empty string")
+	assert(not DoesServiceExist(serviceDef.Name), `Service "{serviceDef.Name}" already exists`)
+	assert(not started, `Services cannot be created after calling "Knit.Start()"`)
+
+	local service = serviceDef
+	service.KnitComm = ServerComm.new(knitRepServiceFolder, serviceDef.Name)
+
+	if type(service.Client) ~= "table" then
+		service.Client = { Server = service }
+	else
+		if service.Client.Server ~= service then
+			service.Client.Server = service
+		end
+	end
+
+	services[service.Name] = service
+
+	return service
+end
+
+--[=[
+	Requires all the modules that are children of the given parent. This is an easy
+	way to quickly load all services that might be in a folder.
+	```lua
+	Knit.AddServices(somewhere.Services)
+	```
+]=]
+function KnitServer.AddServices(parent: Instance): { Service }
+	assert(not started, `Services cannot be added after calling "Knit.Start()"`)
+
+	local addedServices = {}
+	for _, v in parent:GetChildren() do
+		if not v:IsA("ModuleScript") then
+			continue
+		end
+
+		table.insert(addedServices, require(v))
+	end
+
+	return addedServices
+end
+
+--[=[
+	Requires all the modules that are descendants of the given parent.
+]=]
+function KnitServer.AddServicesDeep(parent: Instance): { Service }
+	assert(not started, `Services cannot be added after calling "Knit.Start()"`)
+
+	local addedServices = {}
+	for _, v in parent:GetDescendants() do
+		if not v:IsA("ModuleScript") then
+			continue
+		end
+
+		table.insert(addedServices, require(v))
+	end
+
+	return addedServices
+end
+
+--[=[
+	Gets the service by name. Throws an error if the service is not found.
+]=]
+function KnitServer.GetService(serviceName: string): Service
+	assert(started, "Cannot call GetService until Knit has been started")
+	assert(type(serviceName) == "string", `ServiceName must be a string; got {type(serviceName)}`)
+
+	return assert(services[serviceName], `Could not find service "{serviceName}"`) :: Service
+end
+
+--[=[
+	Gets a table of all services.
+]=]
+function KnitServer.GetServices(): { [string]: Service }
+	assert(started, "Cannot call GetServices until Knit has been started")
+
+	return services
+end
+
+--[=[
+	@return SIGNAL_MARKER
+	Returns a marker that will transform the current key into
+	a RemoteSignal once the service is created. Should only
+	be called within the Client table of a service.
+
+	See [RemoteSignal](https://sleitnick.github.io/RbxUtil/api/RemoteSignal)
+	documentation for more info.
+	```lua
+	local MyService = Knit.CreateService {
+		Name = "MyService",
+		Client = {
+			-- Create the signal marker, which will turn into a
+			-- RemoteSignal when Knit.Start() is called:
+			MySignal = Knit.CreateSignal(),
+		},
+	}
+
+	function MyService:KnitInit()
+		-- Connect to the signal:
+		self.Client.MySignal:Connect(function(player, ...) end)
+	end
+	```
+]=]
+function KnitServer.CreateSignal()
+	return SIGNAL_MARKER
+end
+
+--[=[
+	@return UNRELIABLE_SIGNAL_MARKER
+
+	Returns a marker that will transform the current key into
+	an unreliable RemoteSignal once the service is created. Should
+	only be called within the Client table of a service.
+
+	See [RemoteSignal](https://sleitnick.github.io/RbxUtil/api/RemoteSignal)
+	documentation for more info.
+
+	:::info Unreliable Events
+	Internally, this uses UnreliableRemoteEvents, which allows for
+	network communication that is unreliable and unordered. This is
+	useful for events that are not crucial for gameplay, since the
+	delivery of the events may occur out of order or not at all.
+
+	See  the documentation for [UnreliableRemoteEvents](https://create.roblox.com/docs/reference/engine/classes/UnreliableRemoteEvent)
+	for more info.
+]=]
+function KnitServer.CreateUnreliableSignal()
+	return UNRELIABLE_SIGNAL_MARKER
+end
+
+--[=[
+	@return PROPERTY_MARKER
+	Returns a marker that will transform the current key into
+	a RemoteProperty once the service is created. Should only
+	be called within the Client table of a service. An initial
+	value can be passed along as well.
+
+	RemoteProperties are great for replicating data to all of
+	the clients. Different data can also be set per client.
+
+	See [RemoteProperty](https://sleitnick.github.io/RbxUtil/api/RemoteProperty)
+	documentation for more info.
+
+	```lua
+	local MyService = Knit.CreateService {
+		Name = "MyService",
+		Client = {
+			-- Create the property marker, which will turn into a
+			-- RemoteProperty when Knit.Start() is called:
+			MyProperty = Knit.CreateProperty("HelloWorld"),
+		},
+	}
+
+	function MyService:KnitInit()
+		-- Change the value of the property:
+		self.Client.MyProperty:Set("HelloWorldAgain")
+	end
+	```
+]=]
+function KnitServer.CreateProperty(initialValue: any)
+	return { PROPERTY_MARKER, initialValue }
+end
+
+--[=[
+	@return Promise
+	Starts Knit. Should only be called once.
+
+	Optionally, `KnitOptions` can be passed in order to set
+	Knit's custom configurations.
+
+	:::caution
+	Be sure that all services have been created _before_
+	calling `Start`. Services cannot be added later.
+	:::
+
+	```lua
+	Knit.Start():andThen(function()
+		print("Knit started!")
+	end):catch(warn)
+	```
+	
+	Example of Knit started with options:
+	```lua
+	Knit.Start({
+		Middleware = {
+			Inbound = {
+				function(player, args)
+					print("Player is giving following args to server:", args)
+					return true
+				end
+			},
+		},
+	}):andThen(function()
+		print("Knit started!")
+	end):catch(warn)
+	```
+]=]
+function KnitServer.Start(options: KnitOptions?)
+	if started then
+		return Promise.reject("Knit already started")
+	end
+
+	started = true
+
+	table.freeze(services)
+
+	if options == nil then
+		selectedOptions = defaultOptions
+	else
+		assert(typeof(options) == "table", `KnitOptions should be a table or nil; got {typeof(options)}`)
+		selectedOptions = options
+		for k, v in defaultOptions do
+			if selectedOptions[k] == nil then
+				selectedOptions[k] = v
+			end
+		end
+	end
+
+	return Promise.new(function(resolve)
+		local knitMiddleware = if selectedOptions.Middleware ~= nil then selectedOptions.Middleware else {}
+
+		-- Bind remotes:
+		for _, service in services do
+			local middleware = if service.Middleware ~= nil then service.Middleware else {}
+			local inbound = if middleware.Inbound ~= nil then middleware.Inbound else knitMiddleware.Inbound
+			local outbound = if middleware.Outbound ~= nil then middleware.Outbound else knitMiddleware.Outbound
+
+			service.Middleware = nil
+
+			for k, v in service.Client do
+				if type(v) == "function" then
+					service.KnitComm:WrapMethod(service.Client, k, inbound, outbound)
+				elseif v == SIGNAL_MARKER then
+					service.Client[k] = service.KnitComm:CreateSignal(k, false, inbound, outbound)
+				elseif v == UNRELIABLE_SIGNAL_MARKER then
+					service.Client[k] = service.KnitComm:CreateSignal(k, true, inbound, outbound)
+				elseif type(v) == "table" and v[1] == PROPERTY_MARKER then
+					service.Client[k] = service.KnitComm:CreateProperty(k, v[2], inbound, outbound)
+				end
+			end
+		end
+
+		-- Init:
+		local promisesInitServices = {}
+		for _, service in services do
+			if type(service.KnitInit) == "function" then
+				table.insert(
+					promisesInitServices,
+					Promise.new(function(r)
+						debug.setmemorycategory(service.Name)
+						service:KnitInit()
+						r()
+					end)
+				)
+			end
+		end
+
+		resolve(Promise.all(promisesInitServices))
+	end):andThen(function()
+		-- Start:
+		for _, service in services do
+			if type(service.KnitStart) == "function" then
+				task.spawn(function()
+					debug.setmemorycategory(service.Name)
+					service:KnitStart()
+				end)
+			end
+		end
+
+		startedComplete = true
+		onStartedComplete:Fire()
+
+		task.defer(function()
+			onStartedComplete:Destroy()
+		end)
+
+		-- Expose service remotes to everyone:
+		knitRepServiceFolder.Parent = script.Parent
+	end)
+end
+
+--[=[
+	@return Promise
+	Returns a promise that is resolved once Knit has started. This is useful
+	for any code that needs to tie into Knit services but is not the script
+	that called `Start`.
+	```lua
+	Knit.OnStart():andThen(function()
+		local MyService = Knit.Services.MyService
+		MyService:DoSomething()
+	end):catch(warn)
+	```
+]=]
+function KnitServer.OnStart()
+	if startedComplete then
+		return Promise.resolve()
+	else
+		return Promise.fromEvent(onStartedComplete.Event)
+	end
+end
+
+return KnitServer
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="16">
+        <Properties>
+          <string name="Name">wally</string>
+          <string name="Source">return {
+	dependencies = {
+		Comm = "sleitnick/comm@^1",
+		Promise = "evaera/promise@^4",
+	},
+	package = {
+		description = "Knit is a lightweight game framework",
+		license = "MIT",
+		name = "sleitnick/knit",
+		realm = "shared",
+		registry = "https://github.com/UpliftGames/wally-index",
+		version = "1.7.0",
+	},
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="17">
+        <Properties>
+          <string name="Name">wally_bundle</string>
+          <string name="Source">return {
+	dependencies = {
+		Comm = "sleitnick/comm@^1",
+		Component = "sleitnick/component@^2",
+		EnumList = "sleitnick/enum-list@^2",
+		Input = "sleitnick/input@^2",
+		Option = "sleitnick/option@^1",
+		Promise = "evaera/promise@^4",
+		Signal = "sleitnick/signal@^2",
+		Streamable = "sleitnick/streamable@^1",
+		TableUtil = "sleitnick/table-util@^1",
+		Timer = "sleitnick/timer@^1",
+		Trove = "sleitnick/trove@^1",
+	},
+	package = {
+		name = "sleitnick/knit-bundle",
+		realm = "shared",
+		registry = "https://github.com/UpliftGames/wally-index",
+		version = "0.1.0",
+	},
 }</string>
         </Properties>
       </Item>
     </Item>
-    <Item class="Folder" referent="15">
+    <Item class="Folder" referent="18">
       <Properties>
-        <string name="Name">Ship</string>
+        <string name="Name">ShipFolder</string>
       </Properties>
-      <Item class="ModuleScript" referent="16">
+      <Item class="ModuleScript" referent="19">
         <Properties>
           <string name="Name">ShipManager</string>
-          <string name="Source">local MaterialConfig = require(script.Parent.Parent:WaitForChild("Config"):WaitForChild("MaterialConfig"))
+          <string name="Source">local MaterialConfig = require(script.Parent.Parent:WaitForChild("ConfigFolder"):WaitForChild("MaterialConfig"))
+--[[
+船舶管理系统
+版本 1.0.0
+功能：
+- 管理船舶材料配置
+- 计算船舶健康值
+- 控制部件解锁逻辑
+]]
 local ShipManager = {}
 ShipManager.__index = ShipManager
 
+--[[
+构造函数
+@return table 新的船舶管理器实例
+]]
 function ShipManager.new()
     local self = setmetatable({}, ShipManager)
     self.shipData = {
@@ -453,19 +1362,37 @@ function ShipManager.new()
     return self
 end
 
+--[[
+添加船舶材料
+@param materialTier number 材料等级（1-3）
+触发：
+- 更新材料列表
+- 重新计算总健康值
+- 解锁新部件（每3个材料解锁1个）
+]]
 function ShipManager:AddMaterial(materialTier)
     table.insert(self.shipData.materials, materialTier)
     
     -- 计算新属性
     local newHealth = 0
-    for _,tier in pairs(self.shipData.materials) do
+    -- 遍历所有材料累加健康值
+for _,tier in pairs(self.shipData.materials) do
         newHealth = newHealth + MaterialConfig.GetTierData(tier).health
     end
     
-    self.shipData.totalHealth = math.max(newHealth, self.shipData.totalHealth)
-    self.shipData.unlockedParts = math.min(#self.shipData.materials + 1, 4)
+    -- 取历史最高健康值（防止维修降低耐久）
+self.shipData.totalHealth = math.max(newHealth, self.shipData.totalHealth)
+    -- 解锁新部件逻辑（每3个材料解锁1个，最多4个部件）
+self.shipData.unlockedParts = math.min(#self.shipData.materials + 1, 4)
 end
 
+--[[
+判断是否可以建造新部件
+@return boolean 当前材料是否满足解锁条件
+解锁规则：
+- 每解锁1个部件需要3个材料
+- 基础解锁部件数为1
+]]
 function ShipManager:CanBuildPart()
     return #self.shipData.materials >= (self.shipData.unlockedParts * 3)
 end
@@ -474,84 +1401,66 @@ return ShipManager</string>
         </Properties>
       </Item>
     </Item>
-    <Item class="Folder" referent="17">
+    <Item class="Folder" referent="20">
       <Properties>
-        <string name="Name">Tool</string>
+        <string name="Name">ToolFolder</string>
       </Properties>
-      <Item class="ModuleScript" referent="18">
+      <Item class="ModuleScript" referent="21">
         <Properties>
-          <string name="Name">ChunkPool</string>
-          <string name="Source">local ChunkPool = {}
-ChunkPool.__index = ChunkPool
+          <string name="Name">Interface</string>
+          <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-function ChunkPool.new()
-    local self = setmetatable({}, ChunkPool)
-    self.pool = {}
-    self.inUse = {}
-    return self
-end
+local Interface = {}
 
-function ChunkPool:GetChunk()
-    if #self.pool > 0 then
-        local chunk = table.remove(self.pool)
-        self.inUse[chunk] = true
-        return chunk
-    end
-    return nil
-end
-
-function ChunkPool:ReturnChunk(chunk)
-    if self.inUse[chunk] then
-        self.inUse[chunk] = nil
-        table.insert(self.pool, chunk)
-    end
-end
-
-return ChunkPool</string>
-        </Properties>
-      </Item>
-      <Item class="ModuleScript" referent="19">
-        <Properties>
-          <string name="Name">EventManager</string>
-          <string name="Source">local EventManager = {
-    _eventHandlers = {},
-}
-
-function EventManager.new()
-    local self = setmetatable({}, { __index = EventManager })
-    self.triggersCount = 0
-    return self
-end
-
-function EventManager:RegisterEvent(eventType, handler)
-    if not self._eventHandlers[eventType] then
-        self._eventHandlers[eventType] = {}
-    end
-    table.insert(self._eventHandlers[eventType], handler)
-end
-
-function EventManager:TriggerEvent(player, eventType, ...)
-    local handlers = self._eventHandlers[eventType]
-    if handlers then
-        for _, handler in ipairs(handlers) do
-            handler(player, ...)
+-- 初始化玩家位置
+function Interface:InitPlayerPos(player)
+    local spawnLocation = player.RespawnLocation
+    if spawnLocation and player.Character then
+        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            humanoidRootPart.CFrame = spawnLocation.CFrame
+        end
+        local humanoid = player.Character:FindFirstChild('Humanoid')
+        if humanoid then
+            humanoid.Sit = false
         end
     end
 end
 
-return EventManager</string>
+-- 初始化船的位置
+function Interface:InitBoatWaterPos(character, boat, driverSeat)
+    local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+    local position = waterSpawn.Position
+
+    local currentCFrame = boat:GetPivot()
+    local newPosition = Vector3.new(position.X, position.Y + boat.PrimaryPart.size.y, position.Z)
+    local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    --local newCFrame = CFrame.new(Vector3.new(0, newPosition.Y, 0))
+    boat:PivotTo(newCFrame)
+
+    -- 玩家自动入座
+    if character then
+        local humanoid = character:FindFirstChild('Humanoid')
+        if humanoid then
+            --humanoid.Sit = true
+            character:WaitForChild('HumanoidRootPart').CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0)
+        end
+    end
+end
+
+return Interface</string>
         </Properties>
       </Item>
     </Item>
-    <Item class="Folder" referent="20">
+    <Item class="Folder" referent="22">
       <Properties>
-        <string name="Name">Trigger</string>
+        <string name="Name">TriggerFolder</string>
       </Properties>
-      <Item class="Folder" referent="21">
+      <Item class="Folder" referent="23">
         <Properties>
-          <string name="Name">Action</string>
+          <string name="Name">ActionFolder</string>
         </Properties>
-        <Item class="ModuleScript" referent="22">
+        <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">ActionBase</string>
             <string name="Source">local ActionBase = {}
@@ -569,7 +1478,7 @@ end
 return ActionBase</string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="23">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">CreatePartAction</string>
             <string name="Source">print("加载CreatePartAction")
@@ -607,11 +1516,11 @@ return CreatePartAction</string>
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="24">
+      <Item class="Folder" referent="26">
         <Properties>
-          <string name="Name">Condition</string>
+          <string name="Name">ConditionFolder</string>
         </Properties>
-        <Item class="ModuleScript" referent="25">
+        <Item class="ModuleScript" referent="27">
           <Properties>
             <string name="Name">CompositeCondition</string>
             <string name="Source">print("加载CompositeCondition")
@@ -742,7 +1651,7 @@ end
 return CompositeCondition</string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="26">
+        <Item class="ModuleScript" referent="28">
           <Properties>
             <string name="Name">ConditionBase</string>
             <string name="Source">local ConditionBase = {}
@@ -766,7 +1675,7 @@ end
 return ConditionBase</string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="27">
+        <Item class="ModuleScript" referent="29">
           <Properties>
             <string name="Name">PlayerActionCondition</string>
             <string name="Source">print("加载PlayerActionCondition")
@@ -854,7 +1763,7 @@ end
 return PlayerActionCondition</string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="28">
+        <Item class="ModuleScript" referent="30">
           <Properties>
             <string name="Name">PositionCondition</string>
             <string name="Source">print("加载PositionCondition")
@@ -926,7 +1835,7 @@ return PositionCondition</string>
           </Properties>
         </Item>
       </Item>
-      <Item class="ModuleScript" referent="29">
+      <Item class="ModuleScript" referent="31">
         <Properties>
           <string name="Name">ConfigTriggers</string>
           <string name="Source">return {
@@ -989,7 +1898,7 @@ return PositionCondition</string>
 }</string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="30">
+      <Item class="ModuleScript" referent="32">
         <Properties>
           <string name="Name">TriggerManager</string>
           <string name="Source">print("加载TriggerManager")
@@ -1080,164 +1989,2060 @@ return TriggerManager</string>
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="31">
+  <Item class="ServerScriptService" referent="33">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Script" referent="32">
+    <Item class="Folder" referent="34">
       <Properties>
-        <string name="Name">TriggerTest</string>
-        <token name="RunContext">0</token>
+        <string name="Name">AIManagerFolder</string>
+      </Properties>
+      <Item class="ModuleScript" referent="35">
+        <Properties>
+          <string name="Name">AIController</string>
+          <string name="Source">local AIController = {}
+AIController.__index = AIController
+
+function AIController.new(npcModel)
+    local self = setmetatable({}, AIController)
+    
+    -- 保存原始NPC克隆体
+    self.NPCClone = npcModel:Clone()
+    self.NPC = npcModel
+    self.Humanoid = npcModel:FindFirstChildOfClass('Humanoid')
+    if not self.Humanoid then
+        error("NPC模型必须包含Humanoid组件")
+    end
+    self.CurrentState = nil
+    self.States = {
+        Idle = require(script.Parent:WaitForChild("IdleState")).new(self),
+        Patrol = require(script.Parent:WaitForChild("PatrolState")).new(self),
+        Attack = require(script.Parent:WaitForChild("AttackState")).new(self),
+        Dead = require(script.Parent:WaitForChild("DeadState")).new(self),
+        Chase = require(script.Parent:WaitForChild("ChaseState")).new(self),
+    }
+    
+    self:InitializeAttributes()
+    return self
+end
+
+function AIController:InitializeAttributes()
+    -- 确保关键属性存在
+    self.NPC:SetAttribute("VisionRange", self.NPC:GetAttribute("VisionRange") or 50)
+    self.NPC:SetAttribute("AttackRange", self.NPC:GetAttribute("AttackRange") or 10)
+    
+    local success, MonsterConfig = pcall(function()
+        return require(script.Parent:WaitForChild("MonsterConfig"))
+    end)
+    
+    if success then
+        local monsterType = self.NPC:GetAttribute("MonsterType") or "Zombie"
+        local config = MonsterConfig[monsterType]
+        
+        if config then
+            self.NPC:SetAttribute('Health', config.Health)
+            self.NPC:SetAttribute('WalkSpeed', config.WalkSpeed)
+            self.NPC:SetAttribute('VisionRange', config.VisionRange)
+            self.NPC:SetAttribute('AttackRange', config.AttackRange)
+            self.NPC:SetAttribute('PatrolRadius', config.PatrolRadius)
+            self.NPC:SetAttribute('RespawnTime', config.RespawnTime)
+        else
+            warn("未找到怪物配置:", monsterType)
+        end
+    else
+        warn("加载MonsterConfig失败:", MonsterConfig)
+    end
+end
+
+function AIController:SetState(newState)
+    if self.CurrentState then
+        self.CurrentState:Exit()
+    end
+    
+    self.CurrentState = self.States[newState]
+    self.CurrentState:Enter()
+end
+
+function AIController:Start()
+    self:SetState('Idle')
+    self.Humanoid.Died:Connect(function()
+        self:SetState('Dead')
+    end)
+end
+
+return AIController</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="36">
+        <Properties>
+          <string name="Name">AttackState</string>
+          <string name="Source">local AttackState = {}
+AttackState.__index = AttackState
+
+function AttackState.new(controller)
+    local self = setmetatable({}, AttackState)
+    self.Controller = controller
+    self.proximityPrompt = Instance.new("ProximityPrompt")
+    self.proximityPrompt.HoldDuration = 0
+    self.proximityPrompt.MaxActivationDistance = self.Controller.NPC:GetAttribute("AttackRange")
+    self.attributeListener = self.Controller.NPC:GetAttributeChangedSignal("AttackRange"):Connect(function()
+        self.proximityPrompt.MaxActivationDistance = self.Controller.NPC:GetAttribute("AttackRange")
+    end)
+    self.proximityPrompt.Parent = self.Controller.Humanoid.RootPart
+    return self
+end
+
+function AttackState:Exit()
+    if self.attackConnection then
+        self.attackConnection:Disconnect()
+    end
+    if self.attributeListener then
+        self.attributeListener:Disconnect()
+    end
+    self.proximityPrompt:Destroy()
+end
+
+function AttackState:Enter()
+    self.attackConnection = self.proximityPrompt.Triggered:Connect(function(player)
+        if self.Controller.Humanoid.Health > 0 then
+            -- 播放攻击动画
+            local animateScript = self.Controller.NPC:FindFirstChild("Animate")
+            if animateScript then
+                animateScript.Attack:Fire()
+            end
+            
+            -- 伤害判定逻辑
+            local hitbox = self.Controller.NPC:FindFirstChild("Hitbox")
+            if hitbox then
+                hitbox.Touched:Connect(function(hit)
+                    local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+                    if humanoid and humanoid ~= self.Controller.Humanoid then
+                        humanoid:TakeDamage(10)
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+
+
+return AttackState</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="37">
+        <Properties>
+          <string name="Name">ChaseState</string>
+          <string name="Source">local ChaseState = {}
+ChaseState.__index = ChaseState
+
+function ChaseState.new(controller)
+    local self = setmetatable({}, ChaseState)
+    self.Controller = controller
+    self.Path = game:GetService("PathfindingService"):CreatePath()
+    self.spawnPosition = controller.NPC:GetAttribute("SpawnPosition")
+    return self
+end
+
+function ChaseState:Enter()
+    self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        local target = self:FindNearestPlayer()
+        if target then
+            self:UpdatePath(target.Character.HumanoidRootPart.Position)
+            self:CheckDistance(target)
+        else
+            self.Controller:SetState("Idle")
+        end
+    end)
+end
+
+function ChaseState:FindNearestPlayer()
+    local npcPos = self.Controller.Humanoid.RootPart.Position
+    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    
+    local params = OverlapParams.new()
+    params.FilterDescendantsInstances = {self.Controller.NPC}
+    
+    local detectionBox = Region3.new(
+        npcPos - Vector3.new(visionRange, visionRange, visionRange),
+        npcPos + Vector3.new(visionRange, visionRange, visionRange)
+    )
+    
+    local parts = workspace:GetPartBoundsInBox(detectionBox, params)
+    
+    local nearestPlayer = nil
+    local minDistance = math.huge
+    
+    for _, part in ipairs(parts) do
+        local character = part.Parent
+        local player = game.Players:GetPlayerFromCharacter(character)
+        if player and character:FindFirstChild("HumanoidRootPart") then
+            local distance = (character.HumanoidRootPart.Position - npcPos).Magnitude
+            if distance &lt; minDistance then
+                nearestPlayer = player
+                minDistance = distance
+            end
+        end
+    end
+    return nearestPlayer
+end
+
+function ChaseState:CheckDistance(player)
+    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
+        self.Controller:SetState("Idle")
+        return
+    end
+    
+    local currentPos = self.Controller.Humanoid.RootPart.Position
+    local attackRange = self.Controller.NPC:GetAttribute("AttackRange")
+    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    
+    local distanceToPlayer = (player.Character.HumanoidRootPart.Position - currentPos).Magnitude
+    local distanceToSpawn = (self.spawnPosition - currentPos).Magnitude
+    
+    if distanceToPlayer &lt;= attackRange then
+        self.Controller:SetState("Attack")
+    elseif distanceToPlayer > visionRange or distanceToSpawn > visionRange*1.5 then
+        self.Controller.Humanoid:MoveTo(self.spawnPosition)
+        self.moveConnection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached)
+            if reached then
+                self.Controller:SetState("Idle")
+            end
+        end)
+    end
+end
+
+function ChaseState:UpdatePath(targetPos)
+    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
+        self.Controller:SetState("Idle")
+        return
+    end
+    
+    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPos)
+    if self.Path.Status == Enum.PathStatus.Success then
+        local waypoints = self.Path:GetWaypoints()
+        if #waypoints > 1 then
+            self.Controller.Humanoid:MoveTo(waypoints[2].Position)
+        end
+    else
+        self.Controller:SetState("Idle")
+    end
+end
+
+function ChaseState:Exit()
+    if self.connection then
+        self.connection:Disconnect()
+        self.connection = nil
+    end
+    if self.moveConnection then
+        self.moveConnection:Disconnect()
+        self.moveConnection = nil
+    end
+end
+
+return ChaseState</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="38">
+        <Properties>
+          <string name="Name">DeadState</string>
+          <string name="Source">local DeadState = {}
+DeadState.__index = DeadState
+
+function DeadState.new(controller)
+    local self = setmetatable({}, DeadState)
+    self.Controller = controller
+    return self
+end
+
+function DeadState:Enter()
+    -- 销毁原有NPC
+    -- 保存原始属性后立即销毁
+    local originalHealth = self.Controller.NPC:GetAttribute("Health")
+    local spawnPosition = self.Controller.NPC:GetAttribute("SpawnPosition")
+    self.Controller.NPC:Destroy()
+
+    -- 统一重生处理
+    local function respawnNPC()
+        local newNPC = self.Controller.NPCClone:Clone()
+        newNPC:SetAttribute("Health", originalHealth)
+        newNPC:PivotTo(CFrame.new(spawnPosition))
+        newNPC.Parent = workspace
+
+        -- 初始化新控制器
+        local newController = require(newNPC.Parent.AIController).new(newNPC)
+        newController:Start()
+        return newNPC
+    end
+
+    local npcClone
+    -- 延迟重生
+    task.delay(self.Controller.NPC:GetAttribute("RespawnTime"), function()
+        local newNPC = respawnNPC()
+        if newNPC then
+            npcClone = newNPC  -- 添加local限定符
+        end
+    end)
+    -- 播放死亡动画
+    local animateScript = self.Controller.NPC:FindFirstChild("Animate")
+    if animateScript and animateScript:FindFirstChild("Death") then
+        animateScript.Death:Fire()
+    end
+    
+    -- 禁用碰撞和移动
+    self.Controller.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+    self.Controller.Humanoid.WalkSpeed = 0
+    
+    -- 触发物品掉落
+    local monsterType = self.Controller.NPC:GetAttribute("MonsterType")
+    local success, MonsterConfig = pcall(require, self.Controller.NPC.Parent.MonsterConfig)
+    local config = success and MonsterConfig[monsterType] or {Drops = {}}
+    if not success then
+        warn("[MonsterConfig] 配置加载失败:", MonsterConfig)
+    end
+    
+    if config and config.Drops then
+        local npcPosition = self.Controller.NPC:GetPivot().Position
+        
+        for _, drop in ipairs(config.Drops) do
+            if math.random() &lt;= drop.Chance then
+                local dropPart = Instance.new("Part")
+                dropPart.Size = Vector3.new(1,1,1)
+                dropPart.Position = npcPosition + drop.Offset
+                dropPart.Anchored = true
+                dropPart.BrickColor = BrickColor.Random()
+                dropPart.Parent = workspace
+                
+                local tag = Instance.new("StringValue")
+                tag.Name = "ItemType"
+                tag.Value = drop.ItemId
+                tag.Parent = dropPart
+            end
+        end
+    end
+    
+    -- 尸体保留计时
+    self.deathTimer = 5
+    self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        self.deathTimer = self.deathTimer - dt
+        if self.deathTimer &lt;= 0 then
+            if npcClone and npcClone.Parent then
+                npcClone:Destroy()
+            end
+            self.Controller.NPC = nil
+        end
+    end)
+end
+
+function DeadState:Exit()
+    if self.connection then
+        self.connection:Disconnect()
+    end
+end
+
+return DeadState</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="39">
+        <Properties>
+          <string name="Name">IdleState</string>
+          <string name="Source">local IdleState = {}
+IdleState.__index = IdleState
+
+function IdleState.new(controller)
+    local self = setmetatable({}, IdleState)
+    self.Controller = controller
+    return self
+end
+
+
+
+function IdleState:Exit()
+    if self.connection then
+        self.connection:Disconnect()
+        self.connection = nil
+    end
+end
+
+function IdleState:Enter()
+    self.timer = math.random(3, 8)
+    self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        self.timer = self.timer - dt
+        
+        -- 玩家检测逻辑
+        local npcPos = self.Controller.Humanoid.RootPart.Position
+        local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+        
+        local detectionBox = Region3.new(
+            npcPos - Vector3.new(visionRange, 5, visionRange),
+            npcPos + Vector3.new(visionRange, 5, visionRange)
+        )
+        
+        local params = OverlapParams.new()
+        params.FilterDescendantsInstances = {self.Controller.NPC}
+        
+        local parts = workspace:GetPartBoundsInBox(detectionBox, params)
+        
+        for _, part in ipairs(parts) do
+            local character = part.Parent
+            local player = game.Players:GetPlayerFromCharacter(character)
+            if player and character:FindFirstChild("HumanoidRootPart") then
+                self.Controller:SetState("Chase")
+                return
+            end
+        end
+        
+        if self.timer &lt;= 0 then
+            self.Controller:SetState("Patrol")
+        end
+    end)
+end
+
+
+
+return IdleState</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="40">
+        <Properties>
+          <string name="Name">MonsterConfig</string>
+          <string name="Source">return {
+    Zombie = {
+        Health = 100,
+        WalkSpeed = 16,
+        VisionRange = 50,
+        AttackRange = 5,
+        PatrolRadius = 35,
+        RespawnTime = 30,
+        Drops = {
+            {ItemId = "Medkit", Chance = 0.3, Offset = Vector3.new(0, 2, 0)},
+            {ItemId = "Ammo", Chance = 0.5, Offset = Vector3.new(1, 2, -1)}
+        }
+    },
+    Skeleton = {
+        Health = 80,
+        WalkSpeed = 18,
+        VisionRange = 40,
+        AttackRange = 3,
+        PatrolRadius = 25,
+        RespawnTime = 20,
+        Drops = {
+            {ItemId = "Bones", Chance = 0.8, Offset = Vector3.new(0, 1, 0)}
+        }
+    }
+}</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="41">
+        <Properties>
+          <string name="Name">PatrolState</string>
+          <string name="Source">local PatrolState = {}
+PatrolState.__index = PatrolState
+
+function PatrolState.new(controller)
+    local self = setmetatable({}, PatrolState)
+    self.Controller = controller
+    self.Path = game:GetService("PathfindingService"):CreatePath()
+    return self
+end
+
+function PatrolState:Enter()
+    local center = self.Controller.NPC:GetPivot().Position
+    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    
+    local targetPosition = center + Vector3.new(
+        math.random(-visionRange, visionRange),
+        0,
+        math.random(-visionRange, visionRange)
+    )
+    
+    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPosition)
+    
+    if self.Path.Status == Enum.PathStatus.Success then
+        self.waypoints = self.Path:GetWaypoints()
+        self.currentWaypoint = 2
+        self.connection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached) 
+            if reached and self.currentWaypoint &lt;= #self.waypoints then
+                self.Controller.Humanoid:MoveTo(self.waypoints[self.currentWaypoint].Position)
+                self.currentWaypoint += 1
+            else
+                self.Controller:SetState("Chase")
+            end
+        end)
+        
+        self.detectionConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+            local npcPos = self.Controller.Humanoid.RootPart.Position
+            local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+            
+            local detectionBox = Region3.new(
+                npcPos - Vector3.new(visionRange, visionRange, visionRange),
+                npcPos + Vector3.new(visionRange, visionRange, visionRange)
+            )
+            
+            local params = OverlapParams.new()
+            params.FilterDescendantsInstances = {self.Controller.NPC}
+            
+            local parts = workspace:GetPartBoundsInBox(detectionBox, params)
+            
+            for _, part in ipairs(parts) do
+                local character = part.Parent
+                local player = game.Players:GetPlayerFromCharacter(character)
+                if player and character:FindFirstChild("HumanoidRootPart") then
+                    self.Controller:SetState("Chase")
+                    return
+                end
+            end
+        end)
+        
+        self.Controller.Humanoid:MoveTo(self.waypoints[1].Position)
+    else
+        self.Controller:SetState("Chase")
+    end
+end
+
+function PatrolState:Exit()
+    if self.connection then
+        self.connection:Disconnect()
+        self.connection = nil
+    end
+    if self.detectionConnection then
+        self.detectionConnection:Disconnect()
+        self.detectionConnection = nil
+    end
+    self.Controller.Humanoid:MoveTo(self.Controller.Humanoid.RootPart.Position)
+end
+
+
+return PatrolState</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="42">
+      <Properties>
+        <string name="Name">BoatFolder</string>
+      </Properties>
+      <Item class="Script" referent="43">
+        <Properties>
+          <string name="Name">AssembleBoat</string>
+          <token name="RunContext">0</token>
+          <string name="Source">-- 船只组装服务模块
+-- 处理玩家通过远程事件发起的船只组装请求，负责验证部件、克隆模板、定位部件并生成最终船只模型
+
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ServerStorage = game:GetService('ServerStorage')
+require(game.ServerScriptService:WaitForChild('Start'))
+
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+--local BuoyantController = require(game.ServerScriptService:WaitForChild("BoatFolder"):WaitForChild('buoyantController'))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local BOAT_PARTS_FOLDER_NAME = '船'
+
+-- 初始化组装事件
+local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
+
+-- 初始化库存绑定函数
+local INVENTORY_BF_NAME = 'InventoryBindableFunction'
+local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME)
+
+-- 创建控制远程事件
+local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
+local controlEvent = ReplicatedStorage:FindFirstChild(BOAT_CONTROL_RE_NAME)
+
+-- 初始化止航事件
+local STOP_BOAT_RE_NAME = 'StopBoatEvent'
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME)
+
+-- 初始化更新UI事件
+local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME)
+
+-- 执行船只组装核心逻辑
+-- @param player 发起组装请求的玩家对象
+-- @return Model 组装完成的船只模型
+local function assembleBoat(player)
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    if boat then
+        return
+    end
+    -- 确保ServerStorage中存在船舶模板
+    local boatTemplate = ServerStorage:FindFirstChild('船')
+    -- 校验服务器预置的船只模板是否存在
+    if not boatTemplate then
+        warn('BoatTemplate not found in ServerStorage!')
+        return
+    end
+
+    -- 获取玩家库存中的船部件
+    local inventory = inventoryBF:Invoke(player, 'GetInventory')
+    -- 检查库存有效性并收集船部件
+    local boatParts = {}
+    if type(inventory) == "table" then
+        for itemType, itemData in pairs(inventory) do
+            table.insert(boatParts, {
+                Type = itemType,
+                Data = itemData
+            })
+        end
+    end
+
+    if #boatParts == 0 then
+        warn("玩家没有可用的船部件")
+        return
+    end 
+
+    -- 克隆模板并定位部件
+    -- 创建新模型容器并保持模板原始坐标关系
+    -- 使用模板的CFrame保持部件相对位置，确保物理模拟准确性
+    local boat = Instance.new('Model')
+    boat.Name = 'PlayerBoat_'..player.UserId
+    boat.Parent = workspace
+    
+    local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local primaryPart = nil
+    for _, partInfo in ipairs(boatParts) do
+        for _, templatePart in ipairs(boatTemplate:GetChildren()) do
+            if templatePart:IsA('MeshPart') and partInfo.Type == templatePart.Name then
+                local partClone = templatePart:Clone()
+                partClone.CFrame = templatePart.CFrame
+                partClone.Parent = boat
+                partClone.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Wood)
+
+                if partInfo.Type == curBoatConfig[1].Name then
+                    boat.PrimaryPart = partClone
+                    primaryPart = boat.PrimaryPart  -- 保存主船体引用
+                end
+
+                -- 创建焊接约束
+                if primaryPart and partClone ~= primaryPart then
+                    local weldConstraint = Instance.new('WeldConstraint')
+                    weldConstraint.Part0 = primaryPart
+                    weldConstraint.Part1 = partClone
+                    weldConstraint.Parent = partClone
+                end
+                break
+            end
+        end
+    end
+
+    -- 创建驾驶座位
+    local primaryCFrame = boat.PrimaryPart.CFrame
+    local driverSeat = Instance.new('VehicleSeat')
+    driverSeat.Name = 'DriverSeat'
+    driverSeat.Parent = boat
+    driverSeat.Anchored = false
+
+    local currentCFrame = driverSeat:GetPivot()
+    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    
+    -- 创建焊接约束
+    if primaryPart then
+        local weldConstraint = Instance.new('WeldConstraint')
+        weldConstraint.Part0 = driverSeat
+        weldConstraint.Part1 = primaryPart
+        weldConstraint.Parent = driverSeat
+
+        -- local SeatWeld = Instance.new('Weld')
+        -- SeatWeld.Part0 = driverSeat
+        -- SeatWeld.Part1 = player.Character:WaitForChild("HumanoidRootPart")
+        -- SeatWeld.Parent = driverSeat
+        -- SeatWeld.Archivable = false
+    end
+
+    -- 触发客户端事件传递座位引用
+    controlEvent:FireClient(player, 'SetDriverSeat')
+    
+    -- 添加座位占用监听
+    -- 监听玩家入座事件
+    driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
+        local humanoid = driverSeat.Occupant
+        if humanoid then
+            -- 监听玩家离座事件
+            humanoid.Seated:Connect(function(isSeated)
+                if not isSeated then
+                    controlEvent:FireClient(player, 'ClearDriverSeat')
+                end
+            end)
+        end
+    end)
+
+    -- 创建双层防渗透碰撞体
+    local function createWaterproofCollider(offsetY, sizeMultiplier)
+        local collider = Instance.new('Part')
+        collider.Size = boat.PrimaryPart.Size * sizeMultiplier
+        collider.Transparency = 0.5
+        collider.Color = Color3.new(0, 0.5, 1)
+        collider.CanCollide = true
+        collider.Anchored = false
+        collider.Parent = boat
+        collider.CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, offsetY, 0)
+        
+        -- 添加船体焊接约束
+        if primaryPart and collider then
+            local weldConstraint = Instance.new('WeldConstraint')
+            weldConstraint.Part0 = primaryPart
+            weldConstraint.Part1 = collider
+            weldConstraint.Parent = collider
+        end
+
+        -- game:GetService("RunService").Heartbeat:Connect(function()
+        --     if not boat or not collider then
+        --         return
+        --     end
+            
+        -- --     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+        -- --     local newPosition = Vector3.new(position.X, waterSpawn.Position.Y + boat.PrimaryPart.size.y, position.Z)
+        -- --     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(boatInitPivot:ToEulerAnglesXYZ())
+        -- --     boat:PivotTo(newCFrame)
+        --     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+        --     local newCFrame = collider.CFrame
+        --     collider.CFrame = CFrame.new(Vector3.new(newCFrame.Position.X, waterSpawn.Position.Y, newCFrame.Position.Z))
+        -- end)
+        
+        return collider
+    end
+
+    -- 创建底部防渗水
+    createWaterproofCollider(-5, Vector3.new(1.1, 1.1, 1.1))
+
+    -- 设置船的初始位置
+    Interface:InitBoatWaterPos(player.character, boat, driverSeat)
+    local boatInitPivot = boat:GetPivot()
+    
+    local function addBuoyancyConstraint(part)
+        -- local buoyancy = Instance.new("BodyForce")
+        -- buoyancy.Name = "BuoyancyForce"
+        
+        -- -- 假设水面高度��
+        -- local waterLevel = 0
+        
+        -- -- 设置浮力常�
+        -- local buoyancyForce = part.AssemblyMass * workspace.Gravity
+        
+        -- 连接到心��
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if not boat or not boat.PrimaryPart then
+                return
+            end
+            -- 获取
+            --local position = part.Position
+            
+            -- 计算有�
+            -- local submergedRatio = math.clamp((waterLevel - (position.Y - part.Size.Y/2)) / part.Size.Y, 0, 1)
+            
+            -- -- 如果部件
+            -- if submergedRatio > 0 then
+            --     buoyancy.Force = Vector3.new(0, buoyancyForce * submergedRatio * 1.5, 0)
+            -- else
+            --     buoyancy.Force = Vector3.new(0, 0, 0)
+            -- end
+            -- print(buoyancy.Force)
+            local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
+            local newPosition = Vector3.new(boat:GetPivot().Position.X, waterSpawn.Position.Y + boat.PrimaryPart.size.y, boat:GetPivot().Position.Z)
+            local newCFrame = CFrame.new(newPosition) * CFrame.Angles(boatInitPivot:ToEulerAnglesXYZ())
+            boat:PivotTo(newCFrame)
+            -- local newCFrame = boat.PrimaryPart.CFrame
+            -- boat.PrimaryPart.CFrame = CFrame.new(Vector3.new(newCFrame.Position.X, waterSpawn.Position.Y, newCFrame.Position.Z))
+        end)
+        
+        --buoyancy.Parent = part
+        return buoyancy
+    end
+    addBuoyancyConstraint(primaryPart)
+    
+    -- local buoyancy = Instance.new('BodyForce')
+    -- buoyancy.Name = 'BuoyancyForce'
+    -- buoyancy.Force = Vector3.new(0, primaryPart.Mass * 9.81, 0)
+    -- buoyancy.Parent = primaryPart
+
+    -- local buoyancy1 = Instance.new('BodyForce')
+    -- buoyancy1.Name = 'BuoyancyForce'
+    -- buoyancy1.Force = Vector3.new(0, driverSeat.Mass * 9.81, 0)
+    -- buoyancy1.Parent = driverSeat
+    
+    -- 应用动态浮力计算
+    --BuoyantController.applyBuoyancy(primaryPart, boat)
+
+    -- 触发客户端事件更新主界面UI
+    updateMainUIEvent:FireClient(player, {explore = true})
+
+    return boat
+end
+
+assembleEvent.OnServerEvent:Connect(assembleBoat)
+
+local function handleStopBoatRequest(player)
+    -- 触发客户端事件更新主界面UI
+    updateMainUIEvent:FireClient(player, {explore = false})
+
+    Interface:InitPlayerPos(player)
+
+    local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if not playerBoat then
+        warn("[船只销毁] 未找到玩家船只")
+        return
+    end
+
+    playerBoat:Destroy()
+end
+
+stopEvent.OnServerEvent:Connect(function(player)
+    handleStopBoatRequest(player)
+end)</string>
+        </Properties>
+      </Item>
+      <Item class="Script" referent="44">
+        <Properties>
+          <string name="Name">BoatControl</string>
+          <token name="RunContext">0</token>
+          <string name="Source">local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local RunService = game:GetService('RunService')
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local BOAT_PARTS_FOLDER_NAME = '船'
+local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+
+local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
+local MOVEMENT_FORCE = 1500
+local TURN_TORQUE = 80000
+
+local controlEvent = ReplicatedStorage:WaitForChild(BOAT_CONTROL_RE_NAME)
+local activeBoats = {}
+
+local function createPhysicsObjects(boatModel)
+    local boatBase = boatModel
+    
+    -- 设置船体物理属性
+    for _, part in ipairs(boatModel:GetDescendants()) do
+        if part:IsA('BasePart') then
+            part.Material = Enum.Material.Wood
+            part.CustomPhysicalProperties = PhysicalProperties.new(450, 0.3, 0.5)
+        end
+    end
+
+    -- 添加浮力效果(考虑体积因素)
+    local buoyancy = Instance.new('BodyForce')
+    local waterLevel = workspace:FindFirstChild('WaterSpawnLocation').Position.Y
+    local submergedDepth = math.clamp(waterLevel - boatBase.Position.Y, 0, boatBase.Size.Y)
+    local submergedRatio = submergedDepth / boatBase.Size.Y
+    
+    local volumeFactor = (boatBase.Size.X * submergedDepth * boatBase.Size.Z) / 100  -- 根据浸水深度计算有效体积
+    buoyancy.Force = Vector3.new(0, 1962 * boatBase:GetMass() * volumeFactor * (1 + submergedRatio^2), 0)  -- 增加浸水比例平方的修正系数
+    buoyancy.Parent = boatBase
+    
+    local velocity = Instance.new('LinearVelocity')
+    velocity.LineVelocity = 0
+    velocity.MaxForce = 4000
+    velocity.Parent = boatBase
+    
+    local angularVelocity = Instance.new('AngularVelocity')
+    angularVelocity.AngularVelocity = Vector3.new()
+    angularVelocity.MaxTorque = 80000
+    angularVelocity.Parent = boatBase
+    
+    return velocity, angularVelocity
+end
+
+controlEvent.OnServerEvent:Connect(function(player, direction, state)
+    if 1 then
+        return
+    end
+    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if not boat then return end
+    
+    local controlData = activeBoats[boat] or {
+        velocity = nil,
+        angular = nil,
+        connections = {}
+    }
+    
+    if not controlData.velocity then
+        controlData.velocity, controlData.angular = createPhysicsObjects(boat)
+        activeBoats[boat] = controlData
+    end
+    
+    local forceMultiplier = state and 10000 or 0
+    local baseForce = MOVEMENT_FORCE * forceMultiplier
+    local baseTorque = TURN_TORQUE * forceMultiplier
+    
+    if direction == 'Forward' then
+        controlData.velocity.LineVelocity = -baseForce
+    elseif direction == 'Backward' then
+        controlData.velocity.LineVelocity = baseForce
+    elseif direction == 'Left' then
+        controlData.angular.AngularVelocity = Vector3.new(0, baseTorque, 0)
+    elseif direction == 'Right' then
+        controlData.angular.AngularVelocity = Vector3.new(0, -baseTorque, 0)
+    end
+    
+    -- 持续运动更新循环
+    if not controlData.connections.updateLoop then
+        controlData.connections.updateLoop = RunService.Heartbeat:Connect(function()
+            if not boat.Parent then
+                controlData.velocity:Destroy()
+                controlData.angular:Destroy()
+                activeBoats[boat] = nil
+                return
+            end
+            
+            -- 应用水面阻力模拟和水面保持效果
+            controlData.velocity.LineVelocity *= 0.95  -- 增加线性阻力
+            controlData.angular.AngularVelocity *= 0.92
+            
+            -- 增强水面保持效果
+            local boatBase = boat:FindFirstChildOfClass('BasePart')
+            if boatBase then
+                local waterLevel = 0  -- 水面高度
+                local depth = waterLevel - boatBase.Position.Y
+                
+                if depth > 0 then  -- 船体在水下
+                    -- 根据浸入深度增加浮力
+                    local additionalBuoyancy = depth * 500
+                    boatBase.CFrame = boatBase.CFrame + Vector3.new(0, additionalBuoyancy * 0.01, 0)
+                elseif depth &lt; -1 then  -- 船体过高
+                    -- 轻微下压防止漂浮过高
+                    boatBase.CFrame = boatBase.CFrame + Vector3.new(0, -0.05, 0)
+                end
+            end
+        end)
+    end
+end)
+
+-- 清理物理组件当驾驶座释放时
+game:GetService('Players').PlayerRemoving:Connect(function(player)
+    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if boat and activeBoats[boat] then
+        activeBoats[boat].velocity:Destroy()
+        activeBoats[boat].angular:Destroy()
+        if activeBoats[boat].connections.updateLoop then
+            activeBoats[boat].connections.updateLoop:Disconnect()
+        end
+        activeBoats[boat] = nil
+    end
+end)</string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="45">
+        <Properties>
+          <string name="Name">BuoyantController</string>
+          <string name="Source"><![CDATA[local PhysicsService = game:GetService('PhysicsService')
+local RunService = game:GetService('RunService')
+
+local BuoyantController = {}
+
+local WATER_DENSITY = 1000 -- 水密度kg/m³
+local GRAVITY = workspace.Gravity -- 重力加速度
+
+function BuoyantController.calculateDisplacedVolume(boatModel)
+    local totalVolume = 0
+    for _, part in ipairs(boatModel:GetChildren()) do
+        if part:IsA('BasePart') then
+            local size = part.Size
+            totalVolume += size.X * size.Y * size.Z
+        end
+    end
+    return totalVolume
+end
+
+function BuoyantController.applyBuoyancy(primaryPart, boatModel)
+    local totalMass = 0
+    for _, part in ipairs(boatModel:GetChildren()) do
+        if part:IsA('BasePart') then
+            totalMass += part:GetMass()
+        end
+    end
+    
+    local volume = BuoyantController.calculateDisplacedVolume(boatModel)
+    local buoyantForce = WATER_DENSITY * volume * GRAVITY
+    local massForce = totalMass * GRAVITY * 10
+    
+    local buoyancy = primaryPart:FindFirstChild('BuoyancyForce') or Instance.new('BodyForce')
+    buoyancy.Name = 'BuoyancyForce'
+    buoyancy.Force = Vector3.new(0, math.max(buoyantForce - massForce, 0), 0)
+    buoyancy.Force = massForce
+    buoyancy.Parent = primaryPart
+end
+
+function BuoyantController:addBuoyancyConstraint(part)
+    local buoyancy = Instance.new("BodyForce")
+    buoyancy.Name = "BuoyancyForce"
+    
+    -- 假设水面高度��
+    local waterLevel = 0
+    
+    -- 设置浮力常�
+    local buoyancyForce = part:GetMass() * workspace.Gravity
+    
+    -- 连接到心��
+    RunService.Heartbeat:Connect(function()
+        -- 获取
+        local position = part.Position
+        
+        -- 计算有�
+        local submergedRatio = math.clamp((waterLevel - (position.Y - part.Size.Y/2)) / part.Size.Y, 0, 1)
+        
+        -- 如果部件
+        if submergedRatio > 0 then
+            buoyancy.Force = Vector3.new(0, buoyancyForce * submergedRatio, 0)
+        else
+            buoyancy.Force = Vector3.new(0, 0, 0)
+        end
+        print(buoyancy.Force)
+    end)
+    
+    buoyancy.Parent = part
+    return buoyancy
+end
+
+return BuoyantController
+]]></string>
+        </Properties>
+      </Item>
+      <Item class="ModuleScript" referent="46">
+        <Properties>
+          <string name="Name">BuoyantController1</string>
+          <string name="Source">-- 这个ModuleScript提供了计算和应用浮力的函数
+
+local BuoyancyModule = {}
+
+-- 计算浮力的函数
+function BuoyancyModule.calculateBuoyancy(part, fluidDensity, waterLevel)
+    local mass = part:GetMass()
+    local gravity = workspace.Gravity
+    local position = part.Position
+    local size = part.Size
+    
+    -- 计算部件有多少部分在水下
+    local submergedRatio = math.clamp((waterLevel - (position.Y - size.Y/2)) / size.Y, 0, 1)
+    
+    -- 计算物体体积
+    local volume = size.X * size.Y * size.Z
+    
+    -- 理论浮力 = 物体排开水的体积 * 水的密度 * 重力加速度
+    local theoreticalBuoyancy = volume * fluidDensity * gravity * submergedRatio
+    
+    return {
+        submergedRatio = submergedRatio,
+        mass = mass,
+        volume = volume,
+        theoreticalBuoyancy = theoreticalBuoyancy,
+        netForce = theoreticalBuoyancy - (mass * gravity)
+    }
+end
+
+
+
+-- 这个脚本演示了如
+local RunService = game:GetService("RunService")
+
+-- 获取父对象（
+local part = script.Parent
+
+-- 设置物理
+part.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Water)
+
+-- 注意：仅设置Material.Wat
+-- 我们需要手动实现��
+
+-- 使用LineForce约
+local function addLineForceConstraint()
+    local lineForce = Instance.new("LineForce")
+    lineForce.Name = "LineForce"
+    
+    -- 设定LineForce的类型为Buoyancy（类
+    lineForce.Type = Enum.LineForceType.Buoyancy
+    
+    -- 设定LineForce��
+    lineForce.DirectionalForce = Vector3.new(0, 1, 0)
+    
+    lineForce.Parent = part
+    return lineForce
+end
+
+-- 执行该�
+local lineForce = addLineForceConstraint()
+
+
+
+-- 为部件添加浮力的函数
+function BuoyancyModule.applyBuoyancy(part, waterLevel, fluidDensity)
+    fluidDensity = fluidDensity or 1.0
+    
+    local buoyancy = Instance.new("Buoyancy")
+    buoyancy.Name = "PartBuoyancy"
+    buoyancy.FluidDensity = fluidDensity
+    buoyancy.PlaneNormal = Vector3.new(0, 1, 0)
+    buoyancy.BaseHeight = waterLevel
+    
+    -- 计算相对密度
+    local partDensity = part:GetMass() / (part.Size.X * part.Size.Y * part.Size.Z)
+    buoyancy.RelativeDensity = partDensity / fluidDensity
+    
+    buoyancy.Parent = part
+    return buoyancy
+end
+
+return BuoyancyModule</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="47">
+      <Properties>
+        <string name="Name">InventorySystemFolder</string>
+      </Properties>
+      <Item class="Script" referent="48">
+        <Properties>
+          <string name="Name">InventoryManager</string>
+          <token name="RunContext">0</token>
+          <string name="Source">--[[
+库存管理系统服务器端模块
+功能：负责管理玩家物品的添加、移除和查询操作，通过远程事件与客户端同步数据
+版本:v1.0.0
+最后修改：2025/3/20
+]]
+
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local Players = game:GetService('Players')
+require(game.ServerScriptService:WaitForChild('Start'))
+
+local InventoryManager = {}
+InventoryManager.__index = InventoryManager
+
+-- 通知客户端更新UI
+local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME)
+
+-- 请求库存数据
+local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME)
+
+local INVENTORY_BF_NAME = 'InventoryBindableFunction'
+local inventoryBF = ReplicatedStorage:FindFirstChild(INVENTORY_BF_NAME)
+
+-- 创建新的库存管理器实例
+function InventoryManager.new()
+    local self = setmetatable({}, InventoryManager)
+    self.playersInventory = {}
+
+    requestInventoryEvent.OnServerEvent:Connect(function(player)
+        local inventory = self:GetPlayerInventory(player)
+        updateInventoryEvent:FireClient(player, inventory)
+    end)
+    
+    -- 绑定远程函数调用处理
+    inventoryBF.OnInvoke = function(player, action, ...)
+        --[[
+            处理客户端发起的库存操作请求
+            @param player: 发起请求的玩家实例
+            @param action: 操作类型 ('AddItem'/'RemoveItem'/'GetInventory')
+            @param ...: 可变参数，根据操作类型不同包含：
+                - AddItem/RemoveItem: itemType (string) 物品类型
+                - GetInventory: 无额外参数
+            @return: 操作结果 (boolean) 或 当前库存数据 (table)
+        ]]
+        if action == 'AddItem' then
+            return self:AddItemToInventory(player, ...)
+        elseif action == 'RemoveItem' then
+            return self:RemoveItemFromInventory(player, ...)
+        elseif action == 'GetInventory' then
+            return self:GetPlayerInventory(player)
+        elseif action == 'CheckExists' then
+            return self:CheckExists(player, ...)
+        end
+    end
+    
+    return self
+end
+
+function InventoryManager:AddItemToInventory(player, itemType)
+    if not self.playersInventory[player] then
+        self.playersInventory[player] = {}
+    end
+    
+    self.playersInventory[player][itemType] = {
+        itemType = itemType,
+        quantity = (self.playersInventory[player][itemType] and self.playersInventory[player][itemType].quantity or 0) + 1,
+        icon = "rbxassetid://12345678", -- 临时图标，需替换为正式配置
+    }
+    
+    updateInventoryEvent:FireClient(player, self.playersInventory[player])
+    
+    return true
+end
+
+function InventoryManager:RemoveItemFromInventory(player, itemType)
+    --[[
+        从玩家库存中移除指定类型的物品
+        @param player: 玩家实例
+        @param itemType: 要移除的物品类型
+        @return: 无返回值
+    ]]--
+    if self.playersInventory[player][itemType] then
+        self.playersInventory[player][itemType].quantity = math.max(0, self.playersInventory[player][itemType].quantity - 1)
+        if self.playersInventory[player][itemType].quantity == 0 then
+            self.playersInventory[player][itemType] = nil
+        end
+        
+        updateInventoryEvent:FireClient(player, self.playersInventory[player])
+    end
+end
+
+function InventoryManager:CheckExists(player, itemType)
+    local inventory = self:GetPlayerInventory(player)
+    return inventory[itemType] ~= nil
+end
+
+function InventoryManager:GetPlayerInventory(player)
+    --[[
+        获取指定玩家的完整库存数据
+        @param player: 玩家实例
+        @return: 包含玩家所有物品的table
+    ]]--
+    return self.playersInventory[player] or {}
+end
+
+return InventoryManager.new()</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="49">
+      <Properties>
+        <string name="Name">LootFolder</string>
+      </Properties>
+      <Item class="Script" referent="50">
+        <Properties>
+          <string name="Name">LootManager</string>
+          <token name="RunContext">0</token>
+          <string name="Source">--[[
+模块功能：抽奖系统服务端逻辑
+版本：1.0.0
+作者：Trea
+修改记录：
+2024-05-20 创建基础逻辑框架
+--]]
+
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local ServerStorage = game:GetService('ServerStorage')
+local Players = game:GetService('Players')
+require(game.ServerScriptService:WaitForChild('Start'))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+
+local LOOT_RE_NAME = 'LootEvent'
+local lootEvent = ReplicatedStorage:FindFirstChild(LOOT_RE_NAME)
+
+local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
+local goldEvent = ReplicatedStorage:WaitForChild(GOLD_UPDATE_RE_NAME)
+
+local INVENTORY_BF_NAME = 'InventoryBindableFunction'
+local inventoryBF = ReplicatedStorage:WaitForChild(INVENTORY_BF_NAME)
+
+-- 配件生成配置
+local BOAT_PARTS_FOLDER_NAME = '船'
+local REWARD_COUNT = {
+    [5] = 1,
+    [15] = 2,
+    [50] = 3,
+    [100] = 4
+}
+
+local function getRandomParts(player, price)
+    local boatFolder = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
+    if not boatFolder then return {} end
+
+    local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local rewardCount = REWARD_COUNT[price] or 1
+    local index = 1
+    local availableParts = {}
+    local isFirstLoot = inventoryBF:Invoke(player, 'CheckExists', curBoatConfig[1].Name)
+    if not isFirstLoot then
+        local part = boatFolder:FindFirstChild(curBoatConfig[1].Name)
+        table.insert(availableParts, part:Clone())
+        rewardCount = rewardCount - 1
+        index = 2
+    else
+        local inventory = inventoryBF:Invoke(player, 'GetInventory')
+        for _, item in pairs(inventory) do
+            index += 1
+        end
+    end
+    
+    for _ = 1, rewardCount do
+        local part = boatFolder:FindFirstChild(curBoatConfig[index].Name)
+        table.insert(availableParts, part:Clone())
+        index += 1
+    end
+
+    return availableParts
+end
+
+lootEvent.OnServerEvent:Connect(function(player, price)
+    -- 获取玩家数据组件
+    local gold = player.character:GetAttribute('Gold')
+    if not gold or gold &lt; price then
+        return
+    end
+    
+    -- 扣除黄金
+    gold -= price
+    player.character:SetAttribute('Gold', gold)
+    goldEvent:FireClient(player, gold)
+    
+    -- 获取随机配件
+    local parts = getRandomParts(player, price)
+    for _, part in ipairs(parts) do
+        -- 调用背包管理器添加物品
+        inventoryBF:Invoke(player, 'AddItem', part.Name)
+    end
+end)</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="51">
+      <Properties>
+        <string name="Name">PlayerDataFolder</string>
+      </Properties>
+      <Item class="Script" referent="52">
+        <Properties>
+          <string name="Name">PlayerData</string>
+          <token name="RunContext">0</token>
+          <string name="Source">local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+require(game.ServerScriptService:WaitForChild('Start'))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+
+-- 初始化金币更新远程事件
+local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
+local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME)
+
+Players.PlayerAdded:Connect(function(player)
+    local function setupCharacter(character)
+        character:SetAttribute("Gold", 100)
+        goldEvent:FireClient(player, 100)
+    end
+
+    -- 初始化已存在的角色
+    if player.Character then
+        setupCharacter(player.Character)
+    else
+        player.CharacterAdded:Connect(setupCharacter)
+    end
+
+    -- 初始化重生点
+    player.RespawnLocation = Workspace.LandSpawnLocation
+end)</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="ModuleScript" referent="53">
+      <Properties>
+        <string name="Name">Start</string>
         <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local EventManager = require(ReplicatedStorage:WaitForChild("Tool"):WaitForChild("EventManager"))
-local eventManager = EventManager.new()
 
--- 模拟玩家对象
-local testPlayer = {UserId = 123}
+-- 初始化组装事件
+local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
+local assembleEvent = Instance.new('RemoteEvent')
+assembleEvent.Name = ASSEMBLE_BOAT_RE_NAME
+assembleEvent.Parent = ReplicatedStorage
 
--- 触发材料获取事件（随机获取1-3阶材料）
-eventManager:TriggerEvent(testPlayer, "MaterialAcquired", math.random(1,3))
+-- 初始化库存绑定函数
+local INVENTORY_BF_NAME = 'InventoryBindableFunction'
+local inventoryBF = Instance.new('BindableFunction')
+inventoryBF.Name = INVENTORY_BF_NAME
+inventoryBF.Parent = ReplicatedStorage
 
--- 触发等级提升到5级（解锁新海域）
-eventManager:TriggerEvent(testPlayer, "LevelUp", 5)
+-- 创建控制船事件
+local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
+local controlEvent = Instance.new('RemoteEvent')
+controlEvent.Name = BOAT_CONTROL_RE_NAME
+controlEvent.Parent = ReplicatedStorage
 
-print("触发器测试脚本初始化完成")</string>
+-- 初始化止航事件
+local STOP_BOAT_RE_NAME = 'StopBoatEvent'
+local stopEvent = Instance.new('RemoteEvent')
+stopEvent.Name = STOP_BOAT_RE_NAME
+stopEvent.Parent = ReplicatedStorage
+
+-- 初始化更新UI事件
+local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
+local updateMainUIEvent = Instance.new('RemoteEvent')
+updateMainUIEvent.Name = UPDATE_MAINUI_RE_NAME
+updateMainUIEvent.Parent = ReplicatedStorage
+
+-- 通知客户端更新UI
+local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
+local updateInventoryEvent = Instance.new('RemoteEvent')
+updateInventoryEvent.Name = INVENTORY_UPDATE_RE_NAME
+updateInventoryEvent.Parent = ReplicatedStorage
+
+-- 请求库存数据
+local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
+local requestInventoryEvent = Instance.new('RemoteEvent')
+requestInventoryEvent.Name = GET_INVENTORY_RE_NAME
+requestInventoryEvent.Parent = ReplicatedStorage
+
+-- 库存数据
+local LOOT_RE_NAME = 'LootEvent'
+local lootEvent = Instance.new('RemoteEvent')
+lootEvent.Name = LOOT_RE_NAME
+lootEvent.Parent = ReplicatedStorage
+
+-- 初始化金币更新远程事件
+local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
+local goldEvent = Instance.new('RemoteEvent')
+goldEvent.Name = GOLD_UPDATE_RE_NAME
+goldEvent.Parent = ReplicatedStorage
+
+-- 初始化库存界面远程事件
+local INVENTORY_BE_NAME = 'InventoryEvent'
+local inventoryEvent = Instance.new('BindableEvent')
+inventoryEvent.Name = INVENTORY_BE_NAME
+inventoryEvent.Parent = ReplicatedStorage
+
+-- 初始化止航按钮绑定函数
+local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
+local stopEventBE = Instance.new('BindableEvent')
+stopEventBE.Name = STOP_BOAT_BE_NAME
+stopEventBE.Parent = ReplicatedStorage
+
+-- 初始化Knit框架
+local Knit = require(game:GetService("ReplicatedStorage").Knit)
+Knit.StartService():catch(warn)
+
+print("服务器脚本初始化完成")
+return {}</string>
       </Properties>
     </Item>
   </Item>
-  <Item class="SoundService" referent="33">
+  <Item class="SoundService" referent="54">
     <Properties>
       <string name="Name">SoundService</string>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterGui" referent="34">
+  <Item class="StarterGui" referent="55">
     <Properties>
       <string name="Name">StarterGui</string>
     </Properties>
-    <Item class="Folder" referent="35">
+    <Item class="Folder" referent="56">
       <Properties>
-        <string name="Name">ShipBuilder</string>
+        <string name="Name">InventorySystemFolder</string>
       </Properties>
-      <Item class="LocalScript" referent="36">
+      <Item class="LocalScript" referent="57">
         <Properties>
-          <string name="Name">ShipBuilderUI</string>
+          <string name="Name">InventoryUI</string>
           <string name="Source">local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local ShipManager = require(ReplicatedStorage:WaitForChild("Ship"):WaitForChild("ShipManager"))
+local Players = game:GetService('Players')
 
-local ShipBuilderUI = {}
-ShipBuilderUI.__index = ShipBuilderUI
+-- 通知客户端更新UI
+local INVENTORY_UPDATE_RE_NAME = 'InventoryUpdateEvent'
+local updateInventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_UPDATE_RE_NAME)
 
-function ShipBuilderUI.new()
-    local self = setmetatable({
-        _components = {},
-        _currentShip = nil,
-        _previewModel = nil,
-        _connection = nil
-    }, ShipBuilderUI)
-    
-    self:InitializeUI()
-    return self
-end
+-- 请求库存数据
+local GET_INVENTORY_RE_NAME = 'RequestInventoryData'
+local requestInventoryEvent = ReplicatedStorage:FindFirstChild(GET_INVENTORY_RE_NAME)
 
-function ShipBuilderUI:InitializeUI()
-    -- 创建基础UI容器
-    self._mainFrame = Instance.new('Frame')
-    self._mainFrame.Size = UDim2.new(0.8, 0, 0.9, 0)
-    self._mainFrame.Position = UDim2.new(0.1, 0, 0.05, 0)
-    self._mainFrame.Parent = game.Players.LocalPlayer:WaitForChild('PlayerGui').ScreenGui
+local localPlayer = Players.LocalPlayer
+local gui = Instance.new('ScreenGui')
+gui.Name = 'InventoryUI'
+gui.Parent = localPlayer:WaitForChild('PlayerGui')
 
-    -- 部件选择面板
-    self._partsPanel = Instance.new('ScrollingFrame')
-    self._partsPanel.Size = UDim2.new(0.3, 0, 1, 0)
-    -- ...更多UI元素初始化代码...
+local inventoryFrame = Instance.new('Frame')
+inventoryFrame.Name = 'InventoryFrame'
+inventoryFrame.Size = UDim2.new(0.8, 0, 0.3, 0)
+inventoryFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
+inventoryFrame.BackgroundTransparency = 0.7
+inventoryFrame.Parent = gui
 
-    self:LoadAvailableParts()
-    self:SetupEventHandlers()
-end
+local itemTemplate = Instance.new('ImageButton')
+itemTemplate.Name = 'ItemTemplate'
+itemTemplate.Size = UDim2.new(0.15, 0, 0.8, 0)
+itemTemplate.BackgroundTransparency = 0.5
+itemTemplate.Visible = false
+itemTemplate.Parent = inventoryFrame
 
-function ShipBuilderUI:LoadAvailableParts()
-    local shipManager = ShipManager.GetForLocalPlayer()
-    self._components = shipManager:GetUnlockedComponents()
-    
-    -- 在UI面板中生成部件按钮
-    for partId, partData in pairs(self._components) do
-        self:CreatePartButton(partId, partData)
+--[[
+模块名称：库存界面系统
+功能：管理玩家背包UI的显示与交互，包括物品展示
+作者：Trea AI
+版本：1.2.0
+最后修改：2024-05-20
+]]
+
+--[[
+更新库存UI
+@param inventoryData 物品数据表，需包含id/icon/quantity/isSelected字段
+数据有效性要求：
+1. itemId必须为有效字符串
+2. itemData必须为table类型
+3. icon字段需指向有效图片地址
+4. quantity必须为大于0的整数
+]]
+local function UpdateInventoryUI(inventoryData)
+    -- 有效性检查：确保传入数据为table
+    assert(type(inventoryData) == "table", "无效的库存数据格式")
+
+    -- 清空现有物品槽（保留模板）
+    for _, child in ipairs(inventoryFrame:GetChildren()) do
+        if child:IsA('ImageButton') and child ~= itemTemplate then
+            child:Destroy()
+        end
+    end
+
+    -- 创建UIGridLayout自动排列
+    if not inventoryFrame:FindFirstChild('GridLayout') then
+        local gridLayout = Instance.new('UIGridLayout')
+        gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
+        gridLayout.CellSize = UDim2.new(0.15, 0, 0.8, 0)
+        gridLayout.FillDirectionMaxCells = 5
+        gridLayout.Parent = inventoryFrame
+    end
+
+    -- 遍历物品数据创建新槽位
+    for itemId, itemData in pairs(inventoryData) do
+        -- 数据校验：确保必需字段存在
+        if type(itemData) ~= 'table' or not itemData.icon or not itemData.quantity then
+            warn("无效的物品数据:", itemId, itemData)
+            continue
+        end
+        -- 克隆物品模板并初始化
+        local newItem = itemTemplate:Clone()
+        newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
+        newItem.Image = itemData.icon
+        newItem.Visible = true
+
+        -- 数量文本
+        local countText = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
+        countText.Text = tostring(itemData.quantity)
+        countText.Size = UDim2.new(0.3,0,0.3,0)
+        countText.Position = UDim2.new(0.7,0,0.7,0)
+        countText.BackgroundTransparency = 1
+        countText.TextColor3 = Color3.new(1,1,1)
+        countText.Parent = newItem
+
+        newItem.Parent = inventoryFrame
     end
 end
 
-function ShipBuilderUI:CreatePartButton(partId, partData)
-    local button = Instance.new('TextButton')
-    button.Text = partData.displayName
-    button.Size = UDim2.new(1, -20, 0, 40)
-    button.BackgroundColor3 = Color3.fromRGB(62, 125, 177)
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 18
-    button.Parent = self._partsPanel
-    
-    local partPreview = Instance.new('Part')
-    partPreview.Size = Vector3.new(2, 2, 2)
-    partPreview.Position = Vector3.new(0, 5, 0)
-    partPreview.Parent = workspace:WaitForChild('PreviewArea')
-    
-    button.MouseEnter:Connect(function()
-        partPreview.Transparency = 0.5
-        partPreview.Color = Color3.fromRGB(255, 165, 0)
-    end)
-    
-    button.MouseLeave:Connect(function()
-        partPreview:Destroy()
-    end)
-    button.MouseButton1Click:Connect(function()
-        ShipManager.GetForLocalPlayer():AssembleComponent(partId)
-        self:UpdatePreviewModel(partId)
-    end)
+-- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
+-- 监听库存数据更新事件
+updateInventoryEvent.OnClientEvent:Connect(function(inventoryData)
+    UpdateInventoryUI(inventoryData)
+end)
+
+-- 监听界面显示/隐藏事件
+local INVENTORY_BE_NAME = 'InventoryEvent'
+local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME) or Instance.new('BindableEvent')
+inventoryEvent.Name = INVENTORY_BE_NAME
+inventoryEvent.Parent = ReplicatedStorage
+inventoryEvent.Event:Connect(function(isVisible)
+    inventoryFrame.Visible = isVisible
+end)
+
+requestInventoryEvent:FireServer()</string>
+        </Properties>
+      </Item>
+    </Item>
+    <Item class="Folder" referent="58">
+      <Properties>
+        <string name="Name">MainUIFolder</string>
+      </Properties>
+      <Item class="LocalScript" referent="59">
+        <Properties>
+          <string name="Name">MainUI</string>
+          <string name="Source">--[[
+模块功能：船只组装控制界面
+版本：1.0.0
+作者：Trea
+修改记录：
+2024-02-20 创建基础UI框架
+2024-02-25 添加远程事件通信
+--]]
+
+local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+
+-- 初始化远程事件通信通道（客户端->服务端）
+local ASSEMBLE_BOAT_RE_NAME = 'AssembleBoatEvent'
+local assembleEvent = ReplicatedStorage:FindFirstChild(ASSEMBLE_BOAT_RE_NAME)
+
+-- 初始化更新UI事件
+local UPDATE_MAINUI_RE_NAME = 'UpdateMainUIEvent'
+local updateMainUIEvent = ReplicatedStorage:FindFirstChild(UPDATE_MAINUI_RE_NAME)
+
+-- 初始化库存界面远程事件
+local INVENTORY_BE_NAME = 'InventoryEvent'
+local inventoryEvent = ReplicatedStorage:FindFirstChild(INVENTORY_BE_NAME)
+
+local ScreenGui = Instance.new('ScreenGui')
+ScreenGui.Name = 'BoatControlUI'
+ScreenGui.Parent = Players.LocalPlayer:WaitForChild('PlayerGui')
+
+local StartButton = Instance.new('TextButton')
+-- 启航按钮布局
+StartButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+StartButton.Position = UDim2.new(0.05, 0, 0.45, 0)
+StartButton.Text = '启航'
+StartButton.Font = Enum.Font.SourceSansBold
+StartButton.TextSize = 24
+StartButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+StartButton.Parent = ScreenGui
+
+-- 止航按钮
+local StopButton = Instance.new('TextButton')
+StopButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+StopButton.Position = UDim2.new(0.05, 0, 0.45, 0)  -- 原启航按钮Y轴位置调整为0.35
+StopButton.Text = '止航'
+StopButton.Font = Enum.Font.SourceSansBold
+StopButton.TextSize = 24
+StopButton.BackgroundColor3 = Color3.fromRGB(215, 0, 0)
+StopButton.Visible = false  -- 初始隐藏止航按钮
+StopButton.Parent = ScreenGui
+
+-- 抽奖按钮
+local LootButton = Instance.new('TextButton')
+LootButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+LootButton.Position = UDim2.new(0.75, 0, 0.45, 0) -- 右侧5%位置
+LootButton.Text = '抽奖'
+LootButton.Font = Enum.Font.SourceSansBold
+LootButton.TextSize = 24
+LootButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
+LootButton.Parent = ScreenGui
+
+-- 宝箱选择弹窗
+local LootPopup = Instance.new('Frame')
+LootPopup.Size = UDim2.new(0.6, 0, 0.4, 0)
+LootPopup.Position = UDim2.new(0.2, 0, 0.3, 0)
+LootPopup.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+LootPopup.Visible = false
+LootPopup.Parent = ScreenGui
+
+-- 创建4个宝箱按钮
+local boxPrices = {5, 15, 50, 100}
+for i = 1, 4 do
+    local BoxButton = Instance.new('TextButton')
+    BoxButton.Size = UDim2.new(0.2, 0, 0.8, 0)
+    BoxButton.Position = UDim2.new(0.05 + (i-1)*0.25, 0, 0.1, 0)
+    BoxButton.Text = boxPrices[i]..'黄金'
+    BoxButton.Font = Enum.Font.SourceSans
+    BoxButton.TextSize = 18
+    BoxButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    BoxButton.Parent = LootPopup
 end
 
-function ShipBuilderUI:SetupEventHandlers()
-    self._connection = ShipManager.OnComponentUnlocked:Connect(function(newPart)
-        self:AddNewPartButton(newPart)
-    end)
+-- 点击事件处理：向服务端发送船只组装请求
+StartButton.MouseButton1Click:Connect(function()
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+    if boat then
+        return
+    end
+    assembleEvent:FireServer()
+end)
+
+-- 初始化止航远程事件
+local STOP_BOAT_RE_NAME = 'StopBoatEvent'
+local stopEvent = ReplicatedStorage:FindFirstChild(STOP_BOAT_RE_NAME)
+
+local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
+local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME)
+
+-- 止航按钮点击事件
+StopButton.MouseButton1Click:Connect(function()
+    stopEventBE:Fire()
+    stopEvent:FireServer()
+end)
+
+updateMainUIEvent.OnClientEvent:Connect(function(data)
+    StartButton.Visible = not data.explore
+    StopButton.Visible = data.explore
+    -- 通过事件通知隐藏库存界面
+    inventoryEvent:Fire(not data.explore)
+end)
+
+-- 初始化抽奖远程事件
+local LOOT_EVENT_NAME = 'LootEvent'
+local lootEvent = ReplicatedStorage:FindFirstChild(LOOT_EVENT_NAME)
+
+-- 抽奖按钮点击事件
+LootButton.MouseButton1Click:Connect(function()
+    LootPopup.Visible = true
+end)
+
+-- 宝箱按钮点击处理
+for _, boxButton in ipairs(LootPopup:GetChildren()) do
+    if boxButton:IsA('TextButton') then
+        boxButton.MouseButton1Click:Connect(function()
+            local price = tonumber(string.match(boxButton.Text, '%d+'))
+            lootEvent:FireServer(price)
+            LootPopup.Visible = false
+        end)
+    end
 end
 
-return ShipBuilderUI</string>
+-- 金币显示标签
+local GoldLabel = Instance.new('TextLabel')
+GoldLabel.Size = UDim2.new(0.25, 0, 0.08, 0)
+GoldLabel.Position = UDim2.new(0.7, 0, 0.85, 0)
+GoldLabel.Text = "黄金: 0"
+GoldLabel.Font = Enum.Font.SourceSansSemibold
+GoldLabel.TextSize = 20
+GoldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+GoldLabel.BackgroundTransparency = 1
+GoldLabel.Parent = ScreenGui
+
+-- 初始化金币更新远程事件
+local GOLD_UPDATE_RE_NAME = 'GoldUpdateEvent'
+local goldEvent = ReplicatedStorage:FindFirstChild(GOLD_UPDATE_RE_NAME)
+
+-- 金币更新处理方法
+local function updateGoldDisplay(newAmount)
+    GoldLabel.Text = string.format("黄金: %d", newAmount)
+end
+
+-- 监听金币更新事件
+goldEvent.OnClientEvent:Connect(updateGoldDisplay)
+
+-- 创建关闭按钮
+local CloseButton = Instance.new('TextButton')
+CloseButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+CloseButton.Position = UDim2.new(0.9, 0, 0.05, 0)
+CloseButton.Text = '×'
+CloseButton.Font = Enum.Font.GothamBlack
+CloseButton.TextSize = 28
+CloseButton.TextColor3 = Color3.fromRGB(255,255,255)
+CloseButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+CloseButton.Parent = LootPopup
+
+-- 添加按钮点击动画
+CloseButton.MouseButton1Click:Connect(function()
+    LootPopup.Visible = false
+end)
+
+CloseButton.MouseButton1Down:Connect(function()
+    CloseButton.Size = UDim2.new(0.09, 0, 0.09, 0)
+    wait(0.1)
+    CloseButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+end)</string>
         </Properties>
       </Item>
     </Item>
   </Item>
-  <Item class="StarterPlayer" referent="37">
+  <Item class="StarterPack" referent="60">
+    <Properties>
+      <string name="Name">StarterPack</string>
+    </Properties>
+  </Item>
+  <Item class="StarterPlayer" referent="61">
     <Properties>
       <string name="Name">StarterPlayer</string>
     </Properties>
-    <Item class="StarterCharacterScripts" referent="38">
+    <Item class="StarterCharacterScripts" referent="62">
       <Properties>
         <string name="Name">StarterCharacterScripts</string>
       </Properties>
     </Item>
-    <Item class="StarterPlayerScripts" referent="39">
+    <Item class="StarterPlayerScripts" referent="63">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="Folder" referent="40">
+      <Item class="LocalScript" referent="64">
         <Properties>
-          <string name="Name">TerrainGeneratorType</string>
+          <string name="Name">BoatControl</string>
+          <string name="Source">local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local UserInputService = game:GetService('UserInputService')
+local Workspace = game:GetService('Workspace')
+local LocalPlayer = game:GetService('Players').LocalPlayer
+
+local BOAT_CONTROL_RE_NAME = 'BoatControlEvent'
+local controlEvent = ReplicatedStorage:WaitForChild(BOAT_CONTROL_RE_NAME)
+
+local STOP_BOAT_BE_NAME = 'StopBoatEventBE'
+local stopEventBE = ReplicatedStorage:FindFirstChild(STOP_BOAT_BE_NAME) or Instance.new('BindableEvent')
+stopEventBE.Name = STOP_BOAT_BE_NAME
+stopEventBE.Parent = ReplicatedStorage
+
+local driverSeat = nil
+
+controlEvent.OnClientEvent:Connect(function(action)
+    if action == 'SetDriverSeat' then
+        local boat = Workspace:WaitForChild('PlayerBoat_'..LocalPlayer.UserId)
+        if boat then
+            driverSeat = boat:WaitForChild('DriverSeat')
+        end
+    elseif action == 'ClearDriverSeat' then
+        driverSeat = nil
+    end
+end)
+
+local function handleInput(input, state)
+    local directionMap = {
+        [Enum.KeyCode.W] = 'Forward',
+        [Enum.KeyCode.S] = 'Backward',
+        [Enum.KeyCode.A] = 'Left',
+        [Enum.KeyCode.D] = 'Right'
+    }
+    
+    if directionMap[input.KeyCode] then
+        controlEvent:FireServer(directionMap[input.KeyCode], state)
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input)
+    if not driverSeat then return end
+
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        handleInput(input, true)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if not driverSeat then return end
+
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        handleInput(input, false)
+    end
+end)
+
+stopEventBE.Event:Connect(function()
+    driverSeat = nil
+end)</string>
         </Properties>
-        <Item class="ModuleScript" referent="41">
+      </Item>
+      <Item class="Folder" referent="65">
+        <Properties>
+          <string name="Name">TerrainFolder</string>
+        </Properties>
+        <Item class="Folder" referent="66">
           <Properties>
-            <string name="Name">BaseTerrainGenerator</string>
-            <string name="Source">local BaseTerrainGenerator = {}
+            <string name="Name">TerrainGeneratorFolder</string>
+          </Properties>
+          <Item class="ModuleScript" referent="67">
+            <Properties>
+              <string name="Name">BaseTerrainGenerator</string>
+              <string name="Source">--- 地形生成器基类模块
+-- 提供地形生成器的公共接口与基础实现
+-- @module BaseTerrainGenerator
+-- @author 作者名
+-- @created 2024-05-20
+-- @last_modified 2024-05-20
+
+local BaseTerrainGenerator = {}
 BaseTerrainGenerator.isTerrainGenerator = true
 
+--- 创建基础地形生成器实例
+-- @function new
+-- @param config table 配置参数表
+-- @return table 新生成的地形生成器实例
 function BaseTerrainGenerator.new(config)
     local self = setmetatable({}, BaseTerrainGenerator)
     self.config = config
     return self
 end
 
+--- 初始化基础配置
+-- @function Init
+-- @remark 设置默认材质类型
 function BaseTerrainGenerator:Init()
-    self.MaterialType = Enum.Material.Plastic
-    self.chunkSize = 32
-    self.loadDistance = 5
+    self.materialType = Enum.Material.Plastic
+end
+
+function BaseTerrainGenerator:Destroy()
+end
+
+function BaseTerrainGenerator:UpdateChunks(playerPosition)
+end
+
+function BaseTerrainGenerator:FillBlock(position)
+    -- 地形填充 (未实现)
+end
+
+return BaseTerrainGenerator</string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="68">
+            <Properties>
+              <string name="Name">IslandGenerator</string>
+              <string name="Source">--[[
+模块名称：岛屿地形生成器
+版本：1.0.0
+功能：负责生成基于岛屿结构的地形区块
+作者：Trea开发团队
+最后更新时间：2024-05-20
+]]
+
+local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local IslandGenerator = {}
+setmetatable(IslandGenerator, {__index = BaseTerrainGenerator})
+IslandGenerator.__index = IslandGenerator
+
+-- 构造函数
+-- @param config table 地形配置表
+-- @return IslandGenerator实例
+function IslandGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), IslandGenerator)
+    return self
+end
+
+-- 初始化地形生成器参数
+-- 从配置表获取陆地材质类型、区块尺寸等参数
+function IslandGenerator:Init()
+    BaseTerrainGenerator.Init(self)
+    -- 设置材质类型（来自配置表）
+    self.materialType = self.config.TerrainType.Land.Material
+    -- 设置区块尺寸（来自配置表）
+    self.chunkSize = self.config.TerrainType.Land.ChunkSize
+    -- 设置加载距离（来自配置表）
+    self.loadDistance = self.config.TerrainType.Land.LoadDistance
+    -- 设置地形高度（来自配置表）
+    self.terrainHeight = self.config.TerrainType.Land.Height
+end
+
+-- 生成指定位置的地形区块
+-- @param position Vector3 区块生成的世界坐标
+-- @return Instance 新创建的地形区块实例
+function IslandGenerator:GenerateTerrainChunk(position)
+    local chunk = Instance.new("MeshPart")
+    -- 应用配置的区块尺寸
+    chunk.Size = self.chunkSize
+    -- 设置区块生成位置
+    chunk.Position = position
+    -- 应用配置的材质类型
+    chunk.Material = self.materialType
+    -- 固定区块位置防止物理模拟
+    chunk.Anchored = true
+    return chunk
+end
+
+function IslandGenerator:UpdateChunks(playerPosition)
+    
+end
+
+return IslandGenerator</string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="69">
+            <Properties>
+              <string name="Name">LandGenerator</string>
+              <string name="Source">--- 陆地地形生成器模块
+-- 负责处理中心陆地地形的生成与配置
+-- @module LandGenerator
+-- @author 作者名
+-- @created 2024-05-20
+-- @last_modified 2024-05-20
+
+local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local LandGenerator = {}
+setmetatable(LandGenerator, {__index = BaseTerrainGenerator})
+LandGenerator.__index = LandGenerator
+LandGenerator.isTerrainGenerator = true
+
+--- 创建新的陆地生成器实例
+-- @function new
+-- @param config table 配置参数表
+-- @return table 新生成的陆地生成器实例
+function LandGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), LandGenerator)
+    return self
+end
+
+--- 初始化陆地生成器配置
+-- @function Init
+-- @remark 设置地形材质、区块尺寸和加载范围等核心参数
+function LandGenerator:Init(position)
+    BaseTerrainGenerator.Init(self)
+
+    self.position = position
+    -- 地形材质类型（默认：草地）
+    self.materialType = self.config.Material or Enum.Material.Grass
+    
+    -- 区块基础尺寸（单位：stud）
+    self.size = self.config.Size or Vector3.new(10, 10, 10)
+    self.waterOverlap = 0  -- 与水域区块重叠比例
+    
+    -- 区块加载距离（单位：区块数量）
+    self.loadDistance = self.config.LoadDistance or 1
+
+    self:GenerateTerrainChunk()
+    self:FillBlock()
+end
+
+-- 生成指定位置的地形区块
+-- @return Instance 新创建的地形区块实例
+function LandGenerator:GenerateTerrainChunk()
+    local chunk = Instance.new("MeshPart")
+    chunk.Name = "Land"
+    chunk.Position = self.position
+    chunk.Size = self.size
+    chunk.Anchored = true
+    chunk.Material = self.materialType
+    chunk.Size = self.size
+    chunk.Transparency = 1  -- 确保不透明度
+    chunk.Parent = game.Workspace
+    
+    return chunk
+end
+
+function LandGenerator:FillBlock()
+    local adjustedSize = self.size * (1 + self.waterOverlap)
+    game:GetService("Workspace").Terrain:FillBlock(
+        CFrame.new(self.position),
+        adjustedSize,
+        self.materialType
+    )
+end
+
+return LandGenerator</string>
+            </Properties>
+          </Item>
+          <Item class="ModuleScript" referent="70">
+            <Properties>
+              <string name="Name">WaterGenerator</string>
+              <string name="Source"><![CDATA[--- 水域地形生成器模块
+-- 负责处理水域地形生成与波浪效果配置
+-- @module WaterGenerator
+-- @author 作者名
+-- @created 2024-05-20
+-- @last_modified 2024-05-20
+
+local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
+
+local WaterGenerator = {}
+setmetatable(WaterGenerator, {__index = BaseTerrainGenerator})
+WaterGenerator.__index = WaterGenerator
+WaterGenerator.isTerrainGenerator = true
+
+--- 创建新的水域生成器实例
+-- @function new
+-- @param config table 水域配置参数表
+-- @return table 新生成的水域生成器实例
+function WaterGenerator.new(config)
+    local self = setmetatable(BaseTerrainGenerator.new(config), WaterGenerator)
+    return self
+end
+
+--- 初始化水域生成器配置
+-- @function Init
+-- @param terrainManager table 地形管理器实例
+-- @remark 配置水域材质、区块尺寸和波浪效果参数
+function WaterGenerator:Init(terrainManager, y)
+    BaseTerrainGenerator.Init(self)
+    
+    self.y = y
+    -- 水域材质类型（默认：水体）
+    self.materialType = self.config.Material or Enum.Material.Water
+    
+    -- 水域区块尺寸（单位：stud）
+    self.chunkSize = self.config.ChunkSize or 20
+    
+    -- 区块加载距离（空值表示持续加载）
+    self.loadDistance = self.config.LoadDistance
+    
+    -- 水域基准深度（单位：stud）
+    self.waterDepth = self.config.Depth or 50
+    
+    -- 波浪运动速度（单位：m/s）
+    self.waveSpeed = self.config.WaveSpeed or 0.5
 
     -- 通用容器设置
     self.terrainFolder = workspace:FindFirstChild("TerrainPart") or Instance.new("Folder")
@@ -1248,11 +4053,61 @@ function BaseTerrainGenerator:Init()
     self.activeChunks = {}
     self.poolChunks = {}
     self.lastPlayerChunk = nil
-    
+
+    self.terrainManager = terrainManager
+
     self:SetupChunkLoader()
 end
 
-function BaseTerrainGenerator:SetupChunkLoader()
+-- 生成指定位置的地形区块
+-- @param position Vector3 区块生成的世界坐标
+-- @return Instance 新创建的地形区块实例
+function WaterGenerator:GenerateTerrainChunk(position)
+    local chunk = Instance.new("MeshPart")
+    -- 根据陆地块尺寸计算偏移量
+    chunk.Position = position
+    chunk.Size = Vector3.new(self.chunkSize, self.waterDepth, self.chunkSize)
+    chunk.CanCollide = false
+    chunk.Anchored = true
+    chunk.Material = self.materialType
+    chunk.Reflectance = 0.3
+    chunk.Transparency = 0  -- 确保不透明度
+    chunk.Color = Color3.new(0.007843, 0.007843, 0.007843)
+    chunk.CastShadow = false
+    chunk.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Water)
+
+    return chunk
+end
+
+function WaterGenerator:FillBlock(position)
+    -- 校验尺寸有效性
+    assert(self.chunkSize > 0, "区块尺寸必须大于0")
+    assert(self.waterDepth > 0, "水域深度必须大于0")
+    
+    local Workspace = game:GetService("Workspace")
+    -- 水域地形填充
+    Workspace.Terrain:FillBlock(
+        CFrame.new(position),
+        Vector3.new(self.chunkSize, self.waterDepth, self.chunkSize),
+        self.materialType
+    )
+
+    -- -- 波浪动画协程
+    -- coroutine.wrap(function()
+    --     while true do
+    --         local time = tick() * self.waveSpeed
+    --         local waveHeight = math.sin(time) * 1.5 + 5
+    --         game:GetService("Workspace").Terrain:FillBlock(
+    --             CFrame.new(position),
+    --             Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
+    --             self.materialType
+    --         )
+    --         wait(0.3)
+    --     end
+    -- end)()
+end
+
+function WaterGenerator:SetupChunkLoader()
     -- 基础区块加载器实现
     self.chunkLoaderConnection = game:GetService("RunService").RenderStepped:Connect(function()
         if game.Players.LocalPlayer.Character then
@@ -1264,14 +4119,7 @@ function BaseTerrainGenerator:SetupChunkLoader()
     end)
 end
 
-function BaseTerrainGenerator:Destroy()
-    if self.chunkLoaderConnection then
-        self.chunkLoaderConnection:Disconnect()
-        self.chunkLoaderConnection = nil
-    end
-end
-
-function BaseTerrainGenerator:UpdateChunks(playerPosition)
+function WaterGenerator:UpdateChunks(playerPosition)
     local currentChunk = Vector3.new(
         math.floor(playerPosition.X / self.chunkSize),
         0,
@@ -1287,15 +4135,15 @@ function BaseTerrainGenerator:UpdateChunks(playerPosition)
         for z = -self.loadDistance, self.loadDistance do
             local chunkPos = Vector3.new(
                 currentChunk.X * self.chunkSize + x * self.chunkSize,
-                0,
+                self.y,
                 currentChunk.Z * self.chunkSize + z * self.chunkSize
             )
             
             if not self.activeChunks[chunkPos] then
                 local newChunk = self.poolChunks[1] or self:GenerateTerrainChunk(chunkPos)
                 newChunk:ClearAllChildren()  -- 清除残留子部件
-                newChunk.Position = Vector3.new(chunkPos.X, 0, chunkPos.Z)
-                newChunk.Transparency = 0  -- 确保不透明度
+                newChunk.Position = Vector3.new(chunkPos.X, self.y, chunkPos.Z)
+                newChunk.Transparency = 1  -- 确保不透明度
                 self:FillBlock(chunkPos)
                 table.remove(self.poolChunks, 1)
                 newChunk.Parent = self.terrainFolder
@@ -1307,7 +4155,7 @@ function BaseTerrainGenerator:UpdateChunks(playerPosition)
     for pos, chunk in pairs(self.activeChunks) do
         local chunkPos = Vector3.new(
             math.floor(pos.X / self.chunkSize),
-            0,
+            self.y,
             math.floor(pos.Z / self.chunkSize)
         )
         if (chunkPos - currentChunk).Magnitude > self.loadDistance * 1.2 then
@@ -1317,362 +4165,217 @@ function BaseTerrainGenerator:UpdateChunks(playerPosition)
     end
 end
 
-function BaseTerrainGenerator:FillBlock(position)
-    -- 地形填充 (未实现)
+function WaterGenerator:Destroy()
+    if self.chunkLoaderConnection then
+        self.chunkLoaderConnection:Disconnect()
+        self.chunkLoaderConnection = nil
+    end
 end
 
-return BaseTerrainGenerator</string>
-          </Properties>
+return WaterGenerator
+]]></string>
+            </Properties>
+          </Item>
         </Item>
-        <Item class="ModuleScript" referent="42">
-          <Properties>
-            <string name="Name">LandGenerator</string>
-            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
-
-local LandGenerator = {}
-setmetatable(LandGenerator, {__index = BaseTerrainGenerator})
-LandGenerator.__index = LandGenerator
-LandGenerator.isTerrainGenerator = true
-
-function LandGenerator.new(config)
-    local self = setmetatable(BaseTerrainGenerator.new(config), LandGenerator)
-    return self
-end
-
-function LandGenerator:Init()
-    BaseTerrainGenerator.Init(self)
-    
-    self.MaterialType = Enum.Material.Grass
-    self.chunkSize = self.config.ChunkSize or 8
-    self.loadDistance = math.ceil(self.config.LoadDistance or 12)
-    self.terrainHeight = self.config.TerrainHeight or 10
-end
-
-function LandGenerator:GenerateTerrainChunk(position)
-    local chunk = Instance.new("MeshPart")
-    chunk.Position = position
-    chunk.Anchored = true
-    chunk.Material = self.MaterialType
-    chunk.Size = Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize)
-    
-    return chunk
-end
-
-function LandGenerator:FillBlock(position)
-    game:GetService("Workspace").Terrain:FillBlock(
-        CFrame.new(position),
-        Vector3.new(self.chunkSize, self.terrainHeight, self.chunkSize),
-        self.MaterialType
-    )
-end
-
-return LandGenerator</string>
-          </Properties>
-        </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="71">
           <Properties>
             <string name="Name">TerrainManager</string>
-            <string name="Source">local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local starterplayer = game:GetService("StarterPlayer")
-local TerrainGeneratorType = starterplayer:WaitForChild("TerrainGeneratorType")
-local LandGenerator = require(TerrainGeneratorType.LandGenerator)
-local WaterGenerator = require(TerrainGeneratorType.WaterGenerator)
-local ChunkPool = require(ReplicatedStorage:WaitForChild("Tool"):WaitForChild("ChunkPool"))
+            <string name="Source">--[[
+地形管理模块
+功能：负责地形生成、岛屿检测和区块资源管理
+作者：TRAE
+创建日期：2024-03-20
+版本历史：
+v1.0.0 - 初始版本（2024-03-20）
+v1.1.0 - 新增岛屿生成算法（2024-03-25）
+]]
+
+local StarterPlayerScripts = game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts")
+local TerrainGeneratorFolder = StarterPlayerScripts:WaitForChild("TerrainFolder"):WaitForChild("TerrainGeneratorFolder")
+local LandGenerator = require(TerrainGeneratorFolder:WaitForChild("LandGenerator"))
+local WaterGenerator = require(TerrainGeneratorFolder:WaitForChild("WaterGenerator"))
 
 local TerrainManager = {}
 TerrainManager.__index = TerrainManager
 
+--[[
+构造函数
+@param config 地形配置表
+- TerrainType: 地形类型配置（Land/Water）
+- Islands: 岛屿配置数组
+- LandHeight: 基础陆地高度
+]]
 function TerrainManager.new(config)
     local self = setmetatable({}, TerrainManager)
-    self.terrainGenerators = {}
-    self.currentTerrain = nil
+
+    -- 移除默认场景
+    local Baseplate = game.Workspace:FindFirstChild("Baseplate")
+    if Baseplate then
+        Baseplate:Destroy()
+    end
     
     self.config = config or {}
-    self.centerOffset = Vector3.new(0, 0, 0)
-    self.landSize = config.landSize or 100
+    self.landPosition = self.config.TerrainType.Land.Position or Vector3.new(0, 0, 0)
+    self.landSize = self.config.TerrainType.Land.Size or Vector3.new(100, 5, 100)
+
+    self.islandConfigs = {}
+    for _, island in ipairs(config.Islands) do
+        table.insert(self.islandConfigs, {
+            position = island.Position,
+            radius = island.Size.Magnitude / 2,
+            spawnChance = island.SpawnChance
+        })
+    end
     
-    self.landGenerator = LandGenerator.new({
-        ChunkSize = config.chunkSize or 8,
-        LoadDistance = config.loadDistance or 12,
-        TerrainHeight = 10,
-        landSize = self.landSize
-    })
-    
-    self.waterGenerator = WaterGenerator.new({
-        ChunkSize = config.chunkSize or 8,
-        LoadDistance = config.loadDistance or 12,
-        WaterDepth = 50
-    })
-    
-    self.chunkPool = ChunkPool.new()
     return self
 end
 
-function TerrainManager:LoadGenerators()
-    local generatorsFolder = script.Parent.Generators
+function TerrainManager:Init()
+    local spawnLocation = game.Workspace:WaitForChild("LandSpawnLocation")
+    local position = Vector3.new(spawnLocation.Position.X, -self.config.TerrainType.Land.Size.Y / 2 - spawnLocation.Position.Y, spawnLocation.Position.Z)
+    -- 直接初始化陆地生成器
+    -- self.landGenerator = LandGenerator.new(self.config.TerrainType.Land)
+    -- self.landGenerator:Init(position)
+    self.waterGenerator = WaterGenerator.new(self.config.TerrainType.Water)
+    self.waterGenerator:Init(self, position.Y)
     
-    for _, module in ipairs(generatorsFolder:GetChildren()) do
-        if module:IsA("ModuleScript") and module.Name ~= "BaseTerrainGenerator" then
-            local success, generator = pcall(function()
-                local GeneratorClass = require(module)
-                if GeneratorClass.isTerrainGenerator then
-                    return GeneratorClass
-                end
-            end)
-            
-            if success and generator then
-                self.terrainGenerators[module.Name] = generator
-            end
-        end
-    end
-end
-
-function TerrainManager:Init(config)
-    self:LoadGenerators()
+    -- 初始化岛屿生成器
+    self.IslandGenerator = LandGenerator.new({
+        ChunkSize = self.config.TerrainType.Land.Size,
+        LoadDistance = self.config.TerrainType.Land.LoadDistance,
+        MaterialType = Enum.Material.Grass
+    })
     
-    local terrainType = config.CurTerrain.."Generator"
-    if self.terrainGenerators[terrainType] then
-        self.currentTerrain = self.terrainGenerators[terrainType].new(config.TerrainType[config.CurTerrain])
-        self.currentTerrain:Init(config)
-    else
-        warn("未找到匹配的地形生成器:", terrainType)
-    end
-end
-
-function TerrainManager:SwitchTerrain(newTerrainGenerator, config)
-    if self.currentTerrain then
-        self.currentTerrain:Destroy()
-    end
-    
-    if self.terrainGenerators[newTerrainGenerator] then
-        self.currentTerrain = self.terrainGenerators[newTerrainGenerator].new(config)
-        self.currentTerrain:Init(config)
-        return true
-    end
-    return false
+    self:GenerateChunk(position)
 end
 
 function TerrainManager:Destroy()
-    if self.currentTerrain then
-        self.currentTerrain:Destroy()
-    end
-    self.terrainGenerators = nil
 end
 
-function TerrainManager:IsLandArea(position)
-    local centerX = self.centerOffset.X
-    local centerZ = self.centerOffset.Z
-    local halfSize = self.landSize/2
+local function IsInViewRange(playerPos, targetPos, viewDistance)
+    return (playerPos - targetPos).Magnitude &lt;= viewDistance
+end
+
+function TerrainManager:GetNearestLand(position)
+    local nearestLand = nil
+    local minDistance = math.huge
     
-    return position.X >= (centerX - halfSize) and position.X &lt;= (centerX + halfSize)
-       and position.Z >= (centerZ - halfSize) and position.Z &lt;= (centerZ + halfSize)
+    -- 三维空间欧氏距离计算：√(Δx² + Δy² + Δz²)
+    local distance = (position - self.landPosition).Magnitude
+    if distance &lt; minDistance then
+        minDistance = distance
+        nearestLand = self.landGenerator
+    end
+    return nearestLand
 end
 
+function TerrainManager:GetNearestIsland(position)
+    local nearestIsland = nil
+    local minDistance = math.huge
+    
+    for _, island in ipairs(self.islandConfigs) do
+        -- 三维空间欧氏距离计算：√(Δx² + Δy² + Δz²)
+        local distance = (position - island.position).Magnitude
+        if distance &lt; island.radius and distance &lt; minDistance then
+            minDistance = distance
+            nearestIsland = island
+        end
+    end
+    return nearestIsland
+end
+
+function TerrainManager:GetGenerator(position)
+    return self:IsInLandArea(position) and self.landGenerator or self.waterGenerator
+end
+
+function TerrainManager:IsInLandArea(position)
+    local centerX = self.landPosition.X
+    local centerZ = self.landPosition.Z
+    local halfSize = Vector3.new(self.landSize.X / 2, 0, self.landSize.Z / 2)
+    
+    local isInside = position.X >= (centerX - halfSize.X) and position.X &lt;= (centerX + halfSize.X)
+        and position.Z >= (centerZ - halfSize.Z) and position.Z &lt;= (centerZ + halfSize.Z)
+    return isInside
+end
+
+--[[
+生成地形区块
+流程：
+1. 检测最近岛屿
+2. 判断地形类型（陆地/水域）
+3. 优先使用区块池复用
+4. 动态生成新地形区块
+@param position 生成中心坐标（Vector3）
+@return 生成的区块实例
+]]
 function TerrainManager:GenerateChunk(position)
-    local generator = self:IsLandArea(position) and self.landGenerator or self.waterGenerator
+    local nearestIsland = self:GetNearestIsland(position)
+    local generator = self:GetGenerator(position)
+    local loadDistance = generator.config.LoadDistance or 1
+    local size = generator.config.ChunkSize or generator.config.Size or Vector3.new(100, 5, 100)
+    local viewDistance = loadDistance * size
     
-    local chunk = self.chunkPool:GetChunk()
-    if not chunk then
-        chunk = generator:GenerateTerrainChunk(position)
-        chunk.Parent = game.Workspace
-    else
-        chunk.Position = position
-        chunk.Size = Vector3.new(
-            generator.chunkSize, 
-            generator.terrainHeight or generator.waterDepth, 
-            generator.chunkSize
-        )
-        chunk.Material = generator.MaterialType
+    -- 优先检测视野范围内的岛屿
+    if nearestIsland and IsInViewRange(position, nearestIsland.position, viewDistance) then
+        if math.random() &lt; nearestIsland.spawnChance then
+            local islandGenerator = self.IslandGenerator
+            local chunk = islandGenerator:GenerateTerrainChunk(position)
+            chunk.Size = Vector3.new(nearestIsland.radius * 2, self.config.LandHeight, nearestIsland.radius * 2)
+            chunk.Material = Enum.Material.Grass
+            chunk.Parent = game.Workspace
+        end
     end
-    
-    generator:FillBlock(position)
-    return chunk
 end
+
 return TerrainManager</string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
-          <Properties>
-            <string name="Name">WaterGenerator</string>
-            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
-
-local WaterGenerator = {}
-setmetatable(WaterGenerator, {__index = BaseTerrainGenerator})
-WaterGenerator.__index = WaterGenerator
-WaterGenerator.isTerrainGenerator = true
-
-function WaterGenerator.new(config)
-    local self = setmetatable(BaseTerrainGenerator.new(config), WaterGenerator)
-    return self
-end
-
-function WaterGenerator:Init()
-    BaseTerrainGenerator.Init(self)
-    
-    self.MaterialType = Enum.Material.Water
-    -- 从配置应用参数
-    self.chunkSize = self.config.ChunkSize or self.chunkSize
-    self.loadDistance = math.ceil(self.config.LoadDistance or self.loadDistance)  -- 确保加载距离为整数
-    self.waterDepth = self.config.WaterDepth or 50
-    self.waveSpeed = self.config.WaveSpeed or 0.4
-end
-
-function WaterGenerator:GenerateTerrainChunk(position)
-    local chunk = Instance.new("MeshPart")
-    chunk.Position = position
-    chunk.Anchored = true
-    chunk.Material = self.MaterialType
-    chunk.Reflectance = 0.3
-    chunk.Transparency = 1
-
-    return chunk
-end
-
-function WaterGenerator:FillBlock(position)
-    -- 水域地形填充
-    game:GetService("Workspace").Terrain:FillBlock(
-        CFrame.new(position),
-        Vector3.new(self.chunkSize * 1.1, self.waterDepth, self.chunkSize * 1.1),
-        self.MaterialType
-    )
-
-    -- 波浪动画协程
-    coroutine.wrap(function()
-        while true do
-            local time = tick() * self.waveSpeed
-            local waveHeight = math.sin(time) * 1.5 + 5
-            game:GetService("Workspace").Terrain:FillBlock(
-                CFrame.new(position),
-                Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
-                self.MaterialType
-            )
-            wait(0.3)
-        end
-    end)()
-end
-
-return WaterGenerator</string>
-          </Properties>
-        </Item>
-        <Item class="ModuleScript" referent="45">
-          <Properties>
-            <string name="Name">WildernessGenerator</string>
-            <string name="Source">local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
-
-local WildernessGenerator = {}
-setmetatable(WildernessGenerator, {__index = BaseTerrainGenerator})
-WildernessGenerator.__index = WildernessGenerator
-WildernessGenerator.isTerrainGenerator = true
-
-function WildernessGenerator.new(config)
-    local self = setmetatable(BaseTerrainGenerator.new(config), WildernessGenerator)
-    return self
-end
-
-function WildernessGenerator:Init()
-    BaseTerrainGenerator.Init(self)
-
-    self.MaterialType = Enum.Material.Sandstone
-    -- 从配置应用参数
-    self.chunkSize = self.config.ChunkSize or self.chunkSize
-    self.loadDistance = math.ceil(self.config.LoadDistance or self.loadDistance)  -- 确保加载距离为整数
-    self.vegetationDensity = self.config.VegetationDensity
-    self.rockProbability = self.config.RockProbability
-end
-
-function WildernessGenerator:GenerateTerrainChunk(position)
-    local noiseValue = self.noise:NextNumber(-1, 1)
-    local terrainHeight = math.floor(5 + noiseValue * 3)
-    
-    local chunk = Instance.new("MeshPart")
-    chunk.Size = Vector3.new(self.chunkSize, 0, self.chunkSize)
-    chunk.Position = position
-    chunk.Anchored = true
-    chunk.Material = self.MaterialType
-    chunk.Transparency = 0  -- 确保不透明度完全关闭
-    --chunk.Color = Color3.fromRGB(34, 139, 34)
-    
-    -- -- 生成随机植被
-    -- if math.random() &lt; self.vegetationDensity then
-    --     local vegetationTypes = {
-    --         {Size = Vector3.new(2,4,2), Color = Color3.fromRGB(50, 205, 50)},
-    --         {Size = Vector3.new(3,6,3), Color = Color3.fromRGB(34, 139, 34)},
-    --         {Size = Vector3.new(1.5,3,1.5), Color = Color3.fromRGB(107, 142, 35)}
-    --     }
-    --     local veg = vegetationTypes[math.random(#vegetationTypes)]
-    --     local plant = Instance.new("Part")
-    --     plant.Size = veg.Size
-    --     plant.Position = position + Vector3.new(
-    --         math.random(-self.chunkSize/2, self.chunkSize/2),
-    --         terrainHeight,
-    --         math.random(-self.chunkSize/2, self.chunkSize/2)
-    --     )
-    --     plant.Orientation = Vector3.new(0, math.random(0,360), 0)
-    --     plant.Material = Enum.Material.Neon
-    --     plant.Color = veg.Color
-    --     plant.Parent = chunk
-    -- end
-    
-    -- -- 生成随机岩石
-    -- if math.random() &lt; self.rockProbability then
-    --     local rock = Instance.new("Part")
-    --     rock.Size = Vector3.new(
-    --         math.random(3,6),
-    --         math.random(2,4),
-    --         math.random(3,6)
-    --     )
-    --     rock.Position = position + Vector3.new(
-    --         math.random(-self.chunkSize/2, self.chunkSize/2),
-    --         terrainHeight,
-    --         math.random(-self.chunkSize/2, self.chunkSize/2)
-    --     )
-    --     rock.Material = Enum.Material.Slate
-    --     rock.Color = Color3.fromRGB(105, 105, 105)
-    --     rock.Parent = chunk
-    -- end
-    
-    return chunk
-end
-
-function WildernessGenerator:FillBlock(position)
-    -- 地形填充 (未实现)
-end
-
-return WildernessGenerator</string>
-          </Properties>
-        </Item>
       </Item>
-      <Item class="LocalScript" referent="46">
+      <Item class="LocalScript" referent="72">
         <Properties>
           <string name="Name">main</string>
-          <string name="Source">print("客户端初始化中...")
+          <string name="Source"><![CDATA[print("客户端初始化中...")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Configs = ReplicatedStorage:WaitForChild("Config")
+local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
 
 -- 加载地形配置模块
-local GameConfig = require(Configs:WaitForChild("GameConfig"))
+local GameConfig = require(ConfigFolder:WaitForChild("GameConfig"))
 
 -- 初始化地形系统
-local terrainFolder = script.Parent:WaitForChild("TerrainGeneratorType")
-if not terrainFolder then
+local TerrainFolder = script.Parent:WaitForChild("TerrainFolder")
+if not TerrainFolder then
     error("地形生成器文件夹不存在！")
 end
-local TerrainManager = require(terrainFolder:WaitForChild("TerrainManager", 5)).new()
-TerrainManager:Init(GameConfig)
+local TerrainManager = require(TerrainFolder:WaitForChild("TerrainManager", 5)).new(GameConfig)
+TerrainManager:Init()
 
-print("客户端初始化完成")</string>
+-- -- 添加持续位置检测
+-- game:GetService('RunService').Heartbeat:Connect(function()
+--     for _, child in ipairs(workspace:GetChildren()) do
+--         if child.Name:sub(1,11) == "PlayerBoat_" and child.PrimaryPart then
+--             local currentCFrame = child:GetPivot()
+--             local currentPos = currentCFrame.Position
+--             local newPosition = Vector3.new(currentPos.X, 20, currentPos.Z)
+--             local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+--             child:PivotTo(newCFrame)
+--         end
+--     end
+-- end)
+
+print("客户端初始化完成")
+]]></string>
         </Properties>
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="47">
+  <Item class="Workspace" referent="73">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>
       <bool name="NeedsPivotMigration">false</bool>
     </Properties>
-    <Item class="Part" referent="48">
+    <Item class="Part" referent="74">
       <Properties>
         <string name="Name">Baseplate</string>
         <bool name="Anchored">true</bool>

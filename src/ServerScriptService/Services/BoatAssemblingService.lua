@@ -1,7 +1,7 @@
 print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local Knit = require(ReplicatedStorage.Packages.Knit)
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local ServerStorage = game:GetService('ServerStorage')
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))

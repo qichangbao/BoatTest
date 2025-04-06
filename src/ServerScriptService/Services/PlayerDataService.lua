@@ -1,7 +1,7 @@
 print('PlayerDataService loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local Knit = require(ReplicatedStorage.Packages.Knit)
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 
 local PlayerDataService = Knit.CreateService({
     Name = 'PlayerDataService',
@@ -10,9 +10,20 @@ local PlayerDataService = Knit.CreateService({
     },
 })
 
+function PlayerDataService.Client:GetAttribute(player, attributeName)
+    local character = player.Character
+    if character then
+        return character:GetAttribute(attributeName)
+    end
+    return nil
+end
+
 function PlayerDataService:KnitInit()
     print('PlayerDataService initialized')
     Players.PlayerAdded:Connect(function(player)
+        -- 初始化重生点
+        player.RespawnLocation = game.Workspace.LandSpawnLocation
+
         local function setupCharacter(character)
             character:SetAttribute("Gold", 100)
             self.Client.GoodChanged:Fire(player, 100)
@@ -24,9 +35,6 @@ function PlayerDataService:KnitInit()
         else
             player.CharacterAdded:Connect(setupCharacter)
         end
-    
-        -- 初始化重生点
-        player.RespawnLocation = game.Workspace.LandSpawnLocation
     end)
 end
 

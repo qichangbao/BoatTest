@@ -1,6 +1,6 @@
 print('InventoryService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Knit = require(ReplicatedStorage.Packages.Knit)
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 
 local InventoryService = Knit.CreateService({
     Name = 'InventoryService',
