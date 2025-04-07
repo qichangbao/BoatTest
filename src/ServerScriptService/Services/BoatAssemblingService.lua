@@ -1,7 +1,7 @@
 print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
-local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local ServerStorage = game:GetService('ServerStorage')
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
@@ -206,7 +206,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
         --buoyancy.Parent = part
         return buoyancy
     end
-    addBuoyancyConstraint(primaryPart)
+    --addBuoyancyConstraint(primaryPart)
     
     -- local buoyancy = Instance.new('BodyForce')
     -- buoyancy.Name = 'BuoyancyForce'

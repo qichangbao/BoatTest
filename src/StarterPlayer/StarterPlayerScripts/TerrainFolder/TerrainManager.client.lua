@@ -8,8 +8,7 @@ v1.0.0 - 初始版本（2024-03-20）
 v1.1.0 - 新增岛屿生成算法（2024-03-25）
 ]]
 
-local StarterPlayerScripts = game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts")
-local TerrainGeneratorFolder = StarterPlayerScripts:WaitForChild("TerrainFolder"):WaitForChild("TerrainGeneratorFolder")
+local TerrainGeneratorFolder = script.Parent:WaitForChild("TerrainGeneratorFolder")
 local LandGenerator = require(TerrainGeneratorFolder:WaitForChild("LandGenerator"))
 local WaterGenerator = require(TerrainGeneratorFolder:WaitForChild("WaterGenerator"))
 
@@ -55,7 +54,7 @@ function TerrainManager:Init()
     -- self.landGenerator = LandGenerator.new(self.config.TerrainType.Land)
     -- self.landGenerator:Init(position)
     self.waterGenerator = WaterGenerator.new(self.config.TerrainType.Water)
-    self.waterGenerator:Init(self, position.Y)
+    self.waterGenerator:Init(position.Y)
     
     -- 初始化岛屿生成器
     self.IslandGenerator = LandGenerator.new({
@@ -145,4 +144,7 @@ function TerrainManager:GenerateChunk(position)
     end
 end
 
-return TerrainManager
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
+local m = TerrainManager.new(require(ConfigFolder:WaitForChild("GameConfig")))
+m:Init()

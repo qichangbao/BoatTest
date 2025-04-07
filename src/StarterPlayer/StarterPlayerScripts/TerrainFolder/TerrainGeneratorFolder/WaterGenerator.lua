@@ -23,9 +23,8 @@ end
 
 --- 初始化水域生成器配置
 -- @function Init
--- @param terrainManager table 地形管理器实例
 -- @remark 配置水域材质、区块尺寸和波浪效果参数
-function WaterGenerator:Init(terrainManager, y)
+function WaterGenerator:Init(y)
     BaseTerrainGenerator.Init(self)
     
     self.y = y
@@ -54,8 +53,8 @@ function WaterGenerator:Init(terrainManager, y)
     self.poolChunks = {}
     self.lastPlayerChunk = nil
 
-    self.terrainManager = terrainManager
-
+    local landPosition = game.Workspace:WaitForChild("LandSpawnLocation").Position
+    self:UpdateChunks(landPosition)
     self:SetupChunkLoader()
 end
 
@@ -121,11 +120,10 @@ end
 
 function WaterGenerator:UpdateChunks(playerPosition)
     local currentChunk = Vector3.new(
-        math.floor(playerPosition.X / self.chunkSize),
+        math.floor((playerPosition.X + self.chunkSize / 2)/ self.chunkSize),
         0,
-        math.floor(playerPosition.Z / self.chunkSize)
+        math.floor((playerPosition.Z + self.chunkSize / 2) / self.chunkSize)
     )
-    
     if self.lastPlayerChunk and currentChunk == self.lastPlayerChunk then
         return
     end
@@ -138,7 +136,6 @@ function WaterGenerator:UpdateChunks(playerPosition)
                 self.y,
                 currentChunk.Z * self.chunkSize + z * self.chunkSize
             )
-            
             if not self.activeChunks[chunkPos] then
                 local newChunk = self.poolChunks[1] or self:GenerateTerrainChunk(chunkPos)
                 newChunk:ClearAllChildren()  -- 清除残留子部件
@@ -148,19 +145,24 @@ function WaterGenerator:UpdateChunks(playerPosition)
                 table.remove(self.poolChunks, 1)
                 newChunk.Parent = self.terrainFolder
                 self.activeChunks[chunkPos] = newChunk
+                print("加载", chunkPos)
             end
         end
     end
 
-    for pos, chunk in pairs(self.activeChunks) do
-        local chunkPos = Vector3.new(
-            math.floor(pos.X / self.chunkSize),
-            self.y,
-            math.floor(pos.Z / self.chunkSize)
-        )
-        if (chunkPos - currentChunk).Magnitude > self.loadDistance * 1.2 then
+    for chunkPos, chunk in pairs(self.activeChunks) do
+        if math.abs(chunkPos.X - currentChunk.X) > self.loadDistance * self.chunkSize
+        or math.abs(chunkPos.Z - currentChunk.Z) > self.loadDistance * self.chunkSize then
+            local Workspace = game:GetService("Workspace")
+            -- 水域地形填充
+            Workspace.Terrain:FillBlock(
+                CFrame.new(chunkPos),
+                Vector3.new(self.chunkSize, self.waterDepth, self.chunkSize),
+                Enum.Material.Air
+            )
+            print("移除", chunkPos)
             table.insert(self.poolChunks, chunk)
-            self.activeChunks[pos] = nil
+            self.activeChunks[chunkPos] = nil
         end
     end
 end

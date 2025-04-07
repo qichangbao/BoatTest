@@ -9,7 +9,7 @@ local GameConfig = {
         },
         Water = {
             Material = Enum.Material.Water,
-            ChunkSize = 256,
+            ChunkSize = 100,
             Depth = 100,
             Height = 50,
             WaveSpeed = 1,

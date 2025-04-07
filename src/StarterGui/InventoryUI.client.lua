@@ -2,61 +2,36 @@ print('InventoryUI.client.lua loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local Fusion = require(ReplicatedStorage.Packages.Fusion)
-local InventoryService = Knit.GetService('InventoryService')
 
 local localPlayer = Players.LocalPlayer
-local gui = Fusion.New('ScreenGui', {
-    Name = 'InventoryUI',
-    Parent = localPlayer:WaitForChild('PlayerGui')
-})
 
-local inventoryFrame = Fusion.New('Frame', {
-    Name = 'InventoryFrame',
-    Size = UDim2.new(0.8, 0, 0.3, 0),
-    Position = UDim2.new(0.1, 0, 0.65, 0),
-    BackgroundTransparency = 0.7,
-    Parent = gui
-})
+-- 创建原生UI元素
+local gui = Instance.new("ScreenGui")
+gui.Name = "InventoryUI"
+gui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+local inventoryFrame = Instance.new("Frame")
+inventoryFrame.Name = "InventoryFrame"
+inventoryFrame.Size = UDim2.new(0.8, 0, 0.3, 0)
+inventoryFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
+inventoryFrame.BackgroundTransparency = 0.7
+inventoryFrame.Parent = gui
 
 -- 创建物品模板
-local itemTemplate = Fusion.New('ImageButton', {
-    Name = 'ItemTemplate',
-    Size = UDim2.new(0.15, 0, 0.8, 0),
-    BackgroundTransparency = 0.5,
-    Visible = false,
-    [Fusion.Children] = {
-        Fusion.New('TextLabel', {
-            Name = 'CountText',
-            Text = "0",
-            Size = UDim2.new(0.3,0,0.3,0),
-            Position = UDim2.new(0.7,0,0.7,0),
-            TextColor3 = Color3.new(1,1,1)
-        })
-    }
-})
+-- 创建原生物品模板
+local itemTemplate = Instance.new("ImageButton")
+itemTemplate.Name = "ItemTemplate"
+itemTemplate.Size = UDim2.new(0.15, 0, 0.8, 0)
+itemTemplate.BackgroundTransparency = 0.5
+itemTemplate.Visible = false
 
--- 使用Computed实现响应式数据绑定
-local inventoryState = Fusion.Computed(function()
-    return InventoryService:GetInventory()
-end)
-
-Fusion.For(inventoryState, function(itemData)
-    return Fusion.New('ImageButton', {
-        Name = 'Item_'..itemData.id,
-        Size = UDim2.new(0.15, 0, 0.8, 0),
-        Image = itemData.icon,
-        Visible = true,
-        [Fusion.Children] = {
-        Fusion.New('TextLabel', {
-            Text = tostring(itemData.quantity),
-            Size = UDim2.new(0.3,0,0.3,0),
-            Position = UDim2.new(0.7,0,0.7,0),
-            TextColor3 = Color3.new(1,1,1)
-        })
-    }
-  })
-end).Parent = inventoryFrame
+local countText = Instance.new("TextLabel")
+countText.Name = "CountText"
+countText.Text = "0"
+countText.Size = UDim2.new(0.3,0,0.3,0)
+countText.Position = UDim2.new(0.7,0,0.7,0)
+countText.TextColor3 = Color3.new(1,1,1)
+countText.Parent = itemTemplate
 
 --[[
 模块名称：库存界面系统
@@ -109,33 +84,39 @@ local function UpdateInventoryUI(inventoryData)
         newItem.Visible = true
 
         -- 数量文本
-        local countText = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
-        countText.Text = tostring(itemData.quantity)
-        countText.Size = UDim2.new(0.3,0,0.3,0)
-        countText.Position = UDim2.new(0.7,0,0.7,0)
-        countText.BackgroundTransparency = 1
-        countText.TextColor3 = Color3.new(1,1,1)
-        countText.Parent = newItem
+        local text = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
+        text.Text = tostring(itemData.quantity)
+        text.Size = UDim2.new(0.3,0,0.3,0)
+        text.Position = UDim2.new(0.7,0,0.7,0)
+        text.BackgroundTransparency = 1
+        text.TextColor3 = Color3.new(1,1,1)
+        text.Parent = newItem
 
         newItem.Parent = inventoryFrame
     end
 end
 
-local function RefreshUI()
-    -- 刷新UI元素
-    inventoryFrame.Visible = true
-
+Knit:OnStart():andThen(function()
     -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
+    local InventoryService = Knit.GetService('InventoryService')
     InventoryService.UpdateInventory:Connect(function(inventoryData)
         UpdateInventoryUI(inventoryData)
     end)
-end
 
--- 处理初始角色
-if Players.LocalPlayer.Character then
-    RefreshUI()
-else
-    Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    local function RefreshUI()
+        -- 刷新UI元素
+        inventoryFrame.Visible = true
+        InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
+            UpdateInventoryUI(inventoryData)
+        end)
+    end
+    
+    -- 处理初始角色
+    if Players.LocalPlayer.Character then
         RefreshUI()
-    end)
-end
+    else
+        Players.LocalPlayer.CharacterAdded:Connect(function(character)
+            RefreshUI()
+        end)
+    end
+end):catch(warn)

@@ -33,7 +33,7 @@ function Interface:InitBoatWaterPos(character, boat, driverSeat)
         local humanoid = character:FindFirstChild('Humanoid')
         if humanoid then
             --humanoid.Sit = true
-            --character:WaitForChild('HumanoidRootPart').CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0)
+            character:WaitForChild('HumanoidRootPart').CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0)
         end
     end
 end

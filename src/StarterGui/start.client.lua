@@ -1,0 +1,1 @@
+print('StarteGui start.lua loaded')

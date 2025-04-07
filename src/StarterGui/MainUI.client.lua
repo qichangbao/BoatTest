@@ -9,9 +9,7 @@
 print("MainUI.client.lua loaded")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
-local PlayerDataService = Knit.GetService('PlayerDataService')
+local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
 local ScreenGui = Instance.new('ScreenGui')
 ScreenGui.Name = 'MainUI'
@@ -47,8 +45,11 @@ StartButton.MouseButton1Click:Connect(function()
         boat:Destroy()
     end
 
+    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService:AssembleBoat():andThen(function(tip)
-        print(tip)
+        local TipController = Knit.GetController('TipController')
+        TipController.Tip:Fire(tip)
+
         local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
         if inventoryUI then
             local inventoryFrame = inventoryUI:FindFirstChild('InventoryFrame')
@@ -62,8 +63,11 @@ end)
 -- 止航按钮点击事件
 StopButton.MouseButton1Click:Connect(function()
     --stopEventBE:Fire()
+    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService:StopBoat():andThen(function(tip)
-        print(tip)
+        local TipController = Knit.GetController('TipController')
+        TipController.Tip:Fire(tip)
+        
         local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
         if inventoryUI then
             local inventoryFrame = inventoryUI:FindFirstChild('InventoryFrame')
@@ -72,11 +76,6 @@ StopButton.MouseButton1Click:Connect(function()
             end
         end
     end)
-end)
-
-BoatAssemblingService.UpdateMainUI:Connect(function(data)
-    StartButton.Visible = not data.explore
-    StopButton.Visible = data.explore
 end)
 
 -- 金币显示标签
@@ -110,6 +109,15 @@ for i = 1, 4 do
     BoxButton.TextSize = 18
     BoxButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     BoxButton.Parent = LootPopup
+    BoxButton.MouseButton1Click:Connect(function()
+        local price = tonumber(string.match(BoxButton.Text, '%d+'))
+        local LootService = Knit.GetService('LootService')
+        LootService:Loot(price):andThen(function(tip)
+            local TipController = Knit.GetController('TipController')
+            TipController.Tip:Fire(tip)
+            LootPopup.Visible = false
+        end)
+    end)
 end
 
 -- 创建关闭按钮
@@ -128,26 +136,6 @@ CloseButton.MouseButton1Click:Connect(function()
     LootPopup.Visible = false
 end)
 
-CloseButton.MouseButton1Down:Connect(function()
-    CloseButton.Size = UDim2.new(0.09, 0, 0.09, 0)
-    wait(0.1)
-    CloseButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-end)
-
--- 宝箱按钮点击处理
-for _, boxButton in ipairs(LootPopup:GetChildren()) do
-    if boxButton:IsA('TextButton') then
-        boxButton.MouseButton1Click:Connect(function()
-            local price = tonumber(string.match(boxButton.Text, '%d+'))
-            local LootService = Knit.GetService('LootService')
-            LootService:Loot(price):andThen(function(tip)
-                print(tip)
-                LootPopup.Visible = false
-            end)
-        end)
-    end
-end
-
 -- 抽奖按钮
 local LootButton = Instance.new('TextButton')
 LootButton.Name = 'LootButton'
@@ -164,26 +152,36 @@ LootButton.MouseButton1Click:Connect(function()
     LootPopup.Visible = true
 end)
 
-local function RefreshUI()
-    -- 刷新UI元素
-    StartButton.Visible = true
-    StopButton.Visible = false
-    LootButton.Visible = true
-    LootPopup.Visible = false
-
-    PlayerDataService:GetAttribute('Gold'):andThen(function(gold)
+Knit:OnStart():andThen(function()
+    local PlayerDataService = Knit.GetService('PlayerDataService')
+    PlayerDataService.GoodChanged:Connect(function(gold)
         GoldLabel.Text = "黄金: "..gold
     end)
-end
 
--- 处理初始角色
-if Players.LocalPlayer.Character then
-    RefreshUI()
-else
-    Players.LocalPlayer.CharacterAdded:Connect(function(character)
-        PlayerDataService.Client:GoodChanged():Connect(function(gold)
+    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
+    BoatAssemblingService.UpdateMainUI:Connect(function(data)
+        StartButton.Visible = not data.explore
+        StopButton.Visible = data.explore
+    end)
+
+    local function RefreshUI()
+        -- 刷新UI元素
+        StartButton.Visible = true
+        StopButton.Visible = false
+        LootButton.Visible = true
+        LootPopup.Visible = false
+
+        PlayerDataService:GetAttribute('Gold'):andThen(function(gold)
             GoldLabel.Text = "黄金: "..gold
         end)
+    end
+
+    -- 处理初始角色
+    if Players.LocalPlayer.Character then
         RefreshUI()
-    end)
-end
+    else
+        Players.LocalPlayer.CharacterAdded:Connect(function(character)
+            RefreshUI()
+        end)
+    end
+end):catch(warn)
