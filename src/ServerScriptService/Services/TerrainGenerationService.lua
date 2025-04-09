@@ -1,10 +1,8 @@
 print('TerrainGenerationService loaded')
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
-local GameConfig = require(ConfigFolder:WaitForChild("GameConfig"))
+local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 
 local TerrainGenerationService = Knit.CreateService({
     Name = 'TerrainGenerationService',
@@ -13,12 +11,12 @@ local TerrainGenerationService = Knit.CreateService({
     },
     ChunkSize = GameConfig.TerrainType.Water.ChunkSize,
     Depth = GameConfig.TerrainType.Water.Depth,
-    Height = GameConfig.TerrainType.Water.Height,
+    LoadDistance = GameConfig.TerrainType.Water.LoadDistance,
+    ActiveChunks = {},
+    PlayerChunks = {},
 })
 
-function TerrainGenerationService:GenerateChunk(chunkX, chunkZ)
-    local position = Vector3.new(chunkX * self.ChunkSize, -self.Height, chunkZ * self.ChunkSize)
-    
+function TerrainGenerationService:FillBlock(position)
     game.Workspace.Terrain:FillBlock(
         CFrame.new(position),
         Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
@@ -26,9 +24,7 @@ function TerrainGenerationService:GenerateChunk(chunkX, chunkZ)
     )
 end
 
-function TerrainGenerationService:RemoveChunk(chunkX, chunkZ)
-    local position = Vector3.new(chunkX * self.ChunkSize, -self.Height, chunkZ * self.ChunkSize)
-    
+function TerrainGenerationService:RemoveBlock(position)
     game.Workspace.Terrain:FillBlock(
         CFrame.new(position),
         Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
@@ -36,49 +32,82 @@ function TerrainGenerationService:RemoveChunk(chunkX, chunkZ)
     )
 end
 
-local activeChunks = {}
-
-function TerrainGenerationService:UpdateGlobalChunks()
-    for cood, data in pairs(activeChunks) do
-        data.curLoad = false
+function TerrainGenerationService:UpdateChunk(player, currentChunk)
+    local playerChunk = self.PlayerChunks[player]
+    for coordStr, value in pairs(playerChunk) do
+        playerChunk[coordStr] = false
     end
 
-    -- 计算所有玩家影响区域
-    for _, player in pairs(Players:GetChildren()) do
-        if not player.Character then
-            continue
-        end
+    for x = -self.LoadDistance, self.LoadDistance do
+        for z = -self.LoadDistance, self.LoadDistance do
+            local coordStr = tostring(currentChunk.X + x)..":"..tostring(currentChunk.Z + z)
+            playerChunk[coordStr] = true
+            if not self.ActiveChunks[coordStr] then
+                local curChunkPlayers = {}
+                curChunkPlayers[player] = true
+                self.ActiveChunks[coordStr] = {curChunkPlayers = curChunkPlayers}
+            else
+                if not self.ActiveChunks[coordStr].curChunkPlayers[player] then
+                    self.ActiveChunks[coordStr].curChunkPlayers[player] = true
+                end
+            end
 
-        local pos = player.Character:GetPivot().Position
-        local currentChunkX = math.floor((pos.X + self.ChunkSize / 2) / self.ChunkSize)
-        local currentChunkZ = math.floor((pos.Z + self.ChunkSize / 2) / self.ChunkSize)
-        local coordStr = tostring(currentChunkX)..":"..tostring(currentChunkZ)
-        if not activeChunks[coordStr] then
-            activeChunks[coordStr] = {curLoad = true, loaded = false}
-        else
-            activeChunks[coordStr].curLoad = true
-        end
-    end
-    
-    for coordStr, data in pairs(activeChunks) do
-        if not data.curLoad then
-            local x, z = coordStr:match("([%-%d]+):([%-%d]+)")
-            --self:RemoveChunk(tonumber(x), tonumber(z))
-            activeChunks[coordStr] = nil
-        else
-            if not data.loaded then
-                local x, z = coordStr:match("([%-%d]+):([%-%d]+)")
-                self:GenerateChunk(tonumber(x), tonumber(z))
-                data.loaded = true
+            if not self.ActiveChunks[coordStr].isFillBlock then
+                local chunkPos = Vector3.new(
+                    currentChunk.X * self.ChunkSize + x * self.ChunkSize,
+                    -self.Depth / 2,
+                    currentChunk.Z * self.ChunkSize + z * self.ChunkSize
+                )
+                self:FillBlock(chunkPos)
+                self.ActiveChunks[coordStr].isFillBlock = true
             end
         end
     end
+
+    for coordStr, value in pairs(playerChunk) do
+        if value == false then
+            self.ActiveChunks[coordStr].curChunkPlayers[player] = nil
+            if next(self.ActiveChunks[coordStr].curChunkPlayers) == nil then
+                local x, z = coordStr:match("([%-%d]+):([%-%d]+)")
+                local chunkPos = Vector3.new(x * self.ChunkSize, -self.Depth / 2, z * self.ChunkSize)
+                self:RemoveBlock(chunkPos)
+                self.ActiveChunks[coordStr] = nil
+            end
+            playerChunk[coordStr] = nil
+        end
+    end
+    self.PlayerChunks[player] = playerChunk
+end
+
+function TerrainGenerationService.Client:ChangeChunk(player, currentChunk)
+    if not player.Character then
+        return
+    end
+
+    self.Server:UpdateChunk(player, currentChunk)
+end
+
+function TerrainGenerationService:KnitInit()
+    Players.PlayerAdded:Connect(function(player)
+        self.PlayerChunks[player] = {}
+    end)
+    
+    Players.PlayerRemoving:Connect(function(player)
+        for coordStr, value in pairs(self.PlayerChunks[player]) do
+            if self.ActiveChunks[coordStr] and self.ActiveChunks[coordStr].curChunkPlayers then
+                if next(self.ActiveChunks[coordStr].curChunkPlayers) == nil then
+                    local x, z = coordStr:match("([%-%d]+):([%-%d]+)")
+                    local chunkPos = Vector3.new(x * self.ChunkSize, -self.Depth / 2, z * self.ChunkSize)
+                    self:RemoveBlock(chunkPos)
+                    self.ActiveChunks[coordStr] = nil
+                end
+            end
+        end
+        self.PlayerChunks[player] = nil
+    end)
 end
 
 function TerrainGenerationService:KnitStart()
-    game:GetService("RunService").Heartbeat:Connect(function()
-        self:UpdateGlobalChunks()
-    end)
 end
 
 return TerrainGenerationService

@@ -11,9 +11,8 @@ local GameConfig = {
             Material = Enum.Material.Water,
             ChunkSize = 200,
             Depth = 30,
-            Height = 15,
             WaveSpeed = 1,
-            LoadDistance = 2
+            LoadDistance = 2,
         }
     },
     

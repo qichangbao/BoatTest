@@ -8,4 +8,12 @@ local TipController = Knit.CreateController {
     Tip = Signal.new()
 }
 
+function TipController:KnitInit()
+    print('TipController initialized')
+end
+
+function TipController:KnitStart()
+    print('TipController started')
+end
+
 return TipController

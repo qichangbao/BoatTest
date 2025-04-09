@@ -60,8 +60,7 @@ function LootService.Client:Loot(player, price)
     -- 扣除黄金
     gold -= price
     player.character:SetAttribute('Gold', gold)
-    local PlayerDataService = Knit.GetService("PlayerDataService")
-    PlayerDataService.Client.GoodChanged:Fire(player, gold)
+    Knit.GetService("PlayerDataService").Client.GoodChanged:Fire(player, gold)
     
     -- 获取随机配件
     local parts = getRandomParts(player, price)
