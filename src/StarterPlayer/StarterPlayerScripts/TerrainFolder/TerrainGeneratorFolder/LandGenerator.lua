@@ -32,8 +32,7 @@ function LandGenerator:Init(position)
     self.materialType = self.config.Material or Enum.Material.Grass
     
     -- 区块基础尺寸（单位：stud）
-    self.size = self.config.Size or Vector3.new(10, 10, 10)
-    self.waterOverlap = 0  -- 与水域区块重叠比例
+    self.size = self.config.ChunkSize or Vector3.new(200, 10, 200)
     
     -- 区块加载距离（单位：区块数量）
     self.loadDistance = self.config.LoadDistance or 1
@@ -59,10 +58,9 @@ function LandGenerator:GenerateTerrainChunk()
 end
 
 function LandGenerator:FillBlock()
-    local adjustedSize = self.size * (1 + self.waterOverlap)
     game:GetService("Workspace").Terrain:FillBlock(
         CFrame.new(self.position),
-        adjustedSize,
+        self.size,
         self.materialType
     )
 end

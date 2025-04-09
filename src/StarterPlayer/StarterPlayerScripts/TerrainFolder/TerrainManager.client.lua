@@ -146,5 +146,6 @@ end
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
-local m = TerrainManager.new(require(ConfigFolder:WaitForChild("GameConfig")))
+local GameConfig = require(ConfigFolder:WaitForChild("GameConfig"))
+local m = TerrainManager.new(GameConfig)
 m:Init()

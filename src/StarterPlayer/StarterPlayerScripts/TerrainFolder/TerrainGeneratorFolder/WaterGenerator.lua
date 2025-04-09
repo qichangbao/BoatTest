@@ -5,6 +5,7 @@
 -- @created 2024-05-20
 -- @last_modified 2024-05-20
 
+local Workspace = game:GetService("Workspace")
 local BaseTerrainGenerator = require(script.Parent:WaitForChild("BaseTerrainGenerator"))
 
 local WaterGenerator = {}
@@ -32,13 +33,13 @@ function WaterGenerator:Init(y)
     self.materialType = self.config.Material or Enum.Material.Water
     
     -- 水域区块尺寸（单位：stud）
-    self.chunkSize = self.config.ChunkSize or 20
+    self.chunkSize = self.config.ChunkSize or 200
     
     -- 区块加载距离（空值表示持续加载）
-    self.loadDistance = self.config.LoadDistance
+    self.loadDistance = self.config.LoadDistance or 2
     
     -- 水域基准深度（单位：stud）
-    self.waterDepth = self.config.Depth or 50
+    self.waterDepth = self.config.Depth or 30
     
     -- 波浪运动速度（单位：m/s）
     self.waveSpeed = self.config.WaveSpeed or 0.5
@@ -53,9 +54,9 @@ function WaterGenerator:Init(y)
     self.poolChunks = {}
     self.lastPlayerChunk = nil
 
-    local landPosition = game.Workspace:WaitForChild("LandSpawnLocation").Position
-    self:UpdateChunks(landPosition)
-    self:SetupChunkLoader()
+    -- local landPosition = Workspace:WaitForChild("LandSpawnLocation").Position
+    -- self:UpdateChunks(landPosition)
+    -- self:SetupChunkLoader()
 end
 
 -- 生成指定位置的地形区块
@@ -83,7 +84,6 @@ function WaterGenerator:FillBlock(position)
     assert(self.chunkSize > 0, "区块尺寸必须大于0")
     assert(self.waterDepth > 0, "水域深度必须大于0")
     
-    local Workspace = game:GetService("Workspace")
     -- 水域地形填充
     Workspace.Terrain:FillBlock(
         CFrame.new(position),
@@ -96,7 +96,7 @@ function WaterGenerator:FillBlock(position)
     --     while true do
     --         local time = tick() * self.waveSpeed
     --         local waveHeight = math.sin(time) * 1.5 + 5
-    --         game:GetService("Workspace").Terrain:FillBlock(
+    --         Workspace.Terrain:FillBlock(
     --             CFrame.new(position),
     --             Vector3.new(self.chunkSize * 1.1, waveHeight, self.chunkSize * 1.1),
     --             self.materialType
@@ -153,13 +153,12 @@ function WaterGenerator:UpdateChunks(playerPosition)
     for chunkPos, chunk in pairs(self.activeChunks) do
         if math.abs(chunkPos.X - currentChunk.X) > self.loadDistance * self.chunkSize
         or math.abs(chunkPos.Z - currentChunk.Z) > self.loadDistance * self.chunkSize then
-            local Workspace = game:GetService("Workspace")
             -- 水域地形填充
-            Workspace.Terrain:FillBlock(
-                CFrame.new(chunkPos),
-                Vector3.new(self.chunkSize, self.waterDepth, self.chunkSize),
-                Enum.Material.Air
-            )
+            -- Workspace.Terrain:FillBlock(
+            --     CFrame.new(chunkPos),
+            --     Vector3.new(self.chunkSize, self.waterDepth, self.chunkSize),
+            --     Enum.Material.Air
+            -- )
             print("移除", chunkPos)
             table.insert(self.poolChunks, chunk)
             self.activeChunks[chunkPos] = nil

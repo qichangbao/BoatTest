@@ -4,14 +4,14 @@ local GameConfig = {
         Land = {
             Position = Vector3.new(0, 0, 0),
             Material = Enum.Material.Grass,
-            Size = Vector3.new(100, 100, 100),
+            Size = Vector3.new(200, 30, 200),
             LoadDistance = 2,
         },
         Water = {
             Material = Enum.Material.Water,
-            ChunkSize = 100,
-            Depth = 100,
-            Height = 50,
+            ChunkSize = 200,
+            Depth = 30,
+            Height = 15,
             WaveSpeed = 1,
             LoadDistance = 2
         }
