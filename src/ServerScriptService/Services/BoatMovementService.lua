@@ -7,110 +7,121 @@ local BoatMovementService = Knit.CreateService({
         isOnBoat = Knit.CreateSignal(),
     },
     VelocityForce = 15,
-    AngularVelocity = 2,
+    AngularVelocity = 100000, -- 提升角速度以加快转向响应
     MaxSpeed = 25,
+    HeartbeatHandle = nil,
+    Boats = {},
 })
 
-function BoatMovementService:ApplyVelocity(player, direction)
-    local character = player.Character
-    if not character or not character.PrimaryPart then return end
-
-    local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
-    if not playerBoat then
-        return "船不存在，不能移动"
-    end
-    
-    local rootPart = character.PrimaryPart
-    if not rootPart then return end
-
-    local boatBodyVelocity = rootPart:FindFirstChild("BoatBodyVelocity")
+function BoatMovementService:ApplyVelocity(primaryPart, direction)
+    local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
     -- 处理停止移动的情况
-    if not direction then
-        -- 通过船只实例移除约束
-        if boatBodyVelocity then
-            boatBodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        end
+    if direction == Vector3.new(0, 0, 0) then
+        boatBodyVelocity.Velocity = Vector3.new(0, 0, 0)
         return
     end
-    
-    -- 附加物理约束到船体
-    if not boatBodyVelocity then
-        boatBodyVelocity = Instance.new("BodyVelocity")
-        boatBodyVelocity.Name = "BoatBodyVelocity"
-        boatBodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
-        boatBodyVelocity.P = 1250
-        boatBodyVelocity.Parent = rootPart
-    end
 
-    -- 前後移動
-    local localDirection = direction or Vector3.new(0,0,1)
-    local worldDirection = rootPart.CFrame.LookVector * localDirection.Z
-    boatBodyVelocity.Velocity = worldDirection * self.VelocityForce
+    -- 使用船头方向作为前进方向
+    local forwardDirection = primaryPart.CFrame.LookVector
+    local worldDirection = forwardDirection * direction.Z
 
-    -- 獨立限制各軸速度
-    local limitedVelocity = Vector3.new(
-        math.clamp(boatBodyVelocity.Velocity.X, -self.MaxSpeed, self.MaxSpeed),
-        0,
-        math.clamp(boatBodyVelocity.Velocity.Z, -self.MaxSpeed, self.MaxSpeed)
-    )
-    
-    boatBodyVelocity.Velocity = limitedVelocity
+    -- 獨立限制速度
+    local speed = math.clamp(math.abs(direction.Z) * self.VelocityForce, 0, self.MaxSpeed)
+    boatBodyVelocity.Velocity = worldDirection * speed
 end
 
-function BoatMovementService:ApplyAngular(player, direction)
-    local character = player.Character
-    if not character or not character.PrimaryPart then return end
-
-    local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
-    if not playerBoat then
-        return "船不存在，不能移动"
-    end
-    
-    local rootPart = character.PrimaryPart
-    if not rootPart then return end
-
-    local bodyAngularVelocity = rootPart:FindFirstChild("BoatBodyAngularVelocity")
+function BoatMovementService:ApplyAngular(primaryPart, direction)
+    local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
     -- 处理停止移动的情况
-    if not direction then
-        if bodyAngularVelocity then
-            bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
-            --bodyAngularVelocity:Destroy()
-        end
+    if direction == Vector3.new(0, 0, 0) then
+        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
         return
-    end
-    
-    if not bodyAngularVelocity then
-        bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.Name = "BoatBodyAngularVelocity"
-        bodyAngularVelocity.MaxTorque = Vector3.new(0, math.huge, 0)
-        bodyAngularVelocity.P = 2500
-        bodyAngularVelocity.Parent = rootPart
     end
     -- 左右轉向（僅在Y軸施加扭矩）
     -- 角速度参数已迁移到组件初始化时设置
-    bodyAngularVelocity.AngularVelocity = Vector3.new(0, direction.Z * self.AngularVelocity, 0)
-    print('【调试】旋转输入:', 'Z轴='..direction.Z, '角速度:', bodyAngularVelocity.AngularVelocity.Y)
+    bodyAngularVelocity.AngularVelocity = Vector3.new(0, direction.Z * self.AngularVelocity * 2, 0)
 end
 
-function BoatMovementService.Client:UpdateVelocity(player, direction)
-    self.Server:ApplyVelocity(player, direction)
+function BoatMovementService:ApplyMovement(player, direction, angular)
+    -- 通过玩家ID获取对应船只模型
+    local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    if not boat then return end
+    
+    -- 使用船只的主部件进行物理约束
+    local primaryPart = boat.PrimaryPart
+    if not primaryPart then
+        warn("船只 "..boat.Name.." 缺少PrimaryPart")
+        return
+    end
+    
+    -- 应用物理效果到船体
+    self:ApplyAngular(primaryPart, angular)
+    self:ApplyVelocity(primaryPart, direction)
 end
 
-function BoatMovementService.Client:UpdateAngular(player, direction)
-    self.Server:ApplyAngular(player, direction)
+function BoatMovementService:OnBoat(player, isOnBoat)
+    if isOnBoat then
+        self.Boats[player] = {direction = Vector3.new(), angular = Vector3.new(), hasPlayer = true}
+        local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+        local driverSeat = boat:FindFirstChild('DriverSeat')
+        local handle
+        handle = driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
+            if not self.Boats[player] then
+                handle:Disconnect()
+                return
+            end
+            local occupant = driverSeat.Occupant
+            -- 玩家从座位上移除时（跳起）
+            if not occupant then
+                self.Boats[player].direction = Vector3.new()
+                self.Boats[player].angular = Vector3.new()
+                self.Boats[player].hasPlayer = false
+                return
+            else
+                self.Boats[player].hasPlayer = true
+            end
+        end)
+    else
+        self.Boats[player] = nil
+    end
+    self.Client.isOnBoat:Fire(player, isOnBoat)
+end
+
+function BoatMovementService.Client:UpdateMovement(player, direction, angular)
+    if not self.Server.Boats[player] or not self.Server.Boats[player].hasPlayer then
+        print("玩家不在船座上   ", player.Name)
+        return
+    end
+
+    self.Server.Boats[player] = {direction = direction, angular = angular, hasPlayer = true}
 end
 
 function BoatMovementService:KnitInit()
     print('BoatMovementService Initialized')
+    -- 初始化心跳事件
+    game:GetService('RunService').Heartbeat:Connect(function()
+        for player, data in pairs(self.Boats) do
+            local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+            if not boat then
+                self.Boats[player] = nil
+                print("船只 "..boat.Name.." 不存在")
+                continue
+            end
+
+            local primaryPart = boat.PrimaryPart
+            if not primaryPart then
+                self.Boats[player] = nil
+                print("船只 "..boat.Name.." 缺少PrimaryPart")
+                continue
+            end
+
+            self:ApplyMovement(player, data.direction, data.angular)
+        end
+    end)
 end
 
 function BoatMovementService:KnitStart()
     print('BoatMovementService Started')
-    
-    -- 移除服务级别的约束初始化
-    
-    -- PhysicsService:CreateCollisionGroup("Boat")
-    -- PhysicsService:CollisionGroupSetCollidable("Boat", "Boat", false)
 end
 
 return BoatMovementService

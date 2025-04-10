@@ -47,12 +47,12 @@ function BoatAssemblingService.Client:AssembleBoat(player)
 
     if #boatParts == 0 then
         return "玩家没有可用的船部件"
-    end 
+    end
 
     -- 克隆模板并定位部件
     -- 创建新模型容器并保持模板原始坐标关系
     -- 使用模板的CFrame保持部件相对位置，确保物理模拟准确性
-    local boat = Instance.new('Model')
+    boat = Instance.new('Model')
     boat.Name = 'PlayerBoat_'..player.UserId
     boat.Parent = workspace
     
@@ -83,33 +83,63 @@ function BoatAssemblingService.Client:AssembleBoat(player)
         end
     end
 
+    if not primaryPart then
+        return "玩家没有可用的船主部件"
+    end
+
     -- 创建驾驶座位
     local primaryCFrame = boat.PrimaryPart.CFrame
     local driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
     driverSeat.Parent = boat
     driverSeat.Anchored = false
+    
+    -- 设置座位权限，仅允许创建者坐下
+    driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
+        local occupant = driverSeat.Occupant
+        if occupant and occupant.Parent then
+            local humanoid = occupant.Parent:FindFirstChildOfClass('Humanoid')
+            if humanoid and humanoid.Parent:IsA('Model') then
+                local playerTemp = game.Players:GetPlayerFromCharacter(humanoid.Parent)
+                if playerTemp and playerTemp.UserId ~= tonumber(string.match(boat.Name, 'PlayerBoat_(%d+)')) then
+                    driverSeat.Disabled = false
+                    task.wait(0.1)
+                    driverSeat.Disabled = true
+                    driverSeat.Occupant = nil
+                    return
+                end
+            end
+        end
+    end)
 
     local currentCFrame = driverSeat:GetPivot()
     driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
-    
-    -- 创建焊接约束
-    if primaryPart then
-        local weldConstraint = Instance.new('WeldConstraint')
-        weldConstraint.Part0 = driverSeat
-        weldConstraint.Part1 = primaryPart
-        weldConstraint.Parent = driverSeat
 
-        -- local SeatWeld = Instance.new('Weld')
-        -- SeatWeld.Part0 = driverSeat
-        -- SeatWeld.Part1 = player.Character:WaitForChild("HumanoidRootPart")
-        -- SeatWeld.Parent = driverSeat
-        -- SeatWeld.Archivable = false
-    end
+    -- 创建焊接约束
+    local weldConstraint = Instance.new('WeldConstraint')
+    weldConstraint.Part0 = driverSeat
+    weldConstraint.Part1 = primaryPart
+    weldConstraint.Parent = driverSeat
+
+    -- 创建船的移动性
+    local boatBodyVelocity = Instance.new("BodyVelocity")
+    boatBodyVelocity.Name = "BoatBodyVelocity"
+    boatBodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
+    boatBodyVelocity.P = 1250
+    boatBodyVelocity.Parent = primaryPart
+    boatBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+
+    -- 创建船的旋转性
+    local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+    bodyAngularVelocity.Name = "BoatBodyAngularVelocity"
+    bodyAngularVelocity.MaxTorque = Vector3.new(0, 300000, 0)
+    bodyAngularVelocity.P = 50000
+    bodyAngularVelocity.Parent = primaryPart
+    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat, driverSeat)
-    Knit.GetService('BoatMovementService').Client.isOnBoat:Fire(player, true)
+    Knit.GetService('BoatMovementService'):OnBoat(player, true)
     -- 触发客户端事件更新主界面UI
     self.UpdateMainUI:Fire(player, {explore = true})
 
@@ -117,7 +147,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
 end
 
 function BoatAssemblingService.Client:StopBoat(player)
-    Knit.GetService('BoatMovementService').Client.isOnBoat:Fire(player, false)
+    Knit.GetService('BoatMovementService'):OnBoat(player, false)
     -- 触发客户端事件更新主界面UI
     self.UpdateMainUI:Fire(player, {explore = false})
 
@@ -129,7 +159,7 @@ function BoatAssemblingService.Client:StopBoat(player)
     end
 
     playerBoat:Destroy()
-    return "船已停止"
+    return "船已销毁"
 end
 
 function BoatAssemblingService:KnitInit()
