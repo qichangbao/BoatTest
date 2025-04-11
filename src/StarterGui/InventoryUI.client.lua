@@ -99,7 +99,8 @@ end
 Knit:OnStart():andThen(function()
     -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
     local InventoryService = Knit.GetService('InventoryService')
-    InventoryService.UpdateInventory:Connect(function(inventoryData)
+    InventoryService.UpdateInventory:Connect(function(inventoryData, itemType)
+        Knit.GetController('TipController').Tip:Fire('恭喜您获得了船部件: ' .. itemType)
         UpdateInventoryUI(inventoryData)
     end)
 

@@ -21,7 +21,7 @@ function InventoryService:AddItemToInventory(player, itemType)
         icon = "rbxassetid://12345678", -- 临时图标，需替换为正式配置
     }
     
-    self.Client.UpdateInventory:Fire(player, self.playersInventory[player])
+    self.Client.UpdateInventory:Fire(player, self.playersInventory[player], itemType)
     
     return true
 end

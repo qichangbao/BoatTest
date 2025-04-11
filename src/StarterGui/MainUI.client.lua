@@ -47,8 +47,7 @@ StartButton.MouseButton1Click:Connect(function()
 
     local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService:AssembleBoat():andThen(function(tip)
-        local TipController = Knit.GetController('TipController')
-        TipController.Tip:Fire(tip)
+        Knit.GetController('TipController').Tip:Fire(tip)
 
         local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
         if inventoryUI then
@@ -65,8 +64,7 @@ StopButton.MouseButton1Click:Connect(function()
     --stopEventBE:Fire()
     local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService:StopBoat():andThen(function(tip)
-        local TipController = Knit.GetController('TipController')
-        TipController.Tip:Fire(tip)
+        Knit.GetController('TipController').Tip:Fire(tip)
         
         local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
         if inventoryUI then
@@ -113,8 +111,7 @@ for i = 1, 4 do
         local price = tonumber(string.match(BoxButton.Text, '%d+'))
         local LootService = Knit.GetService('LootService')
         LootService:Loot(price):andThen(function(tip)
-            local TipController = Knit.GetController('TipController')
-            TipController.Tip:Fire(tip)
+            Knit.GetController('TipController').Tip:Fire(tip)
             LootPopup.Visible = false
         end)
     end)
@@ -166,8 +163,14 @@ Knit:OnStart():andThen(function()
 
     local function RefreshUI()
         -- 刷新UI元素
-        StartButton.Visible = true
-        StopButton.Visible = false
+        local boat = workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+        if boat then
+            StartButton.Visible = false
+            StopButton.Visible = true
+        else
+            StartButton.Visible = true
+            StopButton.Visible = false
+        end
         LootButton.Visible = true
         LootPopup.Visible = false
 

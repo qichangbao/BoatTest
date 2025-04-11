@@ -3,7 +3,6 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-local TipController = Knit.GetController('TipController')
 
 local ScreenGui = Instance.new('ScreenGui')
 ScreenGui.Name = 'TipUI'
@@ -78,4 +77,4 @@ local function showMessage(message)
     end)
 end
 
-TipController.Tip:Connect(showMessage)
+Knit.GetController('TipController').Tip:Connect(showMessage)

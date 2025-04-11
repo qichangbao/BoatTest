@@ -18,7 +18,7 @@ function Interface:InitPlayerPos(player)
 end
 
 -- 初始化船的位置
-function Interface:InitBoatWaterPos(character, boat, driverSeat)
+function Interface:InitBoatWaterPos(character, boat)
     local waterSpawn = workspace:WaitForChild('WaterSpawnLocation')
     local position = waterSpawn.Position
 

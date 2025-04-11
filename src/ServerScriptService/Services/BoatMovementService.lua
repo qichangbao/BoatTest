@@ -1,3 +1,4 @@
+local Players = game:GetService('Players')
 local Knit = require(game:GetService('ReplicatedStorage').Packages.Knit.Knit)
 local PhysicsService = game:GetService('PhysicsService')
 
@@ -7,10 +8,13 @@ local BoatMovementService = Knit.CreateService({
         isOnBoat = Knit.CreateSignal(),
     },
     VelocityForce = 15,
-    AngularVelocity = 100000, -- 提升角速度以加快转向响应
+    AngularVelocity = 1, -- 降低角速度值，使用更合理的恒定旋转速度
     MaxSpeed = 25,
     HeartbeatHandle = nil,
     Boats = {},
+    StabilizationThreshold = 0.2, -- 稳定化阈值，当角速度超过此值时启动稳定系统
+    StabilizationForce = 0.8, -- 稳定力度，值越大稳定越快但可能过度矫正
+    StabilizationDamping = 0.85, -- 阻尼系数，降低以提供更强的抵消力
 })
 
 function BoatMovementService:ApplyVelocity(primaryPart, direction)
@@ -25,38 +29,102 @@ function BoatMovementService:ApplyVelocity(primaryPart, direction)
     local forwardDirection = primaryPart.CFrame.LookVector
     local worldDirection = forwardDirection * direction.Z
 
-    -- 獨立限制速度
+    -- 独立限制速度
     local speed = math.clamp(math.abs(direction.Z) * self.VelocityForce, 0, self.MaxSpeed)
     boatBodyVelocity.Velocity = worldDirection * speed
 end
 
 function BoatMovementService:ApplyAngular(primaryPart, direction)
     local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
-    -- 处理停止移动的情况
+    
+    -- 当方向为0时完全停止旋转
     if direction == Vector3.new(0, 0, 0) then
+        -- 立即停止旋转，增加更强的反向力矩来抵消现有角动量
         bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+        
+        -- 应用一个短暂的反向力矩来抵消现有角动量
+        local currentAngularVelocity = primaryPart.AssemblyAngularVelocity
+        if currentAngularVelocity.Magnitude > 0.1 then
+            -- 创建一个反向的角速度来快速停止旋转
+            bodyAngularVelocity.AngularVelocity = -currentAngularVelocity * 0.5
+            -- 使用task.delay在短时间后重置为零
+            task.delay(0.05, function()
+                if bodyAngularVelocity and bodyAngularVelocity.Parent then
+                    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+                end
+            end)
+        end
         return
     end
-    -- 左右轉向（僅在Y軸施加扭矩）
-    -- 角速度参数已迁移到组件初始化时设置
-    bodyAngularVelocity.AngularVelocity = Vector3.new(0, direction.Z * self.AngularVelocity * 2, 0)
+    
+    -- 应用固定角速度，使用恒定值
+    local angularSpeed = math.sign(direction.Z) * self.AngularVelocity
+    bodyAngularVelocity.AngularVelocity = Vector3.new(0, angularSpeed, 0)
 end
 
-function BoatMovementService:ApplyMovement(player, direction, angular)
-    -- 通过玩家ID获取对应船只模型
-    local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
-    if not boat then return end
+function BoatMovementService:StabilizeBoat(primaryPart)
+    -- 获取当前船体的角速度
+    local currentAngularVelocity = primaryPart.AssemblyAngularVelocity
+    local y = currentAngularVelocity.Y
+    -- 只关注Y轴以外的摇晃（侧倾和前后倾）
+    local rollPitchVelocity = Vector3.new(currentAngularVelocity.X, 0, currentAngularVelocity.Z)
+    local curMagnitude = rollPitchVelocity.Magnitude
+    -- 检查是否需要稳定（角速度超过阈值）
+    if curMagnitude > self.StabilizationThreshold then
+        -- -- 创建或获取稳定用的AlignOrientation和必要的Attachment
+        -- local originAttachment = primaryPart:FindFirstChild("OriginAttachment")
+        -- local targetAttachment = primaryPart:FindFirstChild("TargetAttachment")
     
-    -- 使用船只的主部件进行物理约束
-    local primaryPart = boat.PrimaryPart
-    if not primaryPart then
-        warn("船只 "..boat.Name.." 缺少PrimaryPart")
-        return
+        -- -- 获取当前船体的CFrame
+        -- local boatCFrame = primaryPart.CFrame
+        
+        -- -- 提取当前的Y轴旋转（船头方向）
+        -- local _, yRot, _ = boatCFrame:ToEulerAnglesYXZ()
+        
+        -- -- 更新源附件位置（保持在船体中心）
+        -- originAttachment.CFrame = CFrame.new()
+        
+        -- -- 更新目标附件方向（只保留Y轴旋转，X和Z轴归零）
+        -- targetAttachment.CFrame = CFrame.Angles(0, yRot, 0)
+        
+        local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
+        -- 应用反向阻尼力来抵消当前角速度，保留Y轴的控制
+        -- 使用负号来创建反向力，这样才能真正抵消摇晃
+        local dampedVelocity = Vector3.new(
+            currentAngularVelocity.X * -self.StabilizationDamping,
+            bodyAngularVelocity.AngularVelocity.Y,
+            currentAngularVelocity.Z * -self.StabilizationDamping
+        )
+        
+        -- -- 如果角速度很小，应用更强的反向力来完全停止摇晃
+        -- if curMagnitude < 0.05 then
+        --     -- 应用比当前角速度更强的反向力来确保完全停止
+        --     dampedVelocity = Vector3.new(
+        --         currentAngularVelocity.X * -3.0, -- 提升反向力系数至3倍彻底消除微小摇晃
+        --         bodyAngularVelocity.AngularVelocity.Y,
+        --         currentAngularVelocity.Z * -3.0
+        --     )
+            
+        --     -- 添加角速度归零阈值检测
+        --     if dampedVelocity.Magnitude < 0.05 then
+        --         dampedVelocity = Vector3.new(0, 0, 0)
+        --     end
+        -- end
+        
+        --print("Damped Velocity: ", dampedVelocity)
+        bodyAngularVelocity.AngularVelocity = dampedVelocity
     end
-    
+end
+
+function BoatMovementService:ApplyMovement(primaryPart, direction, angular)
     -- 应用物理效果到船体
     self:ApplyAngular(primaryPart, angular)
     self:ApplyVelocity(primaryPart, direction)
+    
+    -- 如果没有输入，应用稳定功能
+    if direction.Magnitude < 0.1 and angular.Magnitude < 0.1 then
+        self:StabilizeBoat(primaryPart)
+    end
 end
 
 function BoatMovementService:OnBoat(player, isOnBoat)
@@ -115,8 +183,13 @@ function BoatMovementService:KnitInit()
                 continue
             end
 
-            self:ApplyMovement(player, data.direction, data.angular)
+            self:ApplyMovement(primaryPart, data.direction, data.angular)
         end
+    end)
+
+    Players.PlayerRemoving:Connect(function(player)
+        print("玩家 "..player.Name.." 退出游戏，移除玩家船数据")
+        self.Boats[player] = nil
     end)
 end
 

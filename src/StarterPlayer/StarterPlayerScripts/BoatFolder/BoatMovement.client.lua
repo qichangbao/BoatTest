@@ -74,4 +74,5 @@ BoatMovementService.isOnBoat:Connect(function(isOnBoat)
     activeKeys = {}
     moveDirection = Vector3.new()
     moveAngular = Vector3.new()
+    print('玩家是否在船上：', isOnBoat)
 end)

@@ -16,21 +16,7 @@ local BoatAssemblingService = Knit.CreateService({
     },
 })
 
--- 执行船只组装核心逻辑
--- @param player 发起组装请求的玩家对象
--- @return Model 组装完成的船只模型
-function BoatAssemblingService.Client:AssembleBoat(player)
-    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
-    if boat then
-        return "船已存在"
-    end
-    -- 确保ServerStorage中存在船舶模板
-    local boatTemplate = ServerStorage:FindFirstChild('船')
-    -- 校验服务器预置的船只模板是否存在
-    if not boatTemplate then
-        return 'BoatTemplate not found in ServerStorage!'
-    end
-
+local function CreateBoat(player)
     -- 获取玩家库存中的船部件
     local InventoryService = Knit.GetService("InventoryService")
     local inventory = InventoryService:Inventory(player, 'GetInventory')
@@ -49,12 +35,23 @@ function BoatAssemblingService.Client:AssembleBoat(player)
         return "玩家没有可用的船部件"
     end
 
+    -- 确保ServerStorage中存在船舶模板
+    local boatTemplate = ServerStorage:FindFirstChild('船')
+    -- 校验服务器预置的船只模板是否存在
+    if not boatTemplate then
+        return '没有在ServerStorage找到船模板'
+    end
+
     -- 克隆模板并定位部件
     -- 创建新模型容器并保持模板原始坐标关系
     -- 使用模板的CFrame保持部件相对位置，确保物理模拟准确性
-    boat = Instance.new('Model')
+    local boat = Instance.new('Model')
     boat.Name = 'PlayerBoat_'..player.UserId
     boat.Parent = workspace
+    boat.Destroying:Connect(function()
+        print('船被销毁')
+        Knit.GetService('BoatMovementService'):OnBoat(player, false)
+    end)
     
     local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
     local primaryPart = nil
@@ -82,14 +79,20 @@ function BoatAssemblingService.Client:AssembleBoat(player)
             end
         end
     end
+    return boat
+end
 
-    if not primaryPart then
-        return "玩家没有可用的船主部件"
+-- 创建船的驾驶座位
+local function CreateVehicleSeat(boat)
+    local driverSeat = boat:FindFirstChild('DriverSeat')
+    if driverSeat then
+        return
     end
 
+    local primaryPart = boat.PrimaryPart
     -- 创建驾驶座位
-    local primaryCFrame = boat.PrimaryPart.CFrame
-    local driverSeat = Instance.new('VehicleSeat')
+    local primaryCFrame = primaryPart.CFrame
+    driverSeat = Instance.new('VehicleSeat')
     driverSeat.Name = 'DriverSeat'
     driverSeat.Parent = boat
     driverSeat.Anchored = false
@@ -120,25 +123,96 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     weldConstraint.Part0 = driverSeat
     weldConstraint.Part1 = primaryPart
     weldConstraint.Parent = driverSeat
+end
 
-    -- 创建船的移动性
-    local boatBodyVelocity = Instance.new("BodyVelocity")
-    boatBodyVelocity.Name = "BoatBodyVelocity"
-    boatBodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
-    boatBodyVelocity.P = 1250
-    boatBodyVelocity.Parent = primaryPart
-    boatBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+-- 创建船的移动性和旋转性
+local function CreateMoveVelocity(primaryPart)
+    local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
+    if not boatBodyVelocity then
+        -- 创建船的移动性
+        boatBodyVelocity = Instance.new("BodyVelocity")
+        boatBodyVelocity.Name = "BoatBodyVelocity"
+        boatBodyVelocity.MaxForce = Vector3.new(math.huge, 0, math.huge)
+        boatBodyVelocity.P = 1250
+        boatBodyVelocity.Parent = primaryPart
+        boatBodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    end
 
-    -- 创建船的旋转性
-    local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-    bodyAngularVelocity.Name = "BoatBodyAngularVelocity"
-    bodyAngularVelocity.MaxTorque = Vector3.new(0, 300000, 0)
-    bodyAngularVelocity.P = 50000
-    bodyAngularVelocity.Parent = primaryPart
-    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+    local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
+    if not bodyAngularVelocity then
+        -- 创建船的旋转性
+        bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        bodyAngularVelocity.Name = "BoatBodyAngularVelocity"
+        bodyAngularVelocity.MaxTorque = Vector3.new(0, 500000, 0)
+        bodyAngularVelocity.P = 500
+        bodyAngularVelocity.Parent = primaryPart
+        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+    end
+end
+
+-- 创建船的稳定器
+local function CreateStabilizer(primaryPart)
+    -- 创建或获取稳定用的AlignOrientation和必要的Attachment
+    local stabilizer = primaryPart:FindFirstChild("BoatStabilizer")
+    local originAttachment = primaryPart:FindFirstChild("OriginAttachment")
+    local targetAttachment = primaryPart:FindFirstChild("TargetAttachment")
+    -- 如果不存在，创建稳定组件和附件
+    if not stabilizer then
+        -- 创建源附件（固定在船体上）
+        originAttachment = Instance.new("Attachment")
+        originAttachment.Name = "OriginAttachment"
+        originAttachment.Parent = primaryPart
+        
+        -- 创建目标附件（表示理想方向）
+        targetAttachment = Instance.new("Attachment")
+        targetAttachment.Name = "TargetAttachment"
+        targetAttachment.Parent = primaryPart
+        
+        -- 创建AlignOrientation约束
+        stabilizer = Instance.new("AlignOrientation")
+        stabilizer.Name = "BoatStabilizer"
+        stabilizer.MaxTorque = 150000 -- 减少最大扭矩防止过度矫正
+        stabilizer.MaxAngularVelocity = 5 
+        stabilizer.Responsiveness = 20 -- 提高响应性加速稳定
+        stabilizer.RigidityEnabled = false -- 禁用刚性，允许更自然的物理行为
+        
+        -- 只在X和Z轴上应用稳定（保持Y轴自由旋转）
+        stabilizer.PrimaryAxisOnly = false
+        stabilizer.AlignType = Enum.AlignType.Parallel
+        
+        -- 连接附件
+        stabilizer.Attachment0 = originAttachment
+        stabilizer.Attachment1 = targetAttachment
+        stabilizer.Parent = primaryPart
+        -- 提取当前的Y轴旋转（船头方向）
+        local _, yRot, _ = primaryPart.CFrame:ToEulerAnglesYXZ()
+        -- 更新源附件位置（保持在船体中心）
+        originAttachment.CFrame = CFrame.new()
+        -- 更新目标附件方向（只保留Y轴旋转，X和Z轴归零）
+        targetAttachment.CFrame = CFrame.Angles(0, yRot, 0)
+    end
+end
+
+-- 执行船只组装核心逻辑
+-- @param player 发起组装请求的玩家对象
+-- @return Model 组装完成的船只模型
+function BoatAssemblingService.Client:AssembleBoat(player)
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    if boat then
+        return "船已存在"
+    end
+
+    boat = CreateBoat(player)
+    if not boat or not boat.primaryPart then
+        return "玩家没有可用的船主部件"
+    end
+
+    CreateVehicleSeat(boat)
+    CreateMoveVelocity(boat.primaryPart)
+    CreateStabilizer(boat.primaryPart)
 
     -- 设置船的初始位置
-    Interface:InitBoatWaterPos(player.character, boat, driverSeat)
+    Interface:InitBoatWaterPos(player.character, boat)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     -- 触发客户端事件更新主界面UI
     self.UpdateMainUI:Fire(player, {explore = true})
