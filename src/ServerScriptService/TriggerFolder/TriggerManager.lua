@@ -1,32 +1,27 @@
 print("加载TriggerManager")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TriggerFolder = ReplicatedStorage:WaitForChild("Trigger")
+local TriggerFolder = script.Parent
 local ConfigTriggers = require(TriggerFolder:WaitForChild("ConfigTriggers"))
 
-local ConditionFolder = TriggerFolder:WaitForChild("Condition")
+local ConditionFolder = TriggerFolder:WaitForChild("ConditionFolder")
 local PositionCondition = require(ConditionFolder:WaitForChild("PositionCondition"))
 local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerActionCondition"))
 local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
 
-local ActionFolder = TriggerFolder:WaitForChild("Action")
+local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreatePartAction = require(ActionFolder:WaitForChild("CreatePartAction"))
+local WaveAction = require(ActionFolder:WaitForChild("WaveAction"))
 
 local TriggerManager = {}
 
 function TriggerManager.new()
     local self = setmetatable({}, { __index = TriggerManager })
     self.triggersCount = 0
+
+    self:Init()
     return self
 end
-
-function TriggerManager:Initialize()
-    self:InitCondition()
-    print("触发器管理器初始化完成，共", #ConfigTriggers, "个触发器,", "成功加载", self.triggersCount, "个触发器")
-    return self
-end
-
 -- 加载条件
-function TriggerManager:InitCondition()
+function TriggerManager:Init()
     -- 遍历所有触发器配置
     for i, triggerConfig in ipairs(ConfigTriggers) do
         local condition
@@ -59,6 +54,9 @@ function TriggerManager:InitCondition()
                 print("玩家动作触发器被触发!", data.Player.Name)
             elseif triggerConfig.ConditionType == "Composite" then
                 print("组合触发器被触发!", "模式:", data.ConditionMode)
+            else
+                warn("未知的触发器类型:", triggerConfig.ConditionType)
+                return
             end
             
             -- 执行关联动作
@@ -76,6 +74,11 @@ function TriggerManager:InitAction(actionConfig)
     local action
     if actionConfig.ActionType == "CreatePart" then
         action = CreatePartAction.new(actionConfig)
+    elseif actionConfig.ActionType == "Wave" then
+        action = WaveAction.new(actionConfig)
+    else
+        warn("未知的动作类型:", actionConfig.ActionType)
+        return nil
     end
 
     return action

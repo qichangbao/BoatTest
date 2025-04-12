@@ -48,6 +48,8 @@ function CompositeCondition:InitializeChildConditions(conditionConfigs)
 end
 
 function CompositeCondition:StartMonitoring()
+    ConditionBase.StartMonitoring(self)
+    
     -- 启动所有子触发器的监控
     for i, condition in ipairs(self.childConditions) do
         condition:StartMonitoring()
@@ -60,8 +62,12 @@ function CompositeCondition:StartMonitoring()
 end
 
 function CompositeCondition:HandleChildCondition(conditionIndex, data)
+    -- 检查是否超过最大触发次数
+    if self:IsReachingMaxConditions() then
+        return
+    end
+
     local currentTime = tick()
-    
     -- 检查冷却时间
     if currentTime - self.lastConditionTime < self.cooldown then
         return
@@ -103,6 +109,7 @@ function CompositeCondition:HandleChildCondition(conditionIndex, data)
 end
 
 function CompositeCondition:FireCompositeCondition(data)
+    self.conditionCount += 1
     self.lastConditionTime = tick()
     
     print("触发了CompositeCondition")

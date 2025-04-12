@@ -21,10 +21,17 @@ function PlayerActionCondition.new(config)
 end
 
 function PlayerActionCondition:StartMonitoring()
+    ConditionBase.StartMonitoring(self)
+    
     local RunService = game:GetService("RunService")
     local function monitorPlayer(player)
         player.CharacterAdded:Connect(function(character)
             local function actionStart()
+                -- 检查是否超过最大触发次数
+                if self:IsReachingMaxConditions() then
+                    return
+                end
+                
                 local currentTime = tick()
                 -- 检查时间窗口
                 if currentTime - self.lastActionTime > self.timeWindow then  -- 修正变量名
@@ -49,6 +56,7 @@ function PlayerActionCondition:StartMonitoring()
                     -- 触发后重置
                     self.lastActionTime = 0  -- 修正变量名
                     self.actionCount = 0  -- 重置计数器
+                    self.conditionCount += 1
                 end
             end
 

@@ -13,6 +13,7 @@ local BoatAssemblingService = Knit.CreateService({
     Name = 'BoatAssemblingService',
     Client = {
         UpdateMainUI = Knit.CreateSignal(),
+        DestroyBoat = Knit.CreateSignal(),
     },
 })
 
@@ -209,7 +210,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
 
     CreateVehicleSeat(boat)
     CreateMoveVelocity(boat.primaryPart)
-    CreateStabilizer(boat.primaryPart)
+    --CreateStabilizer(boat.primaryPart)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat)
@@ -220,9 +221,34 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     return "船组装成功"
 end
 
+function BoatAssemblingService:DestroyBoat(player)
+    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if not boat then return end
+
+    -- 断开所有焊接约束
+    for _, part in ipairs(boat:GetDescendants()) do
+        if part:IsA('WeldConstraint') then
+            part:Destroy()
+        end
+    end
+
+    for _, part in ipairs(boat:GetChildren()) do
+        if part:IsA('BasePart') then
+            -- 10秒后清理
+            delay(10, function()
+                part:Destroy()
+            end)
+        end
+    end
+
+    -- 移除主船体关联
+    boat:BreakJoints()
+    self.UpdateMainUI:Fire(player, {explore = false})
+    Knit.GetService('BoatMovementService'):OnBoat(player, false)
+end
+
 function BoatAssemblingService.Client:StopBoat(player)
     Knit.GetService('BoatMovementService'):OnBoat(player, false)
-    -- 触发客户端事件更新主界面UI
     self.UpdateMainUI:Fire(player, {explore = false})
 
     Interface:InitPlayerPos(player)

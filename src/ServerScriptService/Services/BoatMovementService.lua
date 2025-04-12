@@ -1,6 +1,5 @@
 local Players = game:GetService('Players')
 local Knit = require(game:GetService('ReplicatedStorage').Packages.Knit.Knit)
-local PhysicsService = game:GetService('PhysicsService')
 
 local BoatMovementService = Knit.CreateService({
     Name = 'BoatMovementService',
@@ -12,9 +11,8 @@ local BoatMovementService = Knit.CreateService({
     MaxSpeed = 25,
     HeartbeatHandle = nil,
     Boats = {},
-    StabilizationThreshold = 0.2, -- 稳定化阈值，当角速度超过此值时启动稳定系统
-    StabilizationForce = 0.8, -- 稳定力度，值越大稳定越快但可能过度矫正
-    StabilizationDamping = 0.85, -- 阻尼系数，降低以提供更强的抵消力
+    AngularDamping = 0.75, -- 降低角速度阻尼系数，使停止更平滑
+    LinearDamping = 0.85, -- 调整线性阻尼系数，使船更快停止
 })
 
 function BoatMovementService:ApplyVelocity(primaryPart, direction)
@@ -42,18 +40,18 @@ function BoatMovementService:ApplyAngular(primaryPart, direction)
         -- 立即停止旋转，增加更强的反向力矩来抵消现有角动量
         bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
         
-        -- 应用一个短暂的反向力矩来抵消现有角动量
-        local currentAngularVelocity = primaryPart.AssemblyAngularVelocity
-        if currentAngularVelocity.Magnitude > 0.1 then
-            -- 创建一个反向的角速度来快速停止旋转
-            bodyAngularVelocity.AngularVelocity = -currentAngularVelocity * 0.5
-            -- 使用task.delay在短时间后重置为零
-            task.delay(0.05, function()
-                if bodyAngularVelocity and bodyAngularVelocity.Parent then
-                    bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
-                end
-            end)
-        end
+        -- -- 应用一个短暂的反向力矩来抵消现有角动量
+        -- local currentAngularVelocity = primaryPart.AssemblyAngularVelocity
+        -- if currentAngularVelocity.Magnitude > 0.1 then
+        --     -- 创建一个反向的角速度来快速停止旋转
+        --     bodyAngularVelocity.AngularVelocity = -currentAngularVelocity * 0.5
+        --     -- 使用task.delay在短时间后重置为零
+        --     task.delay(0.05, function()
+        --         if bodyAngularVelocity and bodyAngularVelocity.Parent then
+        --             bodyAngularVelocity.AngularVelocity = Vector3.new(0, 0, 0)
+        --         end
+        --     end)
+        -- end
         return
     end
     
@@ -63,56 +61,103 @@ function BoatMovementService:ApplyAngular(primaryPart, direction)
 end
 
 function BoatMovementService:StabilizeBoat(primaryPart)
-    -- 获取当前船体的角速度
+    -- 获取当前船体的角速度和线性速度
+    local currentLinearVelocity = primaryPart.AssemblyLinearVelocity
     local currentAngularVelocity = primaryPart.AssemblyAngularVelocity
-    local y = currentAngularVelocity.Y
-    -- 只关注Y轴以外的摇晃（侧倾和前后倾）
-    local rollPitchVelocity = Vector3.new(currentAngularVelocity.X, 0, currentAngularVelocity.Z)
-    local curMagnitude = rollPitchVelocity.Magnitude
-    -- 检查是否需要稳定（角速度超过阈值）
-    if curMagnitude > self.StabilizationThreshold then
-        -- -- 创建或获取稳定用的AlignOrientation和必要的Attachment
-        -- local originAttachment = primaryPart:FindFirstChild("OriginAttachment")
-        -- local targetAttachment = primaryPart:FindFirstChild("TargetAttachment")
     
-        -- -- 获取当前船体的CFrame
-        -- local boatCFrame = primaryPart.CFrame
+    -- 创建或获取必要的物理组件
+    local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
+    local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
+    
+    -- 创建或获取稳定用的AlignOrientation和Attachment
+    local originAttachment = primaryPart:FindFirstChild("OriginAttachment") or Instance.new("Attachment")
+    originAttachment.Name = "OriginAttachment"
+    originAttachment.Parent = primaryPart
+    
+    local targetAttachment = primaryPart:FindFirstChild("TargetAttachment") or Instance.new("Attachment")
+    targetAttachment.Name = "TargetAttachment"
+    targetAttachment.Parent = primaryPart
+    
+    -- 更新目标附件方向（只保留Y轴旋转）
+    local _, yRot, _ = primaryPart.CFrame:ToEulerAnglesYXZ()
+    targetAttachment.CFrame = CFrame.Angles(0, yRot, 0)
+    
+    -- 创建或配置AlignOrientation
+    local alignOrientation = primaryPart:FindFirstChild("BoatAlignOrientation") or Instance.new("AlignOrientation")
+    alignOrientation.Name = "BoatAlignOrientation"
+    alignOrientation.MaxTorque = 8000000  -- 更强的力矩
+    alignOrientation.MaxAngularVelocity = 400  -- 更高的角速度限制
+    alignOrientation.Responsiveness = 1500  -- 更快的响应
+    alignOrientation.RigidityEnabled = true
+    alignOrientation.Attachment0 = originAttachment
+    alignOrientation.Attachment1 = targetAttachment
+    alignOrientation.Parent = primaryPart
+
+    -- 浮力修正（保持在水面上）
+    local waterLevel = 0
+    local idealHeight = waterLevel + 1.2
+    local heightDiff = idealHeight - primaryPart.Position.Y
+    
+    -- 应用更真实的水面阻尼效果
+    if boatBodyVelocity then
+        -- 使用服务参数中的阻尼系数
+        -- 非线性动态阻尼计算
+        local speedFactor = math.clamp(currentLinearVelocity.Magnitude / self.MaxSpeed, 0.1, 1.5)
+        local dynamicDamping = self.LinearDamping * (0.8 + speedFactor * 0.4)
         
-        -- -- 提取当前的Y轴旋转（船头方向）
-        -- local _, yRot, _ = boatCFrame:ToEulerAnglesYXZ()
-        
-        -- -- 更新源附件位置（保持在船体中心）
-        -- originAttachment.CFrame = CFrame.new()
-        
-        -- -- 更新目标附件方向（只保留Y轴旋转，X和Z轴归零）
-        -- targetAttachment.CFrame = CFrame.Angles(0, yRot, 0)
-        
-        local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
-        -- 应用反向阻尼力来抵消当前角速度，保留Y轴的控制
-        -- 使用负号来创建反向力，这样才能真正抵消摇晃
-        local dampedVelocity = Vector3.new(
-            currentAngularVelocity.X * -self.StabilizationDamping,
-            bodyAngularVelocity.AngularVelocity.Y,
-            currentAngularVelocity.Z * -self.StabilizationDamping
+        boatBodyVelocity.Velocity = Vector3.new(
+            currentLinearVelocity.X * dynamicDamping * (1 - math.abs(currentLinearVelocity.X)/self.MaxSpeed),
+            currentLinearVelocity.Y * (dynamicDamping * 0.6) * (1 - math.abs(currentLinearVelocity.Y)/3),
+            currentLinearVelocity.Z * dynamicDamping * (1 - math.abs(currentLinearVelocity.Z)/self.MaxSpeed)
         )
         
-        -- -- 如果角速度很小，应用更强的反向力来完全停止摇晃
-        -- if curMagnitude < 0.05 then
-        --     -- 应用比当前角速度更强的反向力来确保完全停止
-        --     dampedVelocity = Vector3.new(
-        --         currentAngularVelocity.X * -3.0, -- 提升反向力系数至3倍彻底消除微小摇晃
-        --         bodyAngularVelocity.AngularVelocity.Y,
-        --         currentAngularVelocity.Z * -3.0
-        --     )
-            
-        --     -- 添加角速度归零阈值检测
-        --     if dampedVelocity.Magnitude < 0.05 then
-        --         dampedVelocity = Vector3.new(0, 0, 0)
-        --     end
-        -- end
         
-        --print("Damped Velocity: ", dampedVelocity)
-        bodyAngularVelocity.AngularVelocity = dampedVelocity
+        if math.abs(heightDiff) > 0.05 then  -- 更敏感的浮力修正
+            -- 使用更平滑的浮力过渡
+            local buoyancyFactor = math.clamp(heightDiff * 0.6, -0.25, 0.25)  -- 减小浮力修正幅度
+            boatBodyVelocity.Velocity = boatBodyVelocity.Velocity + Vector3.new(0, buoyancyFactor, 0)
+        end
+        print("LinearVelocity: ", currentLinearVelocity)
+        print("CurLinearVelocity: ", boatBodyVelocity.Velocity)
+    end
+    
+    -- 应用角速度阻尼
+    if bodyAngularVelocity then
+        -- 使用服务参数中的角速度阻尼和稳定力
+        -- 角速度动态阻尼
+        local angularSpeedFactor = math.clamp(currentAngularVelocity.Magnitude, 0.5, 3.0)
+        local angularDamping = self.AngularDamping * (0.7 + angularSpeedFactor * 0.3)
+        
+        bodyAngularVelocity.AngularVelocity = Vector3.new(
+            currentAngularVelocity.X * angularDamping * 0.8,
+            bodyAngularVelocity.AngularVelocity.Y * angularDamping * 1.2,  -- 增强Y轴稳定
+            currentAngularVelocity.Z * angularDamping * 0.8
+        )
+        
+        -- 应用渐进式反向力矩来平滑停止摇晃
+        if currentAngularVelocity.Magnitude > 0.01 then
+            -- 动态线性阻尼系数（基于当前速度）
+            local speedFactor = math.clamp(currentLinearVelocity.Magnitude / self.MaxSpeed, 0.1, 1.2)
+            local linearDamping = self.LinearDamping * (0.9 + speedFactor * 0.3)
+            
+            -- 应用速度相关的非线性阻尼
+            local velocityDamping = Vector3.new(
+                currentLinearVelocity.X * linearDamping * (1 - math.abs(currentLinearVelocity.X)/self.MaxSpeed),
+                currentLinearVelocity.Y * (linearDamping * 0.8) * (1 - math.abs(currentLinearVelocity.Y)/2),
+                currentLinearVelocity.Z * linearDamping * (1 - math.abs(currentLinearVelocity.Z)/self.MaxSpeed)
+            )
+            boatBodyVelocity.Velocity = velocityDamping
+            
+            -- 非线性浮力修正（带死区）
+            heightDiff = idealHeight - primaryPart.Position.Y  -- 重新计算当前高度差
+            if math.abs(heightDiff) > 0.02 then
+                local buoyancyCurve = math.sin(math.clamp(math.abs(heightDiff)*5, 0, math.pi/2))
+                local buoyancyFactor = math.sign(heightDiff) * buoyancyCurve * 0.35
+                boatBodyVelocity.Velocity = boatBodyVelocity.Velocity + Vector3.new(0, buoyancyFactor, 0)
+            end
+            print("AngularVelocity: ", currentAngularVelocity)
+            print("CurAngularVelocity: ", bodyAngularVelocity.AngularVelocity)
+        end
     end
 end
 
