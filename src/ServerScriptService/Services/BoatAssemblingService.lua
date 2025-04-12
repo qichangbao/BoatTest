@@ -209,7 +209,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
 
     CreateVehicleSeat(boat)
     CreateMoveVelocity(boat.primaryPart)
-    CreateStabilizer(boat.primaryPart)
+    --CreateStabilizer(boat.primaryPart)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat)
