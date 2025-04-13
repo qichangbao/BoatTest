@@ -16,10 +16,20 @@ local TriggerManager = {}
 function TriggerManager.new()
     local self = setmetatable({}, { __index = TriggerManager })
     self.triggersCount = 0
+    self.positionConditions = {}
 
     self:Init()
+
+    game:GetService("RunService").Heartbeat:Connect(function()
+        for _, condition in ipairs(self.positionConditions) do
+            for _, v in pairs(game.Players:GetPlayers()) do
+                condition:MonitorPlayer(v)
+            end
+        end
+    end)
     return self
 end
+
 -- 加载条件
 function TriggerManager:Init()
     -- 遍历所有触发器配置
@@ -29,6 +39,7 @@ function TriggerManager:Init()
         -- 根据触发器类型创建相应的触发器实例
         if triggerConfig.ConditionType == "Position" then
             condition = PositionCondition.new(triggerConfig)
+            table.insert(self.positionConditions, condition)
         elseif triggerConfig.ConditionType == "PlayerAction" then
             condition = PlayerActionCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "Composite" then

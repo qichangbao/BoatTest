@@ -60,7 +60,7 @@ function WaveAction:Execute()
                 
                 if health < 50 then
                     local Knit = require(game.ReplicatedStorage:WaitForChild('Packages'):WaitForChild("Knit"):WaitForChild("Knit"))
-                    Knit.GetService('BoatAssemblingService'):DestroyBoat(boatModel)
+                    Knit.GetService('BoatAssemblingService'):DestroyBoat(player, boatModel)
                 else
                     -- 穿透处理：暂时禁用碰撞
                     wavePart.CanCollide = false

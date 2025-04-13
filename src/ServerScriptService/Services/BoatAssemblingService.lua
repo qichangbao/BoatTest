@@ -221,10 +221,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     return "船组装成功"
 end
 
-function BoatAssemblingService:DestroyBoat(player)
-    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
-    if not boat then return end
-
+function BoatAssemblingService:DestroyBoat(player, boat)
     -- 断开所有焊接约束
     for _, part in ipairs(boat:GetDescendants()) do
         if part:IsA('WeldConstraint') then
@@ -232,6 +229,19 @@ function BoatAssemblingService:DestroyBoat(player)
         end
     end
 
+    -- -- 强制玩家离开座位
+    -- for _, seat in ipairs(boat:GetChildren()) do
+    --     if seat:IsA('VehicleSeat') and seat.Occupant then
+    --         local humanoid = seat.Occupant.Parent:FindFirstChildOfClass('Humanoid')
+    --         if humanoid then
+    --             humanoid.Sit = false
+    --             seat.Occupant = nil
+    --             seat.Disabled = true
+    --         end
+    --     end
+    -- end
+
+    -- 原部件清理逻辑
     for _, part in ipairs(boat:GetChildren()) do
         if part:IsA('BasePart') then
             -- 10秒后清理

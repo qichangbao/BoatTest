@@ -42,21 +42,18 @@ function PlayerActionCondition:StartMonitoring()
                     self.actionCount = self.actionCount + 1
                 end
                 
-                self.lastActionTime = currentTime  -- 修正变量名
-                
                 -- 检查是否达到触发条件
                 if self.actionCount >= self.requiredActions then
                     print("触发了PlayerActionCondition")
                     self.bindableEvent:Fire({
                         Player = player,
                         JumpCount = self.actionCount,  -- 修改为正确的计数值
-                        TimeElapsed = currentTime - self.lastActionTime  -- 修正变量名
                     })
                     
                     -- 触发后重置
-                    self.lastActionTime = 0  -- 修正变量名
                     self.actionCount = 0  -- 重置计数器
                     self.conditionCount += 1
+                    self.lastActionTime = tick()  -- 修正变量名
                 end
             end
 

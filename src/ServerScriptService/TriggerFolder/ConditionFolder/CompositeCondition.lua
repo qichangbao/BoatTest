@@ -13,8 +13,6 @@ function CompositeCondition.new(config)
     -- 组合触发器配置
     self.conditionMode = self.config.ConditionMode or "Sequential" -- Sequential或Parallel
     self.resetOnFail = self.config.ResetOnFail or false
-    self.cooldown = self.config.Cooldown or 0
-    self.lastConditionTime = 0
     
     -- 子触发器状态跟踪
     self.childConditions = {}
@@ -67,9 +65,8 @@ function CompositeCondition:HandleChildCondition(conditionIndex, data)
         return
     end
 
-    local currentTime = tick()
     -- 检查冷却时间
-    if currentTime - self.lastConditionTime < self.cooldown then
+    if self:IsReachingCooldown() then
         return
     end
     

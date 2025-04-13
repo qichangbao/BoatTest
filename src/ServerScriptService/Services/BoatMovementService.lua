@@ -217,7 +217,6 @@ function BoatMovementService:KnitInit()
             local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
             if not boat then
                 self.Boats[player] = nil
-                print("船只 "..boat.Name.." 不存在")
                 continue
             end
 
