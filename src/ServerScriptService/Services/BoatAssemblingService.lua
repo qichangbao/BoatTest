@@ -1,11 +1,9 @@
 print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local ServerStorage = game:GetService('ServerStorage')
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
---local BuoyantController = require(game.ServerScriptService:WaitForChild("BoatFolder"):WaitForChild('buoyantController'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
@@ -197,6 +195,22 @@ end
 -- 执行船只组装核心逻辑
 -- @param player 发起组装请求的玩家对象
 -- @return Model 组装完成的船只模型
+function BoatAssemblingService.Client:AddUnusedPartsToBoat(player)
+    self.Server:AddUnusedPartsToBoat(player)
+end
+
+function BoatAssemblingService:AddUnusedPartsToBoat(player)
+    local InventoryService = Knit.GetService("InventoryService")
+    local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    if not boat then return end
+    
+    local unusedParts = InventoryService:GetUnusedParts(player)
+    for _, partData in pairs(unusedParts) do
+        self:AttachPartToBoat(boat, partData.partType)
+        InventoryService:MarkPartAsUsed(player, partData.id)
+    end
+end
+
 function BoatAssemblingService.Client:AssembleBoat(player)
     local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if boat then

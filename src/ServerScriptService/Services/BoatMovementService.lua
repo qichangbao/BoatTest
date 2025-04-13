@@ -117,8 +117,8 @@ function BoatMovementService:StabilizeBoat(primaryPart)
             local buoyancyFactor = math.clamp(heightDiff * 0.6, -0.25, 0.25)  -- 减小浮力修正幅度
             boatBodyVelocity.Velocity = boatBodyVelocity.Velocity + Vector3.new(0, buoyancyFactor, 0)
         end
-        print("LinearVelocity: ", currentLinearVelocity)
-        print("CurLinearVelocity: ", boatBodyVelocity.Velocity)
+        -- print("LinearVelocity: ", currentLinearVelocity)
+        -- print("CurLinearVelocity: ", boatBodyVelocity.Velocity)
     end
     
     -- 应用角速度阻尼
@@ -155,8 +155,8 @@ function BoatMovementService:StabilizeBoat(primaryPart)
                 local buoyancyFactor = math.sign(heightDiff) * buoyancyCurve * 0.35
                 boatBodyVelocity.Velocity = boatBodyVelocity.Velocity + Vector3.new(0, buoyancyFactor, 0)
             end
-            print("AngularVelocity: ", currentAngularVelocity)
-            print("CurAngularVelocity: ", bodyAngularVelocity.AngularVelocity)
+            -- print("AngularVelocity: ", currentAngularVelocity)
+            -- print("CurAngularVelocity: ", bodyAngularVelocity.AngularVelocity)
         end
     end
 end

@@ -18,7 +18,8 @@ function InventoryService:AddItemToInventory(player, itemType)
     self.playersInventory[player][itemType] = {
         itemType = itemType,
         quantity = (self.playersInventory[player][itemType] and self.playersInventory[player][itemType].quantity or 0) + 1,
-        icon = "rbxassetid://12345678", -- 临时图标，需替换为正式配置
+        icon = "rbxassetid://12345678",
+        isUsed = false
     }
     
     self.Client.UpdateInventory:Fire(player, self.playersInventory[player], itemType)
@@ -88,6 +89,28 @@ end
 
 function InventoryService:KnitStart()
     print('InventoryService started')
+end
+
+function InventoryService:GetUnusedParts(player)
+    local unused = {}
+    if self.playersInventory[player] then
+        for itemType, itemData in pairs(self.playersInventory[player]) do
+            if not itemData.isUsed then
+                table.insert(unused, {
+                    id = itemType,
+                    partType = itemType
+                })
+            end
+        end
+    end
+    return unused
+end
+
+function InventoryService:MarkPartAsUsed(player, partId)
+    if self.playersInventory[player] and self.playersInventory[player][partId] then
+        self.playersInventory[player][partId].isUsed = true
+        self.Client.UpdateInventory:Fire(player, self.playersInventory[player])
+    end
 end
 
 return InventoryService

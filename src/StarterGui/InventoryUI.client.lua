@@ -17,6 +17,20 @@ inventoryFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
 inventoryFrame.BackgroundTransparency = 0.7
 inventoryFrame.Parent = gui
 
+-- 创建添加部件按钮
+local addButton = Instance.new('TextButton')
+addButton.Name = 'AddPartButton'
+addButton.Text = '添加部件'
+addButton.Size = UDim2.new(0.8, 0, 0.1, 0)
+addButton.Position = UDim2.new(0.1, 0, 0.85, 0)
+addButton.Visible = false
+addButton.Parent = inventoryFrame
+
+addButton.MouseButton1Click:Connect(function()
+    Knit.GetService('BoatAssemblingService'):AddUnusedPartsToBoat(Players.LocalPlayer)
+end)
+
+
 -- 创建物品模板
 -- 创建原生物品模板
 local itemTemplate = Instance.new("ImageButton")
@@ -51,6 +65,13 @@ countText.Parent = itemTemplate
 4. quantity必须为大于0的整数
 ]]
 local function UpdateInventoryUI(inventoryData)
+    local unusedParts = inventoryData.unusedParts or {}
+    if #unusedParts > 0 then
+        addButton.Visible = true
+        addButton.Text = "添加未使用部件 ("..#unusedParts.."个)"
+    else
+        addButton.Visible = false
+    end
     -- 有效性检查：确保传入数据为table
     assert(type(inventoryData) == "table", "无效的库存数据格式")
 
@@ -102,6 +123,13 @@ Knit:OnStart():andThen(function()
     InventoryService.UpdateInventory:Connect(function(inventoryData, itemType)
         Knit.GetController('TipController').Tip:Fire('恭喜您获得了船部件: ' .. itemType)
         UpdateInventoryUI(inventoryData)
+        local unusedParts = inventoryData.unusedParts or {}
+        if #unusedParts > 0 then
+            addButton.Visible = true
+            addButton.Text = "添加未使用部件 ("..#unusedParts.."个)"
+        else
+            addButton.Visible = false
+        end
     end)
 
     local function RefreshUI()
@@ -109,6 +137,13 @@ Knit:OnStart():andThen(function()
         inventoryFrame.Visible = true
         InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
             UpdateInventoryUI(inventoryData)
+            local unusedParts = inventoryData.unusedParts or {}
+            if #unusedParts > 0 then
+                addButton.Visible = true
+                addButton.Text = "添加未使用部件 ("..#unusedParts.."个)"
+            else
+                addButton.Visible = false
+            end
         end)
     end
     
