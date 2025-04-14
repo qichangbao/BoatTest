@@ -5,48 +5,48 @@ local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChil
 local InventoryService = Knit.CreateService({
     Name = 'InventoryService',
     Client = {
-        UpdateInventory = Knit.CreateSignal(),
+        AddItem = Knit.CreateSignal(),
+        RemoveItem = Knit.CreateSignal(),
     },
     playersInventory = {},
 })
 
-function InventoryService:AddItemToInventory(player, itemType)
+function InventoryService:AddItemToInventory(player, itemName, modelName)
     if not self.playersInventory[player] then
         self.playersInventory[player] = {}
     end
     
-    self.playersInventory[player][itemType] = {
-        itemType = itemType,
-        quantity = (self.playersInventory[player][itemType] and self.playersInventory[player][itemType].quantity or 0) + 1,
+    self.playersInventory[player][itemName] = {
+        itemName = itemName,
+        modelName = modelName,
+        num = (self.playersInventory[player][itemName] and self.playersInventory[player][itemName].num or 0) + 1,
         icon = "rbxassetid://12345678",
         isUsed = false
     }
     
-    self.Client.UpdateInventory:Fire(player, self.playersInventory[player], itemType)
+    self.Client.AddItem:Fire(player, self.playersInventory[player][itemName])
     
     return true
 end
 
-function InventoryService:RemoveItemFromInventory(player, itemType)
-    --[[
-        从玩家库存中移除指定类型的物品
-        @param player: 玩家实例
-        @param itemType: 要移除的物品类型
-        @return: 无返回值
-    ]]--
-    if self.playersInventory[player][itemType] then
-        self.playersInventory[player][itemType].quantity = math.max(0, self.playersInventory[player][itemType].quantity - 1)
-        if self.playersInventory[player][itemType].quantity == 0 then
-            self.playersInventory[player][itemType] = nil
+function InventoryService:RemoveItemFromInventory(player, itemName)
+    if not self.playersInventory[player] then
+        self.playersInventory[player] = {}
+    end
+
+    if self.playersInventory[player][itemName] then
+        self.playersInventory[player][itemName].num = math.max(0, self.playersInventory[player][itemName].num - 1)
+        if self.playersInventory[player][itemName].num == 0 then
+            self.playersInventory[player][itemName] = nil
         end
         
-        self.Client.UpdateInventory:Fire(player, self.playersInventory[player])
+        self.Client.RemoveItem:Fire(player, self.playersInventory[player][itemName])
     end
 end
 
-function InventoryService:CheckExists(player, itemType)
+function InventoryService:CheckExists(player, itemName)
     local inventory = self:GetPlayerInventory(player)
-    return inventory[itemType] ~= nil
+    return inventory[itemName] ~= nil
 end
 
 function InventoryService:GetPlayerInventory(player)
@@ -64,7 +64,7 @@ function InventoryService:Inventory(player, action, ...)
         @param player: 发起请求的玩家实例
         @param action: 操作类型 ('AddItem'/'RemoveItem'/'GetInventory')
         @param ...: 可变参数，根据操作类型不同包含：
-            - AddItem/RemoveItem: itemType (string) 物品类型
+            - AddItem/RemoveItem: itemName (string) 物品类型
             - GetInventory: 无额外参数
         @return: 操作结果 (boolean) 或 当前库存数据 (table)
     ]]
@@ -79,6 +79,42 @@ function InventoryService:Inventory(player, action, ...)
     end
 end
 
+-- 船组装成功
+function InventoryService:BoatAssemblySuccess(player, modelName)
+    if self.playersInventory[player] then
+        for _, itemData in pairs(self.playersInventory[player]) do
+            if itemData.modelName == modelName then
+                itemData.isUsed = true
+            end
+        end
+    end
+end
+
+function InventoryService:GetUnusedParts(player, modelName)
+    local unused = {}
+    if self.playersInventory[player] then
+        for itemName, itemData in pairs(self.playersInventory[player]) do
+            if itemData.modelName == modelName and not itemData.isUsed then
+                table.insert(unused, {
+                    id = itemName,
+                    partType = itemName
+                })
+            end
+        end
+    end
+    return unused
+end
+
+function InventoryService:MarkAllBoatPartAsUsed(player, modelName)
+    if self.playersInventory[player] then
+        for _, itemData in pairs(self.playersInventory[player]) do
+            if itemData.modelName == modelName then
+                itemData.isUsed = true
+            end
+        end
+    end
+end
+
 function InventoryService.Client:GetInventory(player)
     return self.Server:GetPlayerInventory(player)
 end
@@ -89,28 +125,6 @@ end
 
 function InventoryService:KnitStart()
     print('InventoryService started')
-end
-
-function InventoryService:GetUnusedParts(player)
-    local unused = {}
-    if self.playersInventory[player] then
-        for itemType, itemData in pairs(self.playersInventory[player]) do
-            if not itemData.isUsed then
-                table.insert(unused, {
-                    id = itemType,
-                    partType = itemType
-                })
-            end
-        end
-    end
-    return unused
-end
-
-function InventoryService:MarkPartAsUsed(player, partId)
-    if self.playersInventory[player] and self.playersInventory[player][partId] then
-        self.playersInventory[player][partId].isUsed = true
-        self.Client.UpdateInventory:Fire(player, self.playersInventory[player])
-    end
 end
 
 return InventoryService

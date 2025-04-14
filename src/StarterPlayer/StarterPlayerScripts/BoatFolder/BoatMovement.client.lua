@@ -5,9 +5,9 @@ local UserInputService = game:GetService('UserInputService')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local BoatMovementService = Knit.GetService('BoatMovementService')
 
-local moveDirection = Vector3.new()
-local moveAngular = Vector3.new()
-local activeKeys = {}
+local _moveDirection = Vector3.new()
+local _moveAngular = Vector3.new()
+local _activeKeys = {}
 
 local function CanInput()
     local boat = game.Workspace:FindFirstChild('PlayerBoat_'..Players.LocalPlayer.UserId)
@@ -26,25 +26,25 @@ UserInputService.InputBegan:Connect(function(input)
     if not CanInput() then return end
     
     if input.KeyCode == Enum.KeyCode.W then
-        if activeKeys.W then return end
-        activeKeys.W = true
-        moveDirection = Vector3.new(0, 0, -1)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        if _activeKeys.W then return end
+        _activeKeys.W = true
+        _moveDirection = Vector3.new(0, 0, -1)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.S then
-        if activeKeys.S then return end
-        activeKeys.S = true
-        moveDirection = Vector3.new(0, 0, 1)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        if _activeKeys.S then return end
+        _activeKeys.S = true
+        _moveDirection = Vector3.new(0, 0, 1)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.A then
-        if activeKeys.A then return end
-        activeKeys.A = true
-        moveAngular = Vector3.new(0, 0, 1)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        if _activeKeys.A then return end
+        _activeKeys.A = true
+        _moveAngular = Vector3.new(0, 0, 1)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.D then
-        if activeKeys.D then return end
-        activeKeys.D = true
-        moveAngular = Vector3.new(0, 0, -1)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        if _activeKeys.D then return end
+        _activeKeys.D = true
+        _moveAngular = Vector3.new(0, 0, -1)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     end
 end)
 
@@ -52,27 +52,27 @@ UserInputService.InputEnded:Connect(function(input)
     if not CanInput() then return end
     
     if input.KeyCode == Enum.KeyCode.W then
-        activeKeys.W = false
-        moveDirection = Vector3.new(0, 0, 0)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        _activeKeys.W = false
+        _moveDirection = Vector3.new(0, 0, 0)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.S then
-        activeKeys.S = false
-        moveDirection = Vector3.new(0, 0, 0)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        _activeKeys.S = false
+        _moveDirection = Vector3.new(0, 0, 0)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.A then
-        activeKeys.A = false
-        moveAngular = Vector3.new(0, 0, 0)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        _activeKeys.A = false
+        _moveAngular = Vector3.new(0, 0, 0)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.D then
-        activeKeys.D = false
-        moveAngular = Vector3.new(0, 0, 0)
-        BoatMovementService:UpdateMovement(moveDirection, moveAngular)
+        _activeKeys.D = false
+        _moveAngular = Vector3.new(0, 0, 0)
+        BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     end
 end)
 
 BoatMovementService.isOnBoat:Connect(function(isOnBoat)
-    activeKeys = {}
-    moveDirection = Vector3.new()
-    moveAngular = Vector3.new()
+    _activeKeys = {}
+    _moveDirection = Vector3.new()
+    _moveAngular = Vector3.new()
     print('玩家是否在船上：', isOnBoat)
 end)

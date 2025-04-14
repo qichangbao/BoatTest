@@ -3,7 +3,7 @@ BoatAttribute.__index = BoatAttribute
 setmetatable({}, BoatAttribute)
 
 BoatAttribute.BoatProperties = {
-    MaxHealth = 100,
+    MaxHealth = 30,
     Speed = 25,
     Durability = 1.0
 }

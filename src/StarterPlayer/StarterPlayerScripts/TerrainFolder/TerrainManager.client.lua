@@ -13,20 +13,20 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 
-local lastPlayerChunk = nil
-local chunkSize = GameConfig.TerrainType.Water.ChunkSize
+local _lastPlayerChunk = nil
+local _chunkSize = GameConfig.TerrainType.Water.ChunkSize
 
 local function UpdateChunks(position)
     local currentChunk = Vector3.new(
-        math.floor((position.X + chunkSize / 2)/ chunkSize),
+        math.floor((position.X + _chunkSize / 2)/ _chunkSize),
         0,
-        math.floor((position.Z + chunkSize / 2) / chunkSize)
+        math.floor((position.Z + _chunkSize / 2) / _chunkSize)
     )
-    if lastPlayerChunk and currentChunk == lastPlayerChunk then
+    if _lastPlayerChunk and currentChunk == _lastPlayerChunk then
         return
     end
 
-    lastPlayerChunk = currentChunk
+    _lastPlayerChunk = currentChunk
     local TerrainGenerationService = Knit.GetService('TerrainGenerationService')
     TerrainGenerationService:ChangeChunk(currentChunk):andThen(function()
     end)

@@ -67,7 +67,7 @@ function LootService.Client:Loot(player, price)
     local InventoryService = Knit.GetService("InventoryService")
     for _, part in ipairs(parts) do
         -- 调用背包管理器添加物品
-        InventoryService:Inventory(player, 'AddItem', part.Name)
+        InventoryService:Inventory(player, 'AddItem', part.Name, BOAT_PARTS_FOLDER_NAME)
     end
 
     return "黄金扣除成功"
