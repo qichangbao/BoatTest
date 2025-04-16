@@ -22,13 +22,11 @@ local function CreateBoat(player)
     local inventory = InventoryService:Inventory(player, 'GetInventory')
     -- 检查库存有效性并收集船部件
     local boatParts = {}
-    if type(inventory) == "table" then
-        for itemName, itemData in pairs(inventory) do
-            table.insert(boatParts, {
-                Name = itemName,
-                Data = itemData
-            })
-        end
+    for itemName, itemData in pairs(inventory) do
+        table.insert(boatParts, {
+            Name = itemName,
+            Data = itemData
+        })
     end
 
     if #boatParts == 0 then
@@ -40,6 +38,18 @@ local function CreateBoat(player)
     -- 校验服务器预置的船只模板是否存在
     if not boatTemplate then
         return '没有在ServerStorage找到船模板'
+    end
+
+    local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local primaryPartName = ''
+    for name, data in pairs(curBoatConfig) do
+        if data.isPrimaryPart then
+            primaryPartName = name
+            break
+        end
+    end
+    if primaryPartName == '' then
+        return '找不到主船体部件'
     end
 
     -- 克隆模板并定位部件
@@ -54,10 +64,9 @@ local function CreateBoat(player)
         Knit.GetService('BoatMovementService'):OnBoat(player, false)
     end)
     
-    local curBoatConfig = BoatConfig[boat:GetAttribute('ModelName')]
     local primaryPart = nil
     -- 先收集所有部件偏移量
-    local templatePrimaryPart = boatTemplate:FindFirstChild(curBoatConfig[1].Name)
+    local templatePrimaryPart = boatTemplate:FindFirstChild(primaryPartName)
     local partOffsets = {}
     
     for _, partInfo in ipairs(boatParts) do
@@ -71,20 +80,24 @@ local function CreateBoat(player)
         end
     end
 
+    local boatHP = 0
+    local boatSpeed = 0
     -- 创建主船体
     for _, partInfo in ipairs(boatParts) do
-        if partInfo.Name == curBoatConfig[1].Name then
+        if partInfo.Name == primaryPartName then
             primaryPart = boatTemplate:FindFirstChild(partInfo.Name):Clone()
             primaryPart.CFrame = templatePrimaryPart.CFrame
             primaryPart.Parent = boat
             boat.PrimaryPart = primaryPart
+            boatHP += curBoatConfig[partInfo.Name].HP
+            boatSpeed += curBoatConfig[partInfo.Name].speed
             break
         end
     end
 
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
-        if partInfo.Name ~= curBoatConfig[1].Name then
+        if partInfo.Name ~= primaryPartName then
             local templatePart = boatTemplate:FindFirstChild(partInfo.Name)
             if templatePart then
                 local partClone = templatePart:Clone()
@@ -92,6 +105,8 @@ local function CreateBoat(player)
                 partClone.CFrame = primaryPart.CFrame * partOffsets[partInfo.Name]
                 partClone.Parent = boat
                 partClone.CustomPhysicalProperties = PhysicalProperties.new(Enum.Material.Wood)
+                boatHP += curBoatConfig[partInfo.Name].HP
+                boatSpeed += curBoatConfig[partInfo.Name].speed
 
                 -- 创建焊接约束
                 local weldConstraint = Instance.new('WeldConstraint')
@@ -101,6 +116,9 @@ local function CreateBoat(player)
             end
         end
     end
+
+    boat:SetAttribute('Health', boatHP)
+    boat:SetAttribute('Speed', boatSpeed)
     return boat
 end
 
@@ -142,8 +160,8 @@ local function CreateVehicleSeat(boat)
 
     -- 创建焊接约束
     local weldConstraint = Instance.new('WeldConstraint')
-    weldConstraint.Part0 = driverSeat
-    weldConstraint.Part1 = primaryPart
+    weldConstraint.Part0 = primaryPart
+    weldConstraint.Part1 = driverSeat
     weldConstraint.Parent = driverSeat
 end
 
@@ -173,46 +191,42 @@ local function CreateMoveVelocity(primaryPart)
 end
 
 -- 创建船的稳定器
-local function CreateStabilizer(primaryPart)
-    -- -- 创建或获取稳定用的AlignOrientation和必要的Attachment
-    -- local stabilizer = primaryPart:FindFirstChild("BoatStabilizer")
-    -- local originAttachment = primaryPart:FindFirstChild("OriginAttachment")
-    -- local targetAttachment = primaryPart:FindFirstChild("TargetAttachment")
-    -- -- 如果不存在，创建稳定组件和附件
-    -- if not stabilizer then
-    --     -- 创建源附件（固定在船体上）
-    --     originAttachment = Instance.new("Attachment")
-    --     originAttachment.Name = "OriginAttachment"
-    --     originAttachment.Parent = primaryPart
-        
-    --     -- 创建目标附件（表示理想方向）
-    --     targetAttachment = Instance.new("Attachment")
-    --     targetAttachment.Name = "TargetAttachment"
-    --     targetAttachment.Parent = primaryPart
-        
-    --     -- 创建AlignOrientation约束
-    --     stabilizer = Instance.new("AlignOrientation")
-    --     stabilizer.Name = "BoatStabilizer"
-    --     stabilizer.MaxTorque = 150000 -- 减少最大扭矩防止过度矫正
-    --     stabilizer.MaxAngularVelocity = 5 
-    --     stabilizer.Responsiveness = 20 -- 提高响应性加速稳定
-    --     stabilizer.RigidityEnabled = false -- 禁用刚性，允许更自然的物理行为
-        
-    --     -- 只在X和Z轴上应用稳定（保持Y轴自由旋转）
-    --     stabilizer.PrimaryAxisOnly = false
-    --     stabilizer.AlignType = Enum.AlignType.Parallel
-        
-    --     -- 连接附件
-    --     stabilizer.Attachment0 = originAttachment
-    --     stabilizer.Attachment1 = targetAttachment
-    --     stabilizer.Parent = primaryPart
-    --     -- 提取当前的Y轴旋转（船头方向）
-    --     local _, yRot, _ = primaryPart.CFrame:ToEulerAnglesYXZ()
-    --     -- 更新源附件位置（保持在船体中心）
-    --     originAttachment.CFrame = CFrame.new()
-    --     -- 更新目标附件方向（只保留Y轴旋转，X和Z轴归零）
-    --     targetAttachment.CFrame = CFrame.Angles(0, yRot, 0)
-    -- end
+local function CreateStabilizer(boat)
+    local function createPart(name, size, cFrame)
+        local part = Instance.new("Part")
+        part.Name = name
+        part.Size = size
+        part.Material = Enum.Material.Wood
+        part.Anchored = false
+        part.CanCollide = true
+        part.Transparency = 1
+        local offsetCFrame = boat.PrimaryPart.CFrame:ToObjectSpace(cFrame)
+        part.CFrame = boat.PrimaryPart.CFrame * offsetCFrame
+        part.Parent = boat
+        -- 创建焊接约束
+        local weldConstraint = Instance.new('WeldConstraint')
+        weldConstraint.Part0 = boat.PrimaryPart
+        weldConstraint.Part1 = part
+        weldConstraint.Parent = part
+    end
+    local size = Vector3.new(4, 1, 20)
+    createPart("BoatStabilizerPart1", size,
+    CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 - 5,
+    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    boat.PrimaryPart.Position.Z))
+    createPart("BoatStabilizerPart2", size,
+    CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 + 5,
+    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    boat.PrimaryPart.Position.Z))
+    size = Vector3.new(10, 1, 4)
+    createPart("BoatStabilizerPart3", size,
+    CFrame.new(boat.PrimaryPart.Position.X,
+    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
+    createPart("BoatStabilizerPart4", size,
+    CFrame.new(boat.PrimaryPart.Position.X,
+    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
 end
 
 function BoatAssemblingService.Client:AssembleBoat(player)
@@ -227,8 +241,8 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     end
 
     CreateVehicleSeat(boat)
+    CreateStabilizer(boat)
     CreateMoveVelocity(boat.primaryPart)
-    CreateStabilizer(boat.primaryPart)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat)
@@ -254,7 +268,17 @@ function BoatAssemblingService:AttachPartToBoat(boat, partType)
     end
     
     local curBoatConfig = BoatConfig[modelName]
-    local templatePrimaryPart = boatTemplate:FindFirstChild(curBoatConfig[1].Name)
+    local primaryPartName = ''
+    for name, data in pairs(curBoatConfig) do
+        if data.isPrimaryPart then
+            primaryPartName = name
+            break
+        end
+    end
+    if primaryPartName == '' then
+        return '找不到主船体部件'
+    end
+    local templatePrimaryPart = boatTemplate:FindFirstChild(primaryPartName)
     -- 计算模板部件相对主船体的偏移
     local offset = templatePrimaryPart.CFrame:ToObjectSpace(templatePart.CFrame)
     -- 应用当前主船体实际位置
@@ -275,11 +299,18 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
         return '添加部件失败，船不存在'
     end
     
+    local curBoatConfig = BoatConfig[boat:GetAttribute('ModelName')]
+    local boatHP = boat:GetAttribute('Health')
+    local boatSpeed = boat:GetAttribute('Speed')
     local InventoryService = Knit.GetService("InventoryService")
     local unusedParts = InventoryService:GetUnusedParts(player, boat:GetAttribute('ModelName'))
-    for _, partData in pairs(unusedParts) do
-        self:AttachPartToBoat(boat, partData.partType)
+    for _, partInfo in pairs(unusedParts) do
+        self:AttachPartToBoat(boat, partInfo.itemName)
+        boatHP += curBoatConfig[partInfo.itemName].HP
+        boatSpeed += curBoatConfig[partInfo.itemName].speed
     end
+    boat:SetAttribute('Health', boatHP)
+    boat:SetAttribute('Speed', boatSpeed)
     InventoryService:MarkAllBoatPartAsUsed(player, boat:GetAttribute('ModelName'))
     
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))

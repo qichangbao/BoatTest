@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<roblox version="4">
+  <Item class="Part" referent="RBX0">
+    <Properties>
+      <CoordinateFrame name="CFrame">
+        <X>0</X>
+        <Y>0</Y>
+        <Z>0</Z>
+        <R00>1</R00>
+        <R01>0</R01>
+        <R02>0</R02>
+        <R10>0</R10>
+        <R11>1</R11>
+        <R12>0</R12>
+        <R20>0</R20>
+        <R21>0</R21>
+        <R22>1</R22>
+      </CoordinateFrame>
+      <Vector3 name="Size">
+        <X>10</X>
+        <Y>2</Y>
+        <Z>10</Z>
+      </Vector3>
+      <bool name="Anchored">true</bool>
+      <string name="Name">WaveEffect</string>
+      <Color3 name="Color">4287070080</Color3>
+      <token name="Material">456</token>
+      <float name="Transparency">0.5</float>
+    </Properties>
+    
+    <Item class="ParticleEmitter" referent="RBX1">
+      <Properties>
+        <Color3 name="Color">4287070080</Color3>
+        <bool name="Enabled">true</bool>
+        <float name="LightEmission">0.2</float>
+        <float name="Size">0.5</float>
+        <float name="Speed">2</float>
+        <double name="Lifetime">5</double>
+        <int name="Rate">20</int>
+      </Properties>
+    </Item>
+  </Item>
+</roblox>

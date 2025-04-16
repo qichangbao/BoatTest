@@ -9,7 +9,7 @@ function ActionBase.new(config)
 end
 
 function ActionBase:Execute()
-    if self.lifetime >= 0 then
+    if self.lifetime > 0 then
         task.delay(self.lifetime, function()
             self:Destroy()
         end)

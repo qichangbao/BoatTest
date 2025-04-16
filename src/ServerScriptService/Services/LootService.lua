@@ -20,31 +20,45 @@ local REWARD_COUNT = {
 }
 
 local function getRandomParts(player, price)
-    local boatFolder = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
-    if not boatFolder then return {} end
+    local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
+    if not boatTemplate then return {} end
 
     local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
     local rewardCount = REWARD_COUNT[price] or 1
-    local index = 1
     local availableParts = {}
     local InventoryService = Knit.GetService("InventoryService")
-    local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', curBoatConfig[1].Name)
-    if not isFirstLoot then
-        local part = boatFolder:FindFirstChild(curBoatConfig[1].Name)
-        table.insert(availableParts, part:Clone())
-        rewardCount = rewardCount - 1
-        index = 2
-    else
-        local inventory = InventoryService:Inventory(player, 'GetInventory')
-        for _, item in pairs(inventory) do
-            index += 1
+    
+    -- 收集所有非主要部件配置
+    local partKeys = {}
+    for name, data in pairs(curBoatConfig) do
+        if not data.isPrimaryPart then
+            table.insert(partKeys, name)
         end
     end
     
+    -- 添加主要部件（如果首次获取）
+    local primaryPartName = ''
+    for name, data in pairs(curBoatConfig) do
+        if data.isPrimaryPart then
+            primaryPartName = name
+            break
+        end
+    end
+    
+    local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', primaryPartName)
+    if not isFirstLoot and primaryPartName ~= '' then
+        table.insert(availableParts, primaryPartName)
+        rewardCount = math.max(rewardCount - 1, 0)
+    end
+    
+    -- 随机选择其他部件
     for _ = 1, rewardCount do
-        local part = boatFolder:FindFirstChild(curBoatConfig[index].Name)
-        table.insert(availableParts, part:Clone())
-        index += 1
+        if not curBoatConfig or #partKeys == 0 then break end
+        
+        local randomIndex = math.random(1, #partKeys)
+        local partName = partKeys[randomIndex]
+        table.insert(availableParts, partName)
+        table.remove(partKeys, randomIndex)
     end
 
     return availableParts
@@ -65,9 +79,9 @@ function LootService.Client:Loot(player, price)
     -- 获取随机配件
     local parts = getRandomParts(player, price)
     local InventoryService = Knit.GetService("InventoryService")
-    for _, part in ipairs(parts) do
+    for _, name in ipairs(parts) do
         -- 调用背包管理器添加物品
-        InventoryService:Inventory(player, 'AddItem', part.Name, BOAT_PARTS_FOLDER_NAME)
+        InventoryService:Inventory(player, 'AddItem', name, BOAT_PARTS_FOLDER_NAME)
     end
 
     return "黄金扣除成功"

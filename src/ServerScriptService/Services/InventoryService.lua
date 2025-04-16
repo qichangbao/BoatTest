@@ -95,10 +95,7 @@ function InventoryService:GetUnusedParts(player, modelName)
     if self.playersInventory[player] then
         for itemName, itemData in pairs(self.playersInventory[player]) do
             if itemData.modelName == modelName and not itemData.isUsed then
-                table.insert(unused, {
-                    id = itemName,
-                    partType = itemName
-                })
+                table.insert(unused, itemData)
             end
         end
     end
