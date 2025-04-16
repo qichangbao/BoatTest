@@ -102,16 +102,6 @@ function InventoryService:GetUnusedParts(player, modelName)
     return unused
 end
 
-function InventoryService:MarkAllBoatPartAsUsed(player, modelName)
-    if self.playersInventory[player] then
-        for _, itemData in pairs(self.playersInventory[player]) do
-            if itemData.modelName == modelName then
-                itemData.isUsed = true
-            end
-        end
-    end
-end
-
 function InventoryService.Client:GetInventory(player)
     return self.Server:GetPlayerInventory(player)
 end

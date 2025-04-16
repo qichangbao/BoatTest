@@ -1,6 +1,6 @@
 return {
     ["船"] = {
-        ["Polysurface351"] = {isPrimaryPart = true, HP = 10, speed = 10},
+        ["Polysurface351"] = {isPrimaryPart = true, HP = 100, speed = 10},
         ["Polysurface11"] = {HP = 10, speed = 10},
         ["Polysurface121"] = {HP = 10, speed = 10},
         ["Polysurface141"] = {HP = 10, speed = 10},

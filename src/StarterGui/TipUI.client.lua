@@ -77,4 +77,6 @@ local function showMessage(message)
     end)
 end
 
-Knit.GetController('TipController').Tip:Connect(showMessage)
+Knit:OnStart():andThen(function()
+    Knit.GetController('TipController').Tip:Connect(showMessage)
+end)

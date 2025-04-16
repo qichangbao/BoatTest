@@ -1,4 +1,5 @@
 print('Wave.lua loaded')
+local PhysicsService = game:GetService("PhysicsService")
 local Knit = require(game.ReplicatedStorage:WaitForChild('Packages'):WaitForChild("Knit"):WaitForChild("Knit"))
 local TriggerService = Knit.GetService('TriggerService')
 
@@ -23,12 +24,17 @@ TriggerService.CreateWave:Connect(function(data)
     
     -- 启用碰撞并设置碰撞组
     waveInstance.CanCollide = true
+    waveInstance.CollisionGroup = 'WaveCollisionGroup'
     
     -- 碰撞检测逻辑
+    local hitProcessed = {}
     waveInstance.Touched:Connect(function(hit)
-        if hit:FindFirstAncestorWhichIsA('Model') and hit:FindFirstAncestorWhichIsA('Model').Name:find('船') then
-            waveInstance.CanCollide = false
-            TriggerService.WaveHitBoat:Connect(data.ChangeHp)
+        if hitProcessed[game.Players.LocalPlayer.UserId] then return end
+        
+        local boat = game.Workspace:FindFirstChild('PlayerBoat_' .. game.Players.LocalPlayer.UserId)
+        if boat and boat:IsAncestorOf(hit) then
+            hitProcessed[game.Players.LocalPlayer.UserId] = true
+            TriggerService:WaveHitBoat(data.ChangeHp)
         end
     end)
 

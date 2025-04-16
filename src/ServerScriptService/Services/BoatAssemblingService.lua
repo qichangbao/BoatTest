@@ -16,7 +16,7 @@ local BoatAssemblingService = Knit.CreateService({
     },
 })
 
-local function CreateBoat(player)
+function BoatAssemblingService:CreateBoat(player)
     local InventoryService = Knit.GetService("InventoryService")
     -- 获取玩家库存中的船部件
     local inventory = InventoryService:Inventory(player, 'GetInventory')
@@ -59,9 +59,29 @@ local function CreateBoat(player)
     boat.Name = 'PlayerBoat_'..player.UserId
     boat.Parent = workspace
     boat:SetAttribute('ModelName', boatTemplate.Name)
+
+    -- 监听船的销毁事件
     boat.Destroying:Connect(function()
         print('船被销毁')
         Knit.GetService('BoatMovementService'):OnBoat(player, false)
+    end)
+
+    -- 监听船的生命变化并更新UI
+    boat:GetAttributeChangedSignal('Health'):Connect(function()
+        local BoatAttributeService = Knit.GetService('BoatAttributeService')
+        local curHp = boat:GetAttribute('Health')
+        if curHp == 0 then
+            print('船被销毁')
+            self:DestroyBoat(player, boat)
+            return
+        end
+        BoatAttributeService:ChangeHealth(player, boat:GetAttribute('Health'))
+    end)
+
+    -- 监听船的速度变化并更新UI
+    boat:GetAttributeChangedSignal('Speed'):Connect(function()
+        local BoatAttributeService = Knit.GetService('BoatAttributeService')
+        BoatAttributeService:ChangeSpeed(player, boat:GetAttribute('Speed'))
     end)
     
     local primaryPart = nil
@@ -117,13 +137,15 @@ local function CreateBoat(player)
         end
     end
 
-    boat:SetAttribute('Health', boatHP)
-    boat:SetAttribute('Speed', boatSpeed)
+    boat:SetAttribute('Health', math.max(boatHP, 0))
+    boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
+    boat:SetAttribute('Speed', math.max(boatSpeed, 0))
+    boat:SetAttribute('MaxSpeed', math.max(boatHP, 0))
     return boat
 end
 
 -- 创建船的驾驶座位
-local function CreateVehicleSeat(boat)
+function BoatAssemblingService:CreateVehicleSeat(boat)
     local driverSeat = boat:FindFirstChild('DriverSeat')
     if driverSeat then
         return
@@ -166,7 +188,7 @@ local function CreateVehicleSeat(boat)
 end
 
 -- 创建船的移动性和旋转性
-local function CreateMoveVelocity(primaryPart)
+function BoatAssemblingService:CreateMoveVelocity(primaryPart)
     local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
     if not boatBodyVelocity then
         -- 创建船的移动性
@@ -191,7 +213,7 @@ local function CreateMoveVelocity(primaryPart)
 end
 
 -- 创建船的稳定器
-local function CreateStabilizer(boat)
+function BoatAssemblingService:CreateStabilizer(boat)
     local function createPart(name, size, cFrame)
         local part = Instance.new("Part")
         part.Name = name
@@ -235,14 +257,14 @@ function BoatAssemblingService.Client:AssembleBoat(player)
         return "船已存在"
     end
 
-    boat = CreateBoat(player)
+    boat = self.Server:CreateBoat(player)
     if not boat or not boat.primaryPart then
         return "玩家没有可用的船主部件"
     end
 
-    CreateVehicleSeat(boat)
-    CreateStabilizer(boat)
-    CreateMoveVelocity(boat.primaryPart)
+    self.Server:CreateVehicleSeat(boat)
+    self.Server:CreateStabilizer(boat)
+    self.Server:CreateMoveVelocity(boat.primaryPart)
 
     -- 设置船的初始位置
     Interface:InitBoatWaterPos(player.character, boat)
@@ -309,9 +331,11 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
         boatHP += curBoatConfig[partInfo.itemName].HP
         boatSpeed += curBoatConfig[partInfo.itemName].speed
     end
-    boat:SetAttribute('Health', boatHP)
-    boat:SetAttribute('Speed', boatSpeed)
-    InventoryService:MarkAllBoatPartAsUsed(player, boat:GetAttribute('ModelName'))
+    boat:SetAttribute('Health', math.max(boatHP, 0))
+    boat:SetAttribute('MaxSpeed', math.max(boatHP, 0))
+    boat:SetAttribute('Speed', math.max(boatSpeed, 0))
+    boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
+    InventoryService:BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
     return '部件添加成功'
