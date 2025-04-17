@@ -1,39 +1,40 @@
 local ChaseState = {}
 ChaseState.__index = ChaseState
 
-function ChaseState.new(controller)
+-- 追赶状态
+function ChaseState.new(AIManager)
     local self = setmetatable({}, ChaseState)
-    self.Controller = controller
+    self.AIManager = AIManager
     self.Path = game:GetService("PathfindingService"):CreatePath()
-    self.spawnPosition = controller.NPC:GetAttribute("SpawnPosition")
+    self.spawnPosition = AIManager.NPC:GetAttribute("SpawnPosition")
     return self
 end
 
 function ChaseState:Enter()
+    print("进入Chase状态")
     self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
         local target = self:FindNearestPlayer()
-        if target then
+        if target and target.Character and target.Character.HumanoidRootPart and not target.Character.Humanoid.Died then
             self:UpdatePath(target.Character.HumanoidRootPart.Position)
             self:CheckDistance(target)
         else
-            self.Controller:SetState("Idle")
+            self.AIManager:SetState("Idle")
+            return
         end
     end)
 end
 
 function ChaseState:FindNearestPlayer()
-    local npcPos = self.Controller.Humanoid.RootPart.Position
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    local npcPos = self.AIManager.Humanoid.RootPart.Position
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     
     local params = OverlapParams.new()
-    params.FilterDescendantsInstances = {self.Controller.NPC}
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    params.FilterDescendantsInstances = {self.AIManager.NPC}
     
-    local detectionBox = Region3.new(
-        npcPos - Vector3.new(visionRange, visionRange, visionRange),
-        npcPos + Vector3.new(visionRange, visionRange, visionRange)
-    )
-    
-    local parts = workspace:GetPartBoundsInBox(detectionBox, params)
+    print("[调试] 视觉范围:", visionRange)
+    local parts = workspace:GetPartBoundsInRadius(npcPos, visionRange, params) or {}
+    print("[调试] 检测到零件数量:", #parts)
     
     local nearestPlayer = nil
     local minDistance = math.huge
@@ -53,44 +54,47 @@ function ChaseState:FindNearestPlayer()
 end
 
 function ChaseState:CheckDistance(player)
-    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
-        self.Controller:SetState("Idle")
+    if not self.AIManager.Humanoid or not self.AIManager.Humanoid.RootPart then
+        self.AIManager:SetState("Idle")
         return
     end
     
-    local currentPos = self.Controller.Humanoid.RootPart.Position
-    local attackRange = self.Controller.NPC:GetAttribute("AttackRange")
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    local currentPos = self.AIManager.Humanoid.RootPart.Position
+    local attackRange = self.AIManager.NPC:GetAttribute("AttackRange")
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     
     local distanceToPlayer = (player.Character.HumanoidRootPart.Position - currentPos).Magnitude
     local distanceToSpawn = (self.spawnPosition - currentPos).Magnitude
     
     if distanceToPlayer <= attackRange then
-        self.Controller:SetState("Attack")
+        self.AIManager:SetState("Attack")
+        return
     elseif distanceToPlayer > visionRange or distanceToSpawn > visionRange*1.5 then
-        self.Controller.Humanoid:MoveTo(self.spawnPosition)
-        self.moveConnection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached)
+        self.AIManager.Humanoid:MoveTo(self.spawnPosition)
+        self.moveConnection = self.AIManager.Humanoid.MoveToFinished:Connect(function(reached)
             if reached then
-                self.Controller:SetState("Idle")
+                self.AIManager:SetState("Idle")
+                return
             end
         end)
     end
 end
 
 function ChaseState:UpdatePath(targetPos)
-    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
-        self.Controller:SetState("Idle")
+    if not self.AIManager.Humanoid or not self.AIManager.Humanoid.RootPart then
+        self.AIManager:SetState("Idle")
         return
     end
     
-    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPos)
+    self.Path:ComputeAsync(self.AIManager.Humanoid.RootPart.Position, targetPos)
     if self.Path.Status == Enum.PathStatus.Success then
         local waypoints = self.Path:GetWaypoints()
         if #waypoints > 1 then
-            self.Controller.Humanoid:MoveTo(waypoints[2].Position)
+            self.AIManager.Humanoid:MoveTo(waypoints[2].Position)
         end
     else
-        self.Controller:SetState("Idle")
+        self.AIManager:SetState("Idle")
+        return
     end
 end
 

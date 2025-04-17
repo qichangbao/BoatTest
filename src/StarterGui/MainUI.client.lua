@@ -170,8 +170,8 @@ _lootButton.MouseButton1Click:Connect(function()
 end)
 
 Knit:OnStart():andThen(function()
-    local PlayerDataService = Knit.GetService('PlayerDataService')
-    PlayerDataService.GoodChanged:Connect(function(gold)
+    local BoatAttributeService = Knit.GetService('BoatAttributeService')
+    BoatAttributeService.ChangeGold:Connect(function(gold)
         _goldLabel.Text = "黄金: "..gold
     end)
 
@@ -183,7 +183,7 @@ Knit:OnStart():andThen(function()
 
     local function RefreshUI()
         -- 刷新UI元素
-        local boat = workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+        local boat = workspace:FindFirstChild("PlayerBoat_" .. Players.LocalPlayer.UserId)
         if boat then
             _startBoatButton.Visible = false
             _stopBoatButton.Visible = true
@@ -194,9 +194,8 @@ Knit:OnStart():andThen(function()
         _lootButton.Visible = true
         _lootPopup.Visible = false
 
-        PlayerDataService:GetAttribute('Gold'):andThen(function(gold)
-            _goldLabel.Text = "黄金: "..gold
-        end)
+        local gold = Players.LocalPlayer:GetAttribute('Gold') or 0
+        _goldLabel.Text = "黄金: " .. gold
     end
 
     -- 处理初始角色

@@ -5,15 +5,20 @@ return {
         MaxConditions = -1, -- 最大触发次数，超过此次数后不再触发
         Position = Vector3.new(0, 0, -200), -- 触发位置
         Radius = 50, -- 触发区域的半径，与Position共同定义触发区域
-        Cooldown = 10, -- 触发冷却时间（秒），在此时间内不会再次触发
+        Cooldown = 100, -- 触发冷却时间（秒），在此时间内不会再次触发
+        -- Action = {
+        --     ActionType = "Wave",
+        --     Lifetime = 5,
+        --     Position = Vector3.new(0, 0, -200),
+        --     Size = Vector3.new(300, 80, 2),
+        --     TargetPosition = Vector3.new(0, 0, -100),
+        --     ChangeHp = -30,
+        -- },
         Action = {
-            ActionType = "Wave",
-            Lifetime = 5,
-            Position = Vector3.new(0, 0, -200),
-            Size = Vector3.new(300, 80, 2),
-            TargetPosition = Vector3.new(0, 0, -100),
-            ChangeHp = -30,
-        },
+            ActionType = "CreateMonster",
+            MonsterName = "怪物1",
+            Position = Vector3.new(0, 0, -300),
+        }
     },
     
     -- -- 单独的玩家动作触发器

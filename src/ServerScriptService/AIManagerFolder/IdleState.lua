@@ -1,13 +1,42 @@
 local IdleState = {}
 IdleState.__index = IdleState
 
-function IdleState.new(controller)
+-- 空闲状态
+function IdleState.new(AIManager)
     local self = setmetatable({}, IdleState)
-    self.Controller = controller
+    self.AIManager = AIManager
     return self
 end
 
-
+function IdleState:Enter()
+    print("进入Idle状态")
+    self.timer = math.random(3, 8)
+    self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        self.timer = self.timer - dt
+        
+        -- 玩家检测逻辑
+        local npcPos = self.AIManager.Humanoid.RootPart.Position
+        local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
+        local cframe = CFrame.new(npcPos)
+        local size = Vector3.new(visionRange, visionRange, visionRange)
+        local params = OverlapParams.new()
+        params.FilterDescendantsInstances = {self.AIManager.NPC}
+        local parts = workspace:GetPartBoundsInBox(cframe, size, params)
+        for _, part in ipairs(parts) do
+            local character = part.Parent
+            local target = game.Players:GetPlayerFromCharacter(character)
+            if target and target.Character and target.Character.HumanoidRootPart and not target.Character.Humanoid.Died then
+                self.AIManager:SetState("Chase")
+                return
+            end
+        end
+        
+        if self.timer <= 0 then
+            self.AIManager:SetState("Patrol")
+            return
+        end
+    end)
+end
 
 function IdleState:Exit()
     if self.connection then
@@ -15,41 +44,5 @@ function IdleState:Exit()
         self.connection = nil
     end
 end
-
-function IdleState:Enter()
-    self.timer = math.random(3, 8)
-    self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-        self.timer = self.timer - dt
-        
-        -- 玩家检测逻辑
-        local npcPos = self.Controller.Humanoid.RootPart.Position
-        local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
-        
-        local detectionBox = Region3.new(
-            npcPos - Vector3.new(visionRange, 5, visionRange),
-            npcPos + Vector3.new(visionRange, 5, visionRange)
-        )
-        
-        local params = OverlapParams.new()
-        params.FilterDescendantsInstances = {self.Controller.NPC}
-        
-        local parts = workspace:GetPartBoundsInBox(detectionBox, params)
-        
-        for _, part in ipairs(parts) do
-            local character = part.Parent
-            local player = game.Players:GetPlayerFromCharacter(character)
-            if player and character:FindFirstChild("HumanoidRootPart") then
-                self.Controller:SetState("Chase")
-                return
-            end
-        end
-        
-        if self.timer <= 0 then
-            self.Controller:SetState("Patrol")
-        end
-    end)
-end
-
-
 
 return IdleState

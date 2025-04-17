@@ -17,6 +17,10 @@ local BoatAssemblingService = Knit.CreateService({
 })
 
 function BoatAssemblingService:CreateBoat(player)
+    if not player or not player.Character or not player.Character.Humanoid then
+        return '创建船失败，玩家不存在'
+    end
+
     local InventoryService = Knit.GetService("InventoryService")
     -- 获取玩家库存中的船部件
     local inventory = InventoryService:Inventory(player, 'GetInventory')
@@ -63,25 +67,16 @@ function BoatAssemblingService:CreateBoat(player)
     -- 监听船的销毁事件
     boat.Destroying:Connect(function()
         print('船被销毁')
-        Knit.GetService('BoatMovementService'):OnBoat(player, false)
-    end)
-
-    -- 监听船的生命变化并更新UI
-    boat:GetAttributeChangedSignal('Health'):Connect(function()
-        local BoatAttributeService = Knit.GetService('BoatAttributeService')
-        local curHp = boat:GetAttribute('Health')
-        if curHp == 0 then
-            print('船被销毁')
-            self:DestroyBoat(player, boat)
+        if not player or not player.Character or not player.Character.Humanoid then
             return
         end
-        BoatAttributeService:ChangeHealth(player, boat:GetAttribute('Health'))
-    end)
-
-    -- 监听船的速度变化并更新UI
-    boat:GetAttributeChangedSignal('Speed'):Connect(function()
-        local BoatAttributeService = Knit.GetService('BoatAttributeService')
-        BoatAttributeService:ChangeSpeed(player, boat:GetAttribute('Speed'))
+        player.Character.Humanoid.Health = player.Character.Humanoid:GetAttribute('InitHealth')
+        player.Character.Humanoid.MaxHealth = player.Character.Humanoid.Health
+        player.Character.Humanoid.WalkSpeed = player.Character.Humanoid:GetAttribute('InitSpeed')
+        player.Character.Humanoid:SetAttribute('MaxSpeed', player.Character.Humanoid.WalkSpeed)
+        -- 移除主船体关联
+        self.Client.UpdateMainUI:Fire(player, {explore = false})
+        Knit.GetService('BoatMovementService'):OnBoat(player, false)
     end)
     
     local primaryPart = nil
@@ -137,10 +132,12 @@ function BoatAssemblingService:CreateBoat(player)
         end
     end
 
-    boat:SetAttribute('Health', math.max(boatHP, 0))
-    boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
-    boat:SetAttribute('Speed', math.max(boatSpeed, 0))
-    boat:SetAttribute('MaxSpeed', math.max(boatHP, 0))
+    player.Character.Humanoid:SetAttribute('InitHealth', player.Character.Humanoid.MaxHealth)
+    player.Character.Humanoid.Health += math.max(boatHP, 0)
+    player.Character.Humanoid.MaxHealth += math.max(boatHP, 0)
+    player.Character.Humanoid:SetAttribute('InitSpeed', player.Character.Humanoid.WalkSpeed)
+    player.Character.Humanoid.WalkSpeed = math.max(boatSpeed, 0)
+    player.Character.Humanoid:SetAttribute('MaxSpeed', player.Character.Humanoid.WalkSpeed)
     return boat
 end
 
@@ -321,20 +318,27 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
         return '添加部件失败，船不存在'
     end
     
+    if not player or not player.Character or not player.Character.Humanoid then
+        return '添加部件失败，玩家不存在'
+    end
     local curBoatConfig = BoatConfig[boat:GetAttribute('ModelName')]
-    local boatHP = boat:GetAttribute('Health')
-    local boatSpeed = boat:GetAttribute('Speed')
+    local boatHP = player.Character.Humanoid.Health
+    local boatMaxHP = player.Character.Humanoid.MaxHealth
+    local boatSpeed = player.Character.Humanoid.WalkSpeed
+    local boatMaxSpeed = player.Character.Humanoid:GetAttribute('MaxSpeed')
     local InventoryService = Knit.GetService("InventoryService")
     local unusedParts = InventoryService:GetUnusedParts(player, boat:GetAttribute('ModelName'))
     for _, partInfo in pairs(unusedParts) do
         self:AttachPartToBoat(boat, partInfo.itemName)
         boatHP += curBoatConfig[partInfo.itemName].HP
+        boatMaxHP += curBoatConfig[partInfo.itemName].HP
         boatSpeed += curBoatConfig[partInfo.itemName].speed
+        boatMaxSpeed += curBoatConfig[partInfo.itemName].speed
     end
-    boat:SetAttribute('Health', math.max(boatHP, 0))
-    boat:SetAttribute('MaxSpeed', math.max(boatHP, 0))
-    boat:SetAttribute('Speed', math.max(boatSpeed, 0))
-    boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
+    player.Character.Humanoid.Health = math.max(boatHP, 0)
+    player.Character.Humanoid.MaxHealth = player.Character.Humanoid.Health
+    player.Character.Humanoid.WalkSpeed = math.max(boatSpeed, 0)
+    player.Character.Humanoid:SetAttribute('MaxSpeed', math.max(boatMaxSpeed, 0))
     InventoryService:BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
@@ -366,10 +370,6 @@ function BoatAssemblingService:DestroyBoat(player, boat)
         end
         boat:Destroy()
     end)
-
-    -- 移除主船体关联
-    self.Client.UpdateMainUI:Fire(player, {explore = false})
-    Knit.GetService('BoatMovementService'):OnBoat(player, false)
 end
 
 function BoatAssemblingService.Client:StopBoat(player)

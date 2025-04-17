@@ -10,6 +10,7 @@ local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondit
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreatePartAction = require(ActionFolder:WaitForChild("CreatePartAction"))
 local WaveAction = require(ActionFolder:WaitForChild("WaveAction"))
+local CreateMonsterAction = require(ActionFolder:WaitForChild("CreateMonsterAction"))
 
 local TriggerManager = {}
 
@@ -87,6 +88,8 @@ function TriggerManager:InitAction(actionConfig)
         action = CreatePartAction.new(actionConfig)
     elseif actionConfig.ActionType == "Wave" then
         action = WaveAction.new(actionConfig)
+    elseif actionConfig.ActionType == "CreateMonster" then
+        action = CreateMonsterAction.new(actionConfig)
     else
         warn("未知的动作类型:", actionConfig.ActionType)
         return nil

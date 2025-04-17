@@ -11,15 +11,9 @@ local TriggerService = Knit.CreateService({
 
 -- 波浪碰撞到船时触发的事件
 function TriggerService.Client:WaveHitBoat(player, changeHp)
-    local BoatAttributeService = Knit.GetService('BoatAttributeService')
-    local boat = BoatAttributeService:GetPlayerBoat(player)
-    if not boat then
-        return
-    end
-
-    local hp = boat:GetAttribute('Health')
+    local hp = player:GetAttribute('Health')
     local curHp = math.max(hp + changeHp, 0)
-    boat:SetAttribute('Health', curHp)
+    player:SetAttribute('Health', curHp)
 end
 
 function TriggerService:KnitInit()

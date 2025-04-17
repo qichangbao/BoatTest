@@ -8,14 +8,13 @@ local BoatMovementService = Knit.CreateService({
     },
     VelocityForce = 15,
     AngularVelocity = 1, -- 降低角速度值，使用更合理的恒定旋转速度
-    MaxSpeed = 25,
     HeartbeatHandle = nil,
     Boats = {},
     AngularDamping = 0.75, -- 降低角速度阻尼系数，使停止更平滑
     LinearDamping = 0.85, -- 调整线性阻尼系数，使船更快停止
 })
 
-function BoatMovementService:ApplyVelocity(primaryPart, direction)
+function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
     local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
     -- 处理停止移动的情况
     if direction == Vector3.new(0, 0, 0) then
@@ -28,11 +27,11 @@ function BoatMovementService:ApplyVelocity(primaryPart, direction)
     local worldDirection = forwardDirection * direction.Z
 
     -- 独立限制速度
-    local speed = math.clamp(math.abs(direction.Z) * self.VelocityForce, 0, self.MaxSpeed)
+    local speed = math.clamp(math.abs(direction.Z) * player:GetAttribute('Speed'), 0, player:GetAttribute('MaxSpeed'))
     boatBodyVelocity.Velocity = worldDirection * speed
 end
 
-function BoatMovementService:ApplyAngular(primaryPart, direction)
+function BoatMovementService:ApplyAngular(player, primaryPart, direction)
     local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
     
     -- 当方向为0时完全停止旋转
@@ -60,10 +59,10 @@ function BoatMovementService:ApplyAngular(primaryPart, direction)
     bodyAngularVelocity.AngularVelocity = Vector3.new(0, angularSpeed, 0)
 end
 
-function BoatMovementService:ApplyMovement(primaryPart, direction, angular)
+function BoatMovementService:ApplyMovement(player, primaryPart, direction, angular)
     -- 应用物理效果到船体
-    self:ApplyAngular(primaryPart, angular)
-    self:ApplyVelocity(primaryPart, direction)
+    self:ApplyAngular(player, primaryPart, angular)
+    self:ApplyVelocity(player, primaryPart, direction)
 end
 
 function BoatMovementService:OnBoat(player, isOnBoat)
@@ -121,7 +120,7 @@ function BoatMovementService:KnitInit()
                 continue
             end
 
-            self:ApplyMovement(primaryPart, data.direction, data.angular)
+            self:ApplyMovement(player, primaryPart, data.direction, data.angular)
         end
     end)
 

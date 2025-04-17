@@ -66,15 +66,14 @@ end
 
 function LootService.Client:Loot(player, price)
     -- 获取玩家数据组件
-    local gold = player.character:GetAttribute('Gold')
+    local gold = player:GetAttribute('Gold')
     if not gold or gold < price then
         return "黄金不够"
     end
     
     -- 扣除黄金
     gold -= price
-    player.character:SetAttribute('Gold', gold)
-    Knit.GetService("PlayerDataService").Client.GoodChanged:Fire(player, gold)
+    player:SetAttribute('Gold', gold)
     
     -- 获取随机配件
     local parts = getRandomParts(player, price)

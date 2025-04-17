@@ -1,64 +1,62 @@
 local PatrolState = {}
 PatrolState.__index = PatrolState
 
-function PatrolState.new(controller)
+-- 巡逻状态
+function PatrolState.new(AIManager)
     local self = setmetatable({}, PatrolState)
-    self.Controller = controller
+    self.AIManager = AIManager
     self.Path = game:GetService("PathfindingService"):CreatePath()
     return self
 end
 
 function PatrolState:Enter()
-    local center = self.Controller.NPC:GetPivot().Position
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    print("进入Patrol状态")
+    local center = self.AIManager.NPC:GetPivot().Position
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
+    local patrolRadius = self.AIManager.NPC:GetAttribute("PatrolRadius")
     
     local targetPosition = center + Vector3.new(
-        math.random(-visionRange, visionRange),
+        math.random(-patrolRadius, patrolRadius),
         0,
-        math.random(-visionRange, visionRange)
+        math.random(-patrolRadius, patrolRadius)
     )
     
-    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPosition)
+    self.Path:ComputeAsync(self.AIManager.Humanoid.RootPart.Position, targetPosition)
     
     if self.Path.Status == Enum.PathStatus.Success then
         self.waypoints = self.Path:GetWaypoints()
         self.currentWaypoint = 2
-        self.connection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached) 
+        self.connection = self.AIManager.Humanoid.MoveToFinished:Connect(function(reached) 
             if reached and self.currentWaypoint <= #self.waypoints then
-                self.Controller.Humanoid:MoveTo(self.waypoints[self.currentWaypoint].Position)
+                self.AIManager.Humanoid:MoveTo(self.waypoints[self.currentWaypoint].Position)
                 self.currentWaypoint += 1
             else
-                self.Controller:SetState("Chase")
+                self.AIManager:SetState("Chase")
+                return
             end
         end)
         
         self.detectionConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-            local npcPos = self.Controller.Humanoid.RootPart.Position
-            local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
-            
-            local detectionBox = Region3.new(
-                npcPos - Vector3.new(visionRange, visionRange, visionRange),
-                npcPos + Vector3.new(visionRange, visionRange, visionRange)
-            )
-            
+            local npcPos = self.AIManager.Humanoid.RootPart.Position
+            local cframe = CFrame.new(npcPos)
+            local size = Vector3.new(visionRange, visionRange, visionRange)
             local params = OverlapParams.new()
-            params.FilterDescendantsInstances = {self.Controller.NPC}
-            
-            local parts = workspace:GetPartBoundsInBox(detectionBox, params)
-            
+            params.FilterDescendantsInstances = {self.AIManager.NPC}
+            local parts = workspace:GetPartBoundsInBox(cframe, size, params)
             for _, part in ipairs(parts) do
                 local character = part.Parent
-                local player = game.Players:GetPlayerFromCharacter(character)
-                if player and character:FindFirstChild("HumanoidRootPart") then
-                    self.Controller:SetState("Chase")
+                local target = game.Players:GetPlayerFromCharacter(character)
+                if target and target.Character and target.Character.HumanoidRootPart and not target.Character.Humanoid.Died then
+                    self.AIManager:SetState("Chase")
                     return
                 end
             end
         end)
         
-        self.Controller.Humanoid:MoveTo(self.waypoints[1].Position)
+        self.AIManager.Humanoid:MoveTo(self.waypoints[1].Position)
     else
-        self.Controller:SetState("Chase")
+        self.AIManager:SetState("Chase")
+        return
     end
 end
 
@@ -71,7 +69,7 @@ function PatrolState:Exit()
         self.detectionConnection:Disconnect()
         self.detectionConnection = nil
     end
-    self.Controller.Humanoid:MoveTo(self.Controller.Humanoid.RootPart.Position)
+    self.AIManager.Humanoid:MoveTo(self.AIManager.Humanoid.RootPart.Position)
 end
 
 

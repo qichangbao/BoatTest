@@ -2081,14 +2081,14 @@ AttackState.__index = AttackState
 
 function AttackState.new(controller)
     local self = setmetatable({}, AttackState)
-    self.Controller = controller
+    self.AIManager = controller
     self.proximityPrompt = Instance.new("ProximityPrompt")
     self.proximityPrompt.HoldDuration = 0
-    self.proximityPrompt.MaxActivationDistance = self.Controller.NPC:GetAttribute("AttackRange")
-    self.attributeListener = self.Controller.NPC:GetAttributeChangedSignal("AttackRange"):Connect(function()
-        self.proximityPrompt.MaxActivationDistance = self.Controller.NPC:GetAttribute("AttackRange")
+    self.proximityPrompt.MaxActivationDistance = self.AIManager.NPC:GetAttribute("AttackRange")
+    self.attributeListener = self.AIManager.NPC:GetAttributeChangedSignal("AttackRange"):Connect(function()
+        self.proximityPrompt.MaxActivationDistance = self.AIManager.NPC:GetAttribute("AttackRange")
     end)
-    self.proximityPrompt.Parent = self.Controller.Humanoid.RootPart
+    self.proximityPrompt.Parent = self.AIManager.Humanoid.RootPart
     return self
 end
 
@@ -2104,19 +2104,19 @@ end
 
 function AttackState:Enter()
     self.attackConnection = self.proximityPrompt.Triggered:Connect(function(player)
-        if self.Controller.Humanoid.Health > 0 then
+        if self.AIManager.Humanoid.Health > 0 then
             -- 播放攻击动画
-            local animateScript = self.Controller.NPC:FindFirstChild("Animate")
+            local animateScript = self.AIManager.NPC:FindFirstChild("Animate")
             if animateScript then
                 animateScript.Attack:Fire()
             end
             
             -- 伤害判定逻辑
-            local hitbox = self.Controller.NPC:FindFirstChild("Hitbox")
+            local hitbox = self.AIManager.NPC:FindFirstChild("Hitbox")
             if hitbox then
                 hitbox.Touched:Connect(function(hit)
                     local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
-                    if humanoid and humanoid ~= self.Controller.Humanoid then
+                    if humanoid and humanoid ~= self.AIManager.Humanoid then
                         humanoid:TakeDamage(10)
                     end
                 end)
@@ -2138,7 +2138,7 @@ ChaseState.__index = ChaseState
 
 function ChaseState.new(controller)
     local self = setmetatable({}, ChaseState)
-    self.Controller = controller
+    self.AIManager = controller
     self.Path = game:GetService("PathfindingService"):CreatePath()
     self.spawnPosition = controller.NPC:GetAttribute("SpawnPosition")
     return self
@@ -2151,17 +2151,17 @@ function ChaseState:Enter()
             self:UpdatePath(target.Character.HumanoidRootPart.Position)
             self:CheckDistance(target)
         else
-            self.Controller:SetState("Idle")
+            self.AIManager:SetState("Idle")
         end
     end)
 end
 
 function ChaseState:FindNearestPlayer()
-    local npcPos = self.Controller.Humanoid.RootPart.Position
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    local npcPos = self.AIManager.Humanoid.RootPart.Position
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     
     local params = OverlapParams.new()
-    params.FilterDescendantsInstances = {self.Controller.NPC}
+    params.FilterDescendantsInstances = {self.AIManager.NPC}
     
     local detectionBox = Region3.new(
         npcPos - Vector3.new(visionRange, visionRange, visionRange),
@@ -2188,44 +2188,44 @@ function ChaseState:FindNearestPlayer()
 end
 
 function ChaseState:CheckDistance(player)
-    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
-        self.Controller:SetState("Idle")
+    if not self.AIManager.Humanoid or not self.AIManager.Humanoid.RootPart then
+        self.AIManager:SetState("Idle")
         return
     end
     
-    local currentPos = self.Controller.Humanoid.RootPart.Position
-    local attackRange = self.Controller.NPC:GetAttribute("AttackRange")
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    local currentPos = self.AIManager.Humanoid.RootPart.Position
+    local attackRange = self.AIManager.NPC:GetAttribute("AttackRange")
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     
     local distanceToPlayer = (player.Character.HumanoidRootPart.Position - currentPos).Magnitude
     local distanceToSpawn = (self.spawnPosition - currentPos).Magnitude
     
     if distanceToPlayer &lt;= attackRange then
-        self.Controller:SetState("Attack")
+        self.AIManager:SetState("Attack")
     elseif distanceToPlayer > visionRange or distanceToSpawn > visionRange*1.5 then
-        self.Controller.Humanoid:MoveTo(self.spawnPosition)
-        self.moveConnection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached)
+        self.AIManager.Humanoid:MoveTo(self.spawnPosition)
+        self.moveConnection = self.AIManager.Humanoid.MoveToFinished:Connect(function(reached)
             if reached then
-                self.Controller:SetState("Idle")
+                self.AIManager:SetState("Idle")
             end
         end)
     end
 end
 
 function ChaseState:UpdatePath(targetPos)
-    if not self.Controller.Humanoid or not self.Controller.Humanoid.RootPart then
-        self.Controller:SetState("Idle")
+    if not self.AIManager.Humanoid or not self.AIManager.Humanoid.RootPart then
+        self.AIManager:SetState("Idle")
         return
     end
     
-    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPos)
+    self.Path:ComputeAsync(self.AIManager.Humanoid.RootPart.Position, targetPos)
     if self.Path.Status == Enum.PathStatus.Success then
         local waypoints = self.Path:GetWaypoints()
         if #waypoints > 1 then
-            self.Controller.Humanoid:MoveTo(waypoints[2].Position)
+            self.AIManager.Humanoid:MoveTo(waypoints[2].Position)
         end
     else
-        self.Controller:SetState("Idle")
+        self.AIManager:SetState("Idle")
     end
 end
 
@@ -2251,20 +2251,20 @@ DeadState.__index = DeadState
 
 function DeadState.new(controller)
     local self = setmetatable({}, DeadState)
-    self.Controller = controller
+    self.AIManager = controller
     return self
 end
 
 function DeadState:Enter()
     -- 销毁原有NPC
     -- 保存原始属性后立即销毁
-    local originalHealth = self.Controller.NPC:GetAttribute("Health")
-    local spawnPosition = self.Controller.NPC:GetAttribute("SpawnPosition")
-    self.Controller.NPC:Destroy()
+    local originalHealth = self.AIManager.NPC:GetAttribute("Health")
+    local spawnPosition = self.AIManager.NPC:GetAttribute("SpawnPosition")
+    self.AIManager.NPC:Destroy()
 
     -- 统一重生处理
     local function respawnNPC()
-        local newNPC = self.Controller.NPCClone:Clone()
+        local newNPC = self.AIManager.NPCClone:Clone()
         newNPC:SetAttribute("Health", originalHealth)
         newNPC:PivotTo(CFrame.new(spawnPosition))
         newNPC.Parent = workspace
@@ -2277,32 +2277,32 @@ function DeadState:Enter()
 
     local npcClone
     -- 延迟重生
-    task.delay(self.Controller.NPC:GetAttribute("RespawnTime"), function()
+    task.delay(self.AIManager.NPC:GetAttribute("RespawnTime"), function()
         local newNPC = respawnNPC()
         if newNPC then
             npcClone = newNPC  -- 添加local限定符
         end
     end)
     -- 播放死亡动画
-    local animateScript = self.Controller.NPC:FindFirstChild("Animate")
+    local animateScript = self.AIManager.NPC:FindFirstChild("Animate")
     if animateScript and animateScript:FindFirstChild("Death") then
         animateScript.Death:Fire()
     end
     
     -- 禁用碰撞和移动
-    self.Controller.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-    self.Controller.Humanoid.WalkSpeed = 0
+    self.AIManager.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+    self.AIManager.Humanoid.WalkSpeed = 0
     
     -- 触发物品掉落
-    local monsterType = self.Controller.NPC:GetAttribute("MonsterType")
-    local success, MonsterConfig = pcall(require, self.Controller.NPC.Parent.MonsterConfig)
+    local monsterType = self.AIManager.NPC:GetAttribute("MonsterType")
+    local success, MonsterConfig = pcall(require, self.AIManager.NPC.Parent.MonsterConfig)
     local config = success and MonsterConfig[monsterType] or {Drops = {}}
     if not success then
         warn("[MonsterConfig] 配置加载失败:", MonsterConfig)
     end
     
     if config and config.Drops then
-        local npcPosition = self.Controller.NPC:GetPivot().Position
+        local npcPosition = self.AIManager.NPC:GetPivot().Position
         
         for _, drop in ipairs(config.Drops) do
             if math.random() &lt;= drop.Chance then
@@ -2329,7 +2329,7 @@ function DeadState:Enter()
             if npcClone and npcClone.Parent then
                 npcClone:Destroy()
             end
-            self.Controller.NPC = nil
+            self.AIManager.NPC = nil
         end
     end)
 end
@@ -2351,7 +2351,7 @@ IdleState.__index = IdleState
 
 function IdleState.new(controller)
     local self = setmetatable({}, IdleState)
-    self.Controller = controller
+    self.AIManager = controller
     return self
 end
 
@@ -2370,8 +2370,8 @@ function IdleState:Enter()
         self.timer = self.timer - dt
         
         -- 玩家检测逻辑
-        local npcPos = self.Controller.Humanoid.RootPart.Position
-        local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+        local npcPos = self.AIManager.Humanoid.RootPart.Position
+        local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
         
         local detectionBox = Region3.new(
             npcPos - Vector3.new(visionRange, 5, visionRange),
@@ -2379,7 +2379,7 @@ function IdleState:Enter()
         )
         
         local params = OverlapParams.new()
-        params.FilterDescendantsInstances = {self.Controller.NPC}
+        params.FilterDescendantsInstances = {self.AIManager.NPC}
         
         local parts = workspace:GetPartBoundsInBox(detectionBox, params)
         
@@ -2387,13 +2387,13 @@ function IdleState:Enter()
             local character = part.Parent
             local player = game.Players:GetPlayerFromCharacter(character)
             if player and character:FindFirstChild("HumanoidRootPart") then
-                self.Controller:SetState("Chase")
+                self.AIManager:SetState("Chase")
                 return
             end
         end
         
         if self.timer &lt;= 0 then
-            self.Controller:SetState("Patrol")
+            self.AIManager:SetState("Patrol")
         end
     end)
 end
@@ -2441,14 +2441,14 @@ PatrolState.__index = PatrolState
 
 function PatrolState.new(controller)
     local self = setmetatable({}, PatrolState)
-    self.Controller = controller
+    self.AIManager = controller
     self.Path = game:GetService("PathfindingService"):CreatePath()
     return self
 end
 
 function PatrolState:Enter()
-    local center = self.Controller.NPC:GetPivot().Position
-    local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+    local center = self.AIManager.NPC:GetPivot().Position
+    local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     
     local targetPosition = center + Vector3.new(
         math.random(-visionRange, visionRange),
@@ -2456,23 +2456,23 @@ function PatrolState:Enter()
         math.random(-visionRange, visionRange)
     )
     
-    self.Path:ComputeAsync(self.Controller.Humanoid.RootPart.Position, targetPosition)
+    self.Path:ComputeAsync(self.AIManager.Humanoid.RootPart.Position, targetPosition)
     
     if self.Path.Status == Enum.PathStatus.Success then
         self.waypoints = self.Path:GetWaypoints()
         self.currentWaypoint = 2
-        self.connection = self.Controller.Humanoid.MoveToFinished:Connect(function(reached) 
+        self.connection = self.AIManager.Humanoid.MoveToFinished:Connect(function(reached) 
             if reached and self.currentWaypoint &lt;= #self.waypoints then
-                self.Controller.Humanoid:MoveTo(self.waypoints[self.currentWaypoint].Position)
+                self.AIManager.Humanoid:MoveTo(self.waypoints[self.currentWaypoint].Position)
                 self.currentWaypoint += 1
             else
-                self.Controller:SetState("Chase")
+                self.AIManager:SetState("Chase")
             end
         end)
         
         self.detectionConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-            local npcPos = self.Controller.Humanoid.RootPart.Position
-            local visionRange = self.Controller.NPC:GetAttribute("VisionRange")
+            local npcPos = self.AIManager.Humanoid.RootPart.Position
+            local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
             
             local detectionBox = Region3.new(
                 npcPos - Vector3.new(visionRange, visionRange, visionRange),
@@ -2480,7 +2480,7 @@ function PatrolState:Enter()
             )
             
             local params = OverlapParams.new()
-            params.FilterDescendantsInstances = {self.Controller.NPC}
+            params.FilterDescendantsInstances = {self.AIManager.NPC}
             
             local parts = workspace:GetPartBoundsInBox(detectionBox, params)
             
@@ -2488,15 +2488,15 @@ function PatrolState:Enter()
                 local character = part.Parent
                 local player = game.Players:GetPlayerFromCharacter(character)
                 if player and character:FindFirstChild("HumanoidRootPart") then
-                    self.Controller:SetState("Chase")
+                    self.AIManager:SetState("Chase")
                     return
                 end
             end
         end)
         
-        self.Controller.Humanoid:MoveTo(self.waypoints[1].Position)
+        self.AIManager.Humanoid:MoveTo(self.waypoints[1].Position)
     else
-        self.Controller:SetState("Chase")
+        self.AIManager:SetState("Chase")
     end
 end
 
@@ -2509,7 +2509,7 @@ function PatrolState:Exit()
         self.detectionConnection:Disconnect()
         self.detectionConnection = nil
     end
-    self.Controller.Humanoid:MoveTo(self.Controller.Humanoid.RootPart.Position)
+    self.AIManager.Humanoid:MoveTo(self.AIManager.Humanoid.RootPart.Position)
 end
 
 
