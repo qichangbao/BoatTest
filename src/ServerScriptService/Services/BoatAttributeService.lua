@@ -23,11 +23,8 @@ function BoatAttributeService.Client:GetHealth(player)
     return self.Server:GetHealth(player)
 end
 
-function BoatAttributeService:ChangeHealth(player, hp)
-    if not player or not player.Character or not player.Character.Humanoid then
-        return '玩家不存在'
-    end
-    self.Client.ChangeAttribute:Fire(player, 'Health', math.max(hp, 0), player.Character.Humanoid.MaxHealth)
+function BoatAttributeService:ChangeHealth(player, hp, maxHp)
+    self.Client.ChangeAttribute:Fire(player, 'Health', math.max(hp, 0), maxHp)
 end
 
 function BoatAttributeService:GetSpeed(player)
@@ -38,11 +35,7 @@ function BoatAttributeService.Client:GetSpeed(player)
     return self.Server:GetSpeed(player)
 end
 
-function BoatAttributeService:ChangeSpeed(player, speed)
-    if not player or not player.Character or not player.Character.Humanoid then
-        return '玩家不存在'
-    end
-    local maxSpeed = player.Character.Humanoid:GetAttribute('MaxSpeed')
+function BoatAttributeService:ChangeSpeed(player, speed, maxSpeed)
     self.Client.ChangeAttribute:Fire(player, 'Speed', math.max(speed, 0), maxSpeed)
 end
 
@@ -55,21 +48,7 @@ function BoatAttributeService:KnitInit()
 
     Players.PlayerAdded:Connect(function(player)
         player.CharacterAdded:Connect(function(character)
-            local humanoid = character:WaitForChild("Humanoid")
-            -- 监听船的生命变化并更新UI
-            humanoid.HealthChanged:Connect(function(health)
-                if health <= 0 then
-                    print('船被销毁')
-                    local boat = self:GetPlayerBoat(player)
-                    Knit.GetService('BoatAssemblingService'):DestroyBoat(player, boat)
-                    return
-                end
-                self:ChangeHealth(player, health)
-            end)
-        
-            humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-                self:ChangeSpeed(player, player.Character.Humanoid.WalkSpeed)
-            end)
+            character:SetAttribute("ModelType", "Player")
         end)
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()

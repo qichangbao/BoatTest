@@ -11,11 +11,11 @@ end
 
 function PatrolState:Enter()
     print("进入Patrol状态")
-    local center = self.AIManager.NPC:GetPivot().Position
+    local npcPos = self.AIManager.Humanoid.RootPart.Position
     local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
     local patrolRadius = self.AIManager.NPC:GetAttribute("PatrolRadius")
     
-    local targetPosition = center + Vector3.new(
+    local targetPosition = npcPos + Vector3.new(
         math.random(-patrolRadius, patrolRadius),
         0,
         math.random(-patrolRadius, patrolRadius)
@@ -37,12 +37,10 @@ function PatrolState:Enter()
         end)
         
         self.detectionConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-            local npcPos = self.AIManager.Humanoid.RootPart.Position
-            local cframe = CFrame.new(npcPos)
-            local size = Vector3.new(visionRange, visionRange, visionRange)
             local params = OverlapParams.new()
+            params.FilterType = Enum.RaycastFilterType.Exclude
             params.FilterDescendantsInstances = {self.AIManager.NPC}
-            local parts = workspace:GetPartBoundsInBox(cframe, size, params)
+            local parts = workspace:GetPartBoundsInRadius(npcPos, visionRange, params) or {}
             for _, part in ipairs(parts) do
                 local character = part.Parent
                 local target = game.Players:GetPlayerFromCharacter(character)

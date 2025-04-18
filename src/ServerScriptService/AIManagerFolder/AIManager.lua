@@ -12,6 +12,7 @@ function AIManager.new(name, position)
     self.NPC = ServerStorage:WaitForChild(name):Clone()
     self.NPC:PivotTo(CFrame.new(position))
     self.NPC.Parent = workspace
+    self.target = nil
     
     self:InitializeAttributes(name)
 

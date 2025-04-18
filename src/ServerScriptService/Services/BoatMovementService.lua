@@ -22,12 +22,17 @@ function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
         return
     end
 
+    local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    if not boat then
+        print("船只 "..boat.Name.." 不存在")
+        return
+    end
     -- 使用船头方向作为前进方向
     local forwardDirection = primaryPart.CFrame.LookVector
     local worldDirection = forwardDirection * direction.Z
 
     -- 独立限制速度
-    local speed = math.clamp(math.abs(direction.Z) * player:GetAttribute('Speed'), 0, player:GetAttribute('MaxSpeed'))
+    local speed = math.clamp(math.abs(direction.Z) * boat:GetAttribute('Speed'), 0, boat:GetAttribute('MaxSpeed'))
     boatBodyVelocity.Velocity = worldDirection * speed
 end
 
