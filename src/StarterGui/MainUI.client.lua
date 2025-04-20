@@ -170,8 +170,7 @@ _lootButton.MouseButton1Click:Connect(function()
 end)
 
 Knit:OnStart():andThen(function()
-    local BoatAttributeService = Knit.GetService('BoatAttributeService')
-    BoatAttributeService.ChangeGold:Connect(function(gold)
+    Knit.GetService('PlayerAttributeService').ChangeGold:Connect(function(gold)
         _goldLabel.Text = "黄金: "..gold
     end)
 

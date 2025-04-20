@@ -3,9 +3,9 @@ local MonsterConfig = {
         Type = "Monster",
         Health = 100,
         WalkSpeed = 16,
-        VisionRange = 200,
-        AttackRange = 20,
-        PatrolRadius = 35,
+        VisionRange = 100,
+        AttackRange = 40,
+        PatrolRadius = 80,
         RespawnTime = 30,
         Drops = {
             {ItemId = "Medkit", Chance = 0.3, Offset = Vector3.new(0, 2, 0)},

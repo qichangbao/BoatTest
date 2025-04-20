@@ -10,6 +10,8 @@ function AIManager.new(name, position)
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:WaitForChild(name):Clone()
+    print(self.NPC:GetPivot().Position)
+    print(position)
     self.NPC:PivotTo(CFrame.new(position))
     self.NPC.Parent = workspace
     self.target = nil
@@ -69,7 +71,6 @@ function AIManager:Start()
         for i, v in pairs(self.States) do
             v:Exit()
         end
-        self:Destroy()
     end)
 end
 

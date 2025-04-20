@@ -1,6 +1,7 @@
 print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService('ServerStorage')
+local CollectionService = game:GetService("CollectionService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
@@ -65,6 +66,7 @@ function BoatAssemblingService:CreateBoat(player)
     boat:SetAttribute('ModelName', boatTemplate.Name)
     boat:SetAttribute('ModelType', 'Boat')
     boat:SetAttribute('Destroying', false)
+    CollectionService:AddTag(boat, "Boat")
 
     -- 监听船的销毁事件
     boat.Destroying:Connect(function()
@@ -75,6 +77,7 @@ function BoatAssemblingService:CreateBoat(player)
         -- 移除主船体关联
         self.Client.UpdateMainUI:Fire(player, {explore = false})
         Knit.GetService('BoatMovementService'):OnBoat(player, false)
+        CollectionService:RemoveTag(boat, "Boat")
     end)
 
     boat:GetAttributeChangedSignal('Health'):Connect(function()
@@ -85,13 +88,13 @@ function BoatAssemblingService:CreateBoat(player)
             return
         end
         local maxHealth = boat:GetAttribute('MaxHealth')
-        Knit.GetService('BoatAttributeService'):ChangeHealth(player, health, maxHealth)
+        Knit.GetService('BoatAttributeService'):ChangeBoatHealth(player, health, maxHealth)
     end)
 
     boat:GetAttributeChangedSignal('Speed'):Connect(function()
         local speed = boat:GetAttribute('Speed')
         local maxSpeed = boat:GetAttribute('MaxSpeed')
-        Knit.GetService('BoatAttributeService'):ChangeSpeed(player, speed, maxSpeed)
+        Knit.GetService('BoatAttributeService'):ChangeBoatSpeed(player, speed, maxSpeed)
     end)
     
     local primaryPart = nil

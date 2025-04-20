@@ -1,3 +1,6 @@
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+
 local IdleState = {}
 IdleState.__index = IdleState
 
@@ -16,23 +19,50 @@ function IdleState:Enter()
         
         local npcPos = self.AIManager.Humanoid.RootPart.Position
         local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
-        local params = OverlapParams.new()
-        params.FilterType = Enum.RaycastFilterType.Exclude
-        params.FilterDescendantsInstances = {self.AIManager.NPC}
-        local parts = workspace:GetPartBoundsInRadius(npcPos, visionRange, params) or {}
-        for _, part in ipairs(parts) do
-            local character = part.Parent
-            if character then
-                local modelType = character:GetAttribute("ModelType")
-                if modelType == "Boat" and not character:GetAttribute("Destroying") then
-                    self.AIManager:SetState("Chase")
-                    return
-                elseif modelType == "Player" and character.HumanoidRootPart and character.Humanoid and character.Humanoid.Health > 0 then
+        local boats = CollectionService:GetTagged("Boat")
+        for _, v in ipairs(boats) do
+            if not v:GetAttribute("Destroying") then
+                local dis = (v:GetPivot().Position - npcPos).Magnitude
+                if dis <= visionRange then
                     self.AIManager:SetState("Chase")
                     return
                 end
             end
         end
+
+        for _, v in ipairs(Players:GetChildren()) do
+            local character = v.character
+            if character then
+                local HumanoidRootPart = character:FindFirstChild('HumanoidRootPart')
+                local Humanoid = character:FindFirstChild('Humanoid')
+                if HumanoidRootPart and Humanoid and Humanoid.Health > 0 then
+                    local dis = (character.HumanoidRootPart.Position - npcPos).Magnitude
+                    if dis <= visionRange then
+                        self.AIManager:SetState("Chase")
+                        return
+                    end
+                end
+            end
+        end
+        -- local params = OverlapParams.new()
+        -- params.FilterType = Enum.RaycastFilterType.Include
+        -- local players = CollectionService:GetTagged("Player")
+        -- local boats = CollectionService:GetTagged("Boat")
+        -- params.FilterDescendantsInstances = {table.unpack(players), table.unpack(boats)}
+        -- local parts = workspace:GetPartBoundsInRadius(npcPos, visionRange, params) or {}
+        -- for _, part in ipairs(parts) do
+        --     local character = part.Parent
+        --     if character then
+        --         local modelType = character:GetAttribute("ModelType")
+        --         if modelType == "Boat" and not character:GetAttribute("Destroying") then
+        --             self.AIManager:SetState("Chase")
+        --             return
+        --         elseif modelType == "Player" and character.HumanoidRootPart and character.Humanoid and character.Humanoid.Health > 0 then
+        --             self.AIManager:SetState("Chase")
+        --             return
+        --         end
+        --     end
+        -- end
         
         if self.timer <= 0 then
             self.AIManager:SetState("Patrol")

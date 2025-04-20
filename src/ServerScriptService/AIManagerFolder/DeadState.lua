@@ -1,3 +1,6 @@
+
+local MonsterConfig = require(script.Parent:WaitForChild("MonsterConfig"))
+
 local DeadState = {}
 DeadState.__index = DeadState
 
@@ -25,12 +28,7 @@ function DeadState:Enter()
     
     -- 触发物品掉落
     local monsterType = self.AIManager.NPC:GetAttribute("MonsterType")
-    local success, MonsterConfig = pcall(require, self.AIManager.NPC.Parent.MonsterConfig)
-    local config = success and MonsterConfig[monsterType] or {Drops = {}}
-    if not success then
-        warn("[MonsterConfig] 配置加载失败:", MonsterConfig)
-    end
-    
+    local config = MonsterConfig[monsterType] or {Drops = {}}
     if config and config.Drops then
         local npcPosition = self.AIManager.NPC:GetPivot().Position
         

@@ -21,6 +21,7 @@ function AttackState:Enter()
         if not self.isFirst and self.timer > 0 then
             return
         end
+        print('正在攻击')
         self.isFirst = false
         self.timer = 3
         if self.AIManager.Humanoid.Health > 0 then
@@ -29,12 +30,24 @@ function AttackState:Enter()
                 self.AIManager:SetState("Idle")
                 return
             end
-            -- 检查距离
-            local npcPos = self.AIManager.Humanoid.RootPart.Position
-            local targetPos = target:GetPivot().Position
-            local distance = (targetPos - npcPos).Magnitude
-            if distance > self.AIManager.NPC:GetAttribute("AttackRange") then
-                self.AIManager:SetState("Chase")
+
+            local currentPos = self.AIManager.Humanoid.RootPart.Position
+            local attackRange = self.AIManager.NPC:GetAttribute("AttackRange")
+            local params = OverlapParams.new()
+            params.FilterType = Enum.RaycastFilterType.Include
+            params.FilterDescendantsInstances = {self.AIManager.target}
+            local parts = workspace:GetPartBoundsInRadius(currentPos, attackRange, params) or {}
+            if #parts == 0 then
+                self.AIManager:SetState("Idle")
+                return
+            end
+
+            local modelType = target:GetAttribute("ModelType")
+            if modelType == "Boat" and target:GetAttribute("Destroying") then
+                self.AIManager:SetState("Idle")
+                return
+            elseif modelType == "Player" and (not target.HumanoidRootPart or not target.Humanoid or target.Humanoid.Health <= 0) then
+                self.AIManager:SetState("Idle")
                 return
             end
 
@@ -44,12 +57,11 @@ function AttackState:Enter()
             --     animateScript.Attack:Fire()
             -- end
             
-            local modelType = target:GetAttribute("ModelType")
             if modelType == "Boat" then
                 local boatHealth = target:GetAttribute("Health")
                 target:SetAttribute("Health", boatHealth - 10)
             elseif modelType == "Player" then
-                local humanoid = target.Humanoid
+                local humanoid = target:FindFirstChild("Humanoid")
                 if humanoid and humanoid.Health > 0 then
                     humanoid:TakeDamage(10)
                 end
@@ -96,6 +108,7 @@ function AttackState:Exit()
         self.attackConnection:Disconnect()
         self.attackConnection = nil
     end
+    self.AIManager.target = nil
     --self.proximityPrompt:Destroy()
 end
 
