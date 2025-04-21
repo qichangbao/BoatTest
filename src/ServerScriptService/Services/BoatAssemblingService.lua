@@ -82,13 +82,14 @@ function BoatAssemblingService:CreateBoat(player)
 
     boat:GetAttributeChangedSignal('Health'):Connect(function()
         local health = boat:GetAttribute('Health')
+        local maxHealth = boat:GetAttribute('MaxHealth')
+        Knit.GetService('BoatAttributeService'):ChangeBoatHealth(player, health, maxHealth)
+        
         if health <= 0 then
             print('船被销毁')
             self:DestroyBoat(player)
             return
         end
-        local maxHealth = boat:GetAttribute('MaxHealth')
-        Knit.GetService('BoatAttributeService'):ChangeBoatHealth(player, health, maxHealth)
     end)
 
     boat:GetAttributeChangedSignal('Speed'):Connect(function()

@@ -10,19 +10,15 @@ function AIManager.new(name, position)
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:WaitForChild(name):Clone()
-    print(self.NPC:GetPivot().Position)
-    print(position)
-    self.NPC:PivotTo(CFrame.new(position))
+    self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
     self.NPC.Parent = workspace
     self.target = nil
-    
-    self:InitializeAttributes(name)
-
-    -- 初始化状态
     self.Humanoid = self.NPC:FindFirstChildOfClass('Humanoid')
     if not self.Humanoid then
         error("NPC模型必须包含Humanoid组件")
     end
+    
+    self:InitializeAttributes(name)
 
     self.CurrentState = nil
     self.States = {
@@ -43,7 +39,8 @@ function AIManager:InitializeAttributes(name)
         self.NPC:SetAttribute('AttackRange', config.AttackRange)
         self.NPC:SetAttribute('PatrolRadius', config.PatrolRadius)
         self.NPC:SetAttribute('RespawnTime', config.RespawnTime)
-        self.NPC:SetAttribute("SpawnPosition", self.NPC:GetPivot().Position)
+        self.NPC:SetAttribute("MaxDisForSpawn", config.MaxDisForSpawn)
+        self.NPC:SetAttribute("SpawnPosition", self.NPC.PrimaryPart.CFrame.Position)
         self.NPC.Humanoid.MaxHealth = config.Health
         self.NPC.Humanoid.Health = config.Health
         self.NPC.Humanoid.WalkSpeed = config.WalkSpeed
@@ -63,12 +60,15 @@ end
 
 function AIManager:Start()
     self:SetState('Idle')
+
+    -- 初始化状态
     self.Humanoid.Died:Connect(function()
+        print("NPC死亡")
         self:SetState('Dead')
         task.wait(10)
         self.NPC = nil
         self.CurrentState = nil
-        for i, v in pairs(self.States) do
+        for _, v in pairs(self.States) do
             v:Exit()
         end
     end)

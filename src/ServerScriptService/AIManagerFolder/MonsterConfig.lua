@@ -6,6 +6,7 @@ local MonsterConfig = {
         VisionRange = 100,
         AttackRange = 40,
         PatrolRadius = 80,
+        MaxDisForSpawn = 300,
         RespawnTime = 30,
         Drops = {
             {ItemId = "Medkit", Chance = 0.3, Offset = Vector3.new(0, 2, 0)},

@@ -15,14 +15,28 @@ function IdleState:Enter()
     print("进入Idle状态")
     self.timer = math.random(3, 8)
     self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
+        if not HumanoidRootPart then
+            print("HumanoidRootPart not found")
+            return
+        end
+
         self.timer = self.timer - dt
+
+        -- NPC离开出生点太远后，切换到Patrol状态
+        local npcPos = HumanoidRootPart.CFrame.Position
+        local maxDisForSpawn = self.AIManager.NPC:GetAttribute("MaxDisForSpawn")
+        local spawnPosition = self.AIManager.NPC:GetAttribute("SpawnPosition")
+        if (spawnPosition - npcPos).Magnitude > maxDisForSpawn then
+            self.AIManager:SetState("Patrol")
+            return
+        end
         
-        local npcPos = self.AIManager.Humanoid.RootPart.Position
         local visionRange = self.AIManager.NPC:GetAttribute("VisionRange")
         local boats = CollectionService:GetTagged("Boat")
         for _, v in ipairs(boats) do
             if not v:GetAttribute("Destroying") then
-                local dis = (v:GetPivot().Position - npcPos).Magnitude
+                local dis = (v.PrimaryPart.CFrame.Position - npcPos).Magnitude
                 if dis <= visionRange then
                     self.AIManager:SetState("Chase")
                     return
@@ -33,10 +47,10 @@ function IdleState:Enter()
         for _, v in ipairs(Players:GetChildren()) do
             local character = v.character
             if character then
-                local HumanoidRootPart = character:FindFirstChild('HumanoidRootPart')
-                local Humanoid = character:FindFirstChild('Humanoid')
-                if HumanoidRootPart and Humanoid and Humanoid.Health > 0 then
-                    local dis = (character.HumanoidRootPart.Position - npcPos).Magnitude
+                local targetHumanoidRootPart = character:FindFirstChild('HumanoidRootPart')
+                local targetHumanoid = character:FindFirstChild('Humanoid')
+                if targetHumanoidRootPart and targetHumanoid and targetHumanoid.Health > 0 then
+                    local dis = (targetHumanoidRootPart.CFrame.Position - npcPos).Magnitude
                     if dis <= visionRange then
                         self.AIManager:SetState("Chase")
                         return
@@ -72,6 +86,7 @@ function IdleState:Enter()
 end
 
 function IdleState:Exit()
+    print("退出Idle状态")
     if self.connection then
         self.connection:Disconnect()
         self.connection = nil
