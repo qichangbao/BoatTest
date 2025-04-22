@@ -15,7 +15,22 @@ function CreateMonsterAction:Execute()
     ActionBase.Execute(self)
 
     print("执行CreateMonsterAction")
-    AIManager.new(self.config.MonsterName, self.config.Position):Start()
+    self.aiManager = AIManager.new(self.config.MonsterName, self.config.Position)
+    self.aiManager:Start()
+
+    if self.aiManager.Humanoid then
+        -- 监听死亡状态
+        self.aiManager.Humanoid.Died:Connect(function()
+            print("NPC死亡")
+            self.aiManager:SetState('Dead')
+            task.wait(10)
+    
+            if self.aiManager then
+                self.aiManager:Destroy()
+                self.aiManager = nil
+            end
+        end)
+    end
 end
 
 function CreateMonsterAction:Destroy()

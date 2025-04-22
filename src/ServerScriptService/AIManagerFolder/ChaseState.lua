@@ -12,8 +12,6 @@ local HEARTBEAT_SPACE = 1       -- 每秒执行一次
 function ChaseState.new(AIManager)
     local self = setmetatable({}, ChaseState)
     self.AIManager = AIManager
-    self.Path = game:GetService("PathfindingService"):CreatePath()
-    self.spawnPosition = AIManager.NPC:GetAttribute("SpawnPosition")
     return self
 end
 
@@ -30,6 +28,7 @@ function ChaseState:Enter()
 
         local target = self.AIManager.target
         if not target then
+            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -50,6 +49,7 @@ function ChaseState:Enter()
 
         if not targetPosition then
             self.AIManager.target = nil
+            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -65,6 +65,7 @@ function ChaseState:Enter()
         raycastParams.FilterDescendantsInstances = {self.AIManager.NPC}
         local ray = workspace:Raycast(currentPos, (newPos - currentPos) * 20, raycastParams)
         if ray then
+            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -102,7 +103,7 @@ function ChaseState:FindNearestModel()
         end
     end
 
-    for _, v in ipairs(Players:GetChildren()) do
+    for _, v in ipairs(Players:GetPlayers()) do
         local character = v.character
         if character and character.HumanoidRootPart and character.Humanoid and character.Humanoid.Health > 0 then
             local dis = (character.HumanoidRootPart.Position - npcPos).Magnitude
@@ -134,6 +135,7 @@ function ChaseState:CheckDistance()
     if modelType == "Boat" then
         if target:GetAttribute("Destroying") then
             self.AIManager.target = nil
+            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         else
@@ -146,6 +148,7 @@ function ChaseState:CheckDistance()
             distanceToPlayer = (targetHumanoidRootPart.CFrame.Position - currentPos).Magnitude
         else
             self.AIManager.target = nil
+            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -162,6 +165,7 @@ function ChaseState:CheckDistance()
         return
     elseif distanceToPlayer > visionRange then
         self.AIManager.target = nil
+        print('111111    ', self.AIManager.count)
         self.AIManager:SetState("Idle")
         return
     end

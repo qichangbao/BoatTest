@@ -4,9 +4,12 @@ local MonsterConfig = require(script.Parent:WaitForChild("MonsterConfig"))
 
 local AIManager = {}
 AIManager.__index = AIManager
+_G._count = 0
 
 function AIManager.new(name, position)
     local self = setmetatable({}, AIManager)
+    _G._count = _G._count + 1
+    self.count = _G._count
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:WaitForChild(name):Clone()
@@ -60,18 +63,16 @@ end
 
 function AIManager:Start()
     self:SetState('Idle')
+end
 
-    -- 初始化状态
-    self.Humanoid.Died:Connect(function()
-        print("NPC死亡")
-        self:SetState('Dead')
-        task.wait(10)
-        self.NPC = nil
+function AIManager:Destroy()
+    -- 清理AI实例相关资源
+    self.NPC:Destroy()
+    self.States = nil
+    if self.CurrentState then
+        self.CurrentState:Exit()
         self.CurrentState = nil
-        for _, v in pairs(self.States) do
-            v:Exit()
-        end
-    end)
+    end
 end
 
 return AIManager

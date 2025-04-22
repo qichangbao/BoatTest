@@ -1,8 +1,7 @@
+local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
-local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-
 local PlayerAttributeService = Knit.CreateService({
     Name = 'PlayerAttributeService',
     Client = {
@@ -42,13 +41,17 @@ function PlayerAttributeService:ChangePlayerSpeed(player, speed, maxSpeed)
 end
 
 function PlayerAttributeService:ChangeGold(player, gold)
+    Knit.GetService('DataStoreService'):Set(player, "Gold", math.max(gold, 0))
+    --DataStoreService:GetDataStore("PlayerAttribute"):SetAsync(player.UserId, {Gold = math.max(gold, 0)})
     self.Client.ChangeGold:Fire(player, math.max(gold, 0))
 end
 
 function PlayerAttributeService:KnitInit()
     print('PlayerAttributeService initialized')
 
-    Players.PlayerAdded:Connect(function(player)
+    local function playerAdded(player)
+        -- 初始化重生点
+        player.RespawnLocation = game.Workspace.LandSpawnLocation
         player.CharacterAdded:Connect(function(character)
             local boat = Knit.GetService('BoatAttributeService'):GetPlayerBoat(player)
             if boat then
@@ -60,15 +63,29 @@ function PlayerAttributeService:KnitInit()
         player:GetAttributeChangedSignal('Gold'):Connect(function()
             self:ChangeGold(player, player:GetAttribute('Gold'))
         end)
+        Knit.GetService('DataStoreService'):PlayerAdded(player)
+        local gold = Knit.GetService('DataStoreService'):Get(player, "Gold")
+        player:SetAttribute("Gold", gold)
     
-        -- 初始化重生点
-        player.RespawnLocation = game.Workspace.LandSpawnLocation
-        player:SetAttribute("Gold", 1000)
-        --CollectionService:AddTag(player, "Player")
+        local playerInventory = Knit.GetService('DataStoreService'):Get(player, "PlayerInventory") or {}
+        Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
+    end
+
+    local function playerRemoving(player)
+		print("playerRemoving    ", player.Name)
+        Knit.GetService('DataStoreService'):PlayerRemoving(player)
+    end
+
+	for _, player in Players:GetPlayers() do
+		task.spawn(playerAdded, player)
+	end
+
+    Players.PlayerAdded:Connect(function(player)
+        playerAdded(player)
     end)
 
     Players.PlayerRemoving:Connect(function(player)
-        --CollectionService:RemoveTag(player, "Player")
+        playerRemoving(player)
     end)
 end
 
