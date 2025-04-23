@@ -1,20 +1,42 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("ProfileService"):WaitForChild("ProfileService"))
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-
-local DataStoreService = Knit.CreateService({
-    Name = 'DataStoreService',
-    Client = {
-    },
-})
 
 local dataTemplate = {
 	Gold = 50,
 	PlayerInventory = {},
-	-- 已移除废弃的PlayerAttribute字段
 }
+
+local DBService = Knit.CreateService({
+    Name = 'DBService',
+    Client = {
+        AdminRequest = Knit.CreateSignal()
+    },
+})
+
+function DBService.Client:AdminRequest(player, action, ...)
+    if RunService:IsStudio() then
+        return self.Server:ProcessAdminRequest(player, action, ...)
+    end
+
+	return "非Studio环境，无法执行该操作"
+end
+
+function DBService:ProcessAdminRequest(player, action, userId, ...)
+	if action == "GetData" then
+		local data = {}
+		for i, v in pairs(dataTemplate) do
+			data[i] = self:GetToAllStore(userId, i)
+		end
+		return data
+	elseif action == "SetData" then
+		self:SetToAllStore(userId, ...)
+		return "数据修改成功"
+	end
+end
 
 local ProfileStore = ProfileService.GetProfileStore(
 	"PlayerProfile",
@@ -23,20 +45,21 @@ local ProfileStore = ProfileService.GetProfileStore(
 
 local Profiles = {}
 
-function DataStoreService:PlayerAdded(player)
+function DBService:PlayerAdded(player)
 	print("PlayerAdded")
-	local profile = ProfileStore:LoadProfileAsync("Player_"..player.UserId)
+	local userId = player.UserId
+	if Profiles[userId] then
+		return
+	end
+
+	local profileKey = "Player_"..userId
+	local profile = ProfileStore:LoadProfileAsync(profileKey)
 	if profile then
-		-- -- 迁移旧数据
-		-- if profile.Data.PlayerAttribute then
-		-- 	profile.Data.PlayerAttribute = nil
-		-- 	profile:Save()
-		-- end
-		profile:AddUserId(player.UserId)
+		profile:AddUserId(userId)
 		profile:Reconcile()
 
 		profile:ListenToRelease(function()
-			Profiles[player] = nil
+			Profiles[userId] = nil
 
 			player:Kick()
 		end)
@@ -44,7 +67,7 @@ function DataStoreService:PlayerAdded(player)
 		if not player:IsDescendantOf(Players) then
 			profile:Release()
 		else
-			Profiles[player] = profile
+			Profiles[userId] = profile
 		end
 	else
 		player:Kick()
@@ -54,43 +77,74 @@ function DataStoreService:PlayerAdded(player)
 	self:GiveStats(player)
 end
 
-function DataStoreService:PlayerRemoving(player)
-	if Profiles[player] then
-		Profiles[player]:Release()
+function DBService:PlayerRemoving(player)
+	if Profiles[player.UserId] then
+		Profiles[player.UserId]:Release()
 	end
 end
 
-local function getProfile(player)
-	assert(Profiles[player], string.format("Profile does not exist for %s", player.UserId))
+function DBService:InitDataFromUserId(userId)
+	if Profiles[userId] then
+		return
+	end
 
-	return Profiles[player]
+	local profileKey = "Player_"..userId
+	local profile = ProfileStore:LoadProfileAsync(profileKey)
+	if profile then
+		profile:AddUserId(userId)
+		profile:Reconcile()
+
+		profile:ListenToRelease(function()
+			Profiles[userId] = nil
+		end)
+
+		Profiles[userId] = profile
+	end
+end
+
+local function getProfile(userId)
+	return Profiles[userId]
 end
 
 -- getter/setter methods
-function DataStoreService:Get(player, key)
-	local profile = getProfile(player)
-	assert(profile.Data[key], string.format("Profile does not exist for %s", key))
+function DBService:GetToAllStore(userId, key)
+	self:InitDataFromUserId(userId)
+	return self:Get(userId, key)
+end
+
+function DBService:SetToAllStore(userId, key, value)
+	self:InitDataFromUserId(userId)
+	return self:Set(userId, key, value)
+end
+
+function DBService:Get(userId, key)
+	local profile = getProfile(userId)
+	if not profile then
+		return
+	end
 
 	return profile.Data[key]
 end
 
-function DataStoreService:Set(player, key, value)
-	local profile =  getProfile(player)
-	assert(profile.Data[key], string.format("Profile does not exist for %s", key))
-
-	assert(type(profile.Data[key]) == type(value))
+function DBService:Set(userId, key, value)
+	local profile = getProfile(userId)
+	if not profile then
+		return false
+	end
 
 	profile.Data[key] = value
+	profile:Save()
+	return true
 end
 
-function DataStoreService:Update(player, key, callback)
-	local oldData = self:Get(player, key)
+function DBService:Update(userId, key, callback)
+	local oldData = self:Get(userId, key)
 	local newData = callback(oldData)
 
-	self:Set(player, key, newData)
+	self:Set(userId, key, newData)
 end
 
-function DataStoreService:GiveStats(player)
+function DBService:GiveStats(player)
 	if not player or not player:IsA("Player") then
 		warn("GiveStats function requires a valid player instance")
 		return
@@ -101,15 +155,15 @@ function DataStoreService:GiveStats(player)
 
 	local gold = Instance.new("IntValue", Leaderstats)
 	gold.Name = "Gold"
-	gold.Value = self:Get(player, "Gold")
+	gold.Value = self:Get(player.UserId, "Gold")
 end
 
-function DataStoreService:KnitInit()
-    print('DataStoreService initialized')
+function DBService:KnitInit()
+    print('DBService initialized')
 end
 
-function DataStoreService:KnitStart()
-    print('DataStoreService started')
+function DBService:KnitStart()
+    print('DBService started')
 end
 
-return DataStoreService
+return DBService

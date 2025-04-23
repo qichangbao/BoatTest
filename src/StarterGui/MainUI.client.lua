@@ -169,6 +169,23 @@ _lootButton.MouseButton1Click:Connect(function()
     _lootPopup.Visible = true
 end)
 
+-- 用户控制按钮
+local _adminButton = Instance.new('TextButton')
+_adminButton.Name = '_adminButton'
+_adminButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+_adminButton.Position = UDim2.new(0.75, 0, 0.15, 0) -- 右侧5%位置
+_adminButton.Text = '数据库'
+_adminButton.Font = Enum.Font.SourceSansBold
+_adminButton.TextSize = 24
+_adminButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
+_adminButton.Parent = _screenGui
+
+-- 用户控制按钮点击事件
+_adminButton.MouseButton1Click:Connect(function()
+    local adminPanel = require(script.Parent:WaitForChild('AdminPanelUI'))
+    adminPanel:Init()
+end)
+
 Knit:OnStart():andThen(function()
     Knit.GetService('PlayerAttributeService').ChangeGold:Connect(function(gold)
         _goldLabel.Text = "黄金: "..gold

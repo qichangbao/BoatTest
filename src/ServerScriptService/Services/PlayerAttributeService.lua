@@ -1,7 +1,7 @@
-local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+
 local PlayerAttributeService = Knit.CreateService({
     Name = 'PlayerAttributeService',
     Client = {
@@ -41,8 +41,7 @@ function PlayerAttributeService:ChangePlayerSpeed(player, speed, maxSpeed)
 end
 
 function PlayerAttributeService:ChangeGold(player, gold)
-    Knit.GetService('DataStoreService'):Set(player, "Gold", math.max(gold, 0))
-    --DataStoreService:GetDataStore("PlayerAttribute"):SetAsync(player.UserId, {Gold = math.max(gold, 0)})
+    Knit.GetService('DBService'):Set(player.UserId, "Gold", math.max(gold, 0))
     self.Client.ChangeGold:Fire(player, math.max(gold, 0))
 end
 
@@ -63,17 +62,20 @@ function PlayerAttributeService:KnitInit()
         player:GetAttributeChangedSignal('Gold'):Connect(function()
             self:ChangeGold(player, player:GetAttribute('Gold'))
         end)
-        Knit.GetService('DataStoreService'):PlayerAdded(player)
-        local gold = Knit.GetService('DataStoreService'):Get(player, "Gold")
+
+        local DBService = Knit.GetService('DBService')
+        DBService:PlayerAdded(player)
+
+        local gold = DBService:Get(player.UserId, "Gold")
         player:SetAttribute("Gold", gold)
     
-        local playerInventory = Knit.GetService('DataStoreService'):Get(player, "PlayerInventory") or {}
+        local playerInventory = DBService:Get(player.UserId, "PlayerInventory") or {}
         Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
     end
 
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
-        Knit.GetService('DataStoreService'):PlayerRemoving(player)
+        Knit.GetService('DBService'):PlayerRemoving(player)
     end
 
 	for _, player in Players:GetPlayers() do

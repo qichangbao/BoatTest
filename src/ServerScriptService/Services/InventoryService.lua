@@ -1,6 +1,4 @@
 print('InventoryService.lua loaded')
-local DataStoreService = game:GetService("DataStoreService")
-local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
@@ -45,17 +43,7 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         isUsed = false
     }
     
-    Knit.GetService('DataStoreService'):Set(player, "PlayerInventory", self.playersInventory[userId])
-    -- local jsonData = HttpService:JSONEncode(self.playersInventory[userId])
-    -- local success, errorMessage = pcall(function()
-    --     DataStoreService:GetDataStore("PlayerInventory"):UpdateAsync(userId, function(store)
-    --         return jsonData
-    --     end)
-    -- end)
-    
-    -- if not success then
-    --     warn("数据保存失败：", errorMessage)
-    -- end
+    Knit.GetService('DBService'):Set(userId, "PlayerInventory", self.playersInventory[userId])
     self.Client.AddItem:Fire(player, self.playersInventory[userId][itemName])
     
     return true
@@ -73,13 +61,7 @@ function InventoryService:RemoveItemFromInventory(player, itemName)
             self.playersInventory[userId][itemName] = nil
         end
         
-        Knit.GetService('DataStoreService'):Set(player, "PlayerInventory", self.playersInventory[userId])
-        -- local jsonData = HttpService:JSONEncode(self.playersInventory[userId])
-        -- local success, errorMessage = pcall(function()
-        --     DataStoreService:GetDataStore("PlayerInventory"):UpdateAsync(userId, function(store)
-        --         return jsonData
-        --     end)
-        -- end)
+        Knit.GetService('DBService'):Set(userId, "PlayerInventory", self.playersInventory[userId])
         self.Client.RemoveItem:Fire(player, self.playersInventory[userId][itemName])
     end
 end
