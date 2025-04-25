@@ -40,7 +40,7 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         modelName = modelName,
         num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
         icon = "rbxassetid://12345678",
-        isUsed = false
+        isUsed = 0
     }
     
     Knit.GetService('DBService'):Set(userId, "PlayerInventory", self.playersInventory[userId])
@@ -108,7 +108,7 @@ function InventoryService:BoatAssemblySuccess(player, modelName)
     if self.playersInventory[userId] then
         for _, itemData in pairs(self.playersInventory[userId]) do
             if itemData.modelName == modelName then
-                itemData.isUsed = true
+                itemData.isUsed = 1
             end
         end
     end
@@ -119,7 +119,7 @@ function InventoryService:GetUnusedParts(player, modelName)
     local unused = {}
     if self.playersInventory[userId] then
         for _, itemData in pairs(self.playersInventory[userId]) do
-            if itemData.modelName == modelName and not itemData.isUsed then
+            if itemData.modelName == modelName and itemData.isUsed == 1 then
                 table.insert(unused, itemData)
             end
         end

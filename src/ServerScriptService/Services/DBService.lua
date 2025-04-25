@@ -26,6 +26,14 @@ function DBService.Client:AdminRequest(player, action, ...)
 end
 
 function DBService:ProcessAdminRequest(player, action, userId, ...)
+	if not userId or type(userId) ~= "number" then
+		return "无效的用户ID"
+	end
+
+	if not action or type(action) ~= "string" then
+		return "无效的操作"
+	end
+	
 	if action == "GetData" then
 		local data = {}
 		for i, v in pairs(dataTemplate) do
@@ -33,8 +41,10 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 		end
 		return data
 	elseif action == "SetData" then
-		self:SetToAllStore(userId, ...)
-		return "数据修改成功"
+		if self:SetToAllStore(userId, ...) then
+			return "数据更新成功"
+		end
+		return "找不到用户数据"
 	end
 end
 
@@ -73,7 +83,6 @@ function DBService:PlayerAdded(player)
 		player:Kick()
 	end
 	
-	print(profile.Data)
 	self:GiveStats(player)
 end
 

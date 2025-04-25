@@ -55,7 +55,7 @@ local function UpdateInventoryUI()
     if boat then
         local modelName = boat:GetAttribute('ModelName')
         for _, itemData in pairs(_inventoryItems) do
-            if itemData.modelName == modelName and not itemData.isUsed then
+            if itemData.modelName == modelName and itemData.isUsed == 1 then
                 isShowAddButton = true
                 break
             end
@@ -152,7 +152,7 @@ Knit:OnStart():andThen(function()
     Knit.GetService('BoatAssemblingService').UpdateInventory:Connect(function(modelName)
         for _, item in pairs(_inventoryItems) do
             if item.modelName == modelName then
-                item.isUsed = true
+                item.isUsed = 1
             end
         end
         UpdateInventoryUI()
