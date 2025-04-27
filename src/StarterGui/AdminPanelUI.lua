@@ -17,6 +17,12 @@ local Theme = {
 }
 
 local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, parentPath)
+    -- 清空现有显示内容
+    for _, child in ipairs(parent:GetChildren()) do
+        if child:IsA('Frame') and (child.Name == 'DataContainerTop' or child.Name == 'DataContainer') then
+            child:Destroy()
+        end
+    end
     depth = depth or 0
     parentPath = parentPath or {}
     
@@ -80,15 +86,7 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
             toggleButton.Size = UDim2.new(0, 30, 0, 30)
             toggleButton.Position = UDim2.new(0, 0, 0, 0)
             toggleButton.Text = '▶'
-            
-            local keyLabel = Instance.new('TextLabel')
-            keyLabel.Size = UDim2.new(1, -30, 0, 30)
-            keyLabel.Position = UDim2.new(0, 30, 0, 0)
-            keyLabel.TextColor3 = Theme.TextPrimary
-            keyLabel.Text = tostring(key)
-            keyLabel.TextXAlignment = Enum.TextXAlignment.Left
-            keyLabel.Parent = entryFrame
-            keyLabel.TextSize = 16
+            toggleButton.Parent = entryFrame
             
             local subContainer
             toggleButton.MouseButton1Click:Connect(function()
@@ -100,14 +98,36 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                 subContainer.Visible = not subContainer.Visible
                 toggleButton.Text = subContainer.Visible and '▼' or '▶'
             end)
-            toggleButton.Parent = entryFrame
+            
+            local keyLabel = Instance.new('TextLabel')
+            keyLabel.Size = UDim2.new(1, -30, 0, 30)
+            keyLabel.Position = UDim2.new(0, 30, 0, 0)
+            keyLabel.TextColor3 = Theme.TextPrimary
+            keyLabel.Text = tostring(key)
+            keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+            keyLabel.Parent = entryFrame
+            keyLabel.TextSize = 16
+
+            -- 添加增加按钮
+            local addBtn = Instance.new('TextButton')
+            addBtn.Size = UDim2.new(0.1, 0, 0, 30)
+            addBtn.AnchorPoint = Vector2.new(1, 0)
+            addBtn.Position = UDim2.new(1, 0, 0, 0)
+            addBtn.Text = "增加"
+            addBtn.TextSize = 16
+            addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            addBtn.BackgroundColor3 = Theme.Secondary
+            addBtn.TextColor3 = Theme.TextBottonPrimary
+            addBtn.Parent = entryFrame
+            addBtn.MouseButton1Click:Connect(function()
+            end)
         else
             -- 调整布局比例为4:3:1
             label.Size = UDim2.new(0.4, 0, 0, 30)
             label.Position = UDim2.new(0, 0, 0, 0)
             
             local valueBox = Instance.new('TextBox')
-            valueBox.Size = UDim2.new(0.45, -5, 0, 30)
+            valueBox.Size = UDim2.new(0.4, -5, 0, 30)
             valueBox.Position = UDim2.new(0.4, 0, 0, 0)
             valueBox.Text = tostring(value)
             valueBox.PlaceholderText = valueBox.Text
@@ -117,11 +137,14 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
             valueBox.BackgroundColor3 = Theme.InputFieldBG
             valueBox.Parent = entryFrame
             
+            valueBox.FocusLost:Connect(function()
+            end)
+            
             -- 添加保存按钮
             local saveBtn = Instance.new('TextButton')
-            saveBtn.Size = UDim2.new(0.15, 0, 0, 30)
+            saveBtn.Size = UDim2.new(0.1, 0, 0, 30)
             saveBtn.AnchorPoint = Vector2.new(1, 0)
-            saveBtn.Position = UDim2.new(1, 0, 0, 0)
+            saveBtn.Position = UDim2.new(0.9, 0, 0, 0)
             saveBtn.Text = "保存"
             saveBtn.TextSize = 16
             saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -181,7 +204,73 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                 end
             end)
             
-            valueBox.FocusLost:Connect(function()
+            -- 添加删除按钮
+            local deleteBtn = Instance.new('TextButton')
+            deleteBtn.Size = UDim2.new(0.1, 0, 0, 30)
+            deleteBtn.AnchorPoint = Vector2.new(1, 0)
+            deleteBtn.Position = UDim2.new(1, 0, 0, 0)
+            deleteBtn.Text = "删除"
+            deleteBtn.TextSize = 16
+            deleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            deleteBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+            deleteBtn.Parent = entryFrame
+
+            deleteBtn.MouseButton1Click:Connect(function()
+                local topParent = FindTopParent(entryFrame)
+                local sValue = topParent:FindFirstChild('StringValue')
+                local keyTest = sValue:GetAttribute('Key')
+                local mergedData = HttpService:JSONDecode(sValue.Value)
+                
+                local function findKey(tbl)
+                    for k, v in pairs(tbl) do
+                        if type(v) == 'table' then
+                            local result = findKey(v)
+                            if result then
+                                return result
+                            end
+                        else
+                            if k == label.Text then
+                                tbl[k] = nil
+                                return true
+                            end
+                        end
+                    end
+                    return nil
+                end
+
+                if type(mergedData) == 'table' then
+                    local result = findKey(mergedData)
+                    if result then
+                        Knit.GetService("DBService"):AdminRequest("SetData",
+                            userIdInputText,
+                            keyTest,
+                            mergedData
+                        ):andThen(function(tip)
+                            Knit.GetController('TipController').Tip:Fire(tip)
+                            -- 删除成功后重新获取数据
+                            Knit.GetService("DBService"):AdminRequest("GetData",
+                                userIdInputText
+                            ):andThen(function(newData)
+                                UpdateDataDisplay(self, self.scrollFrame, userIdInputText, newData)
+                            end)
+                        end)
+                    end
+                else
+                    mergedData = nil
+                    Knit.GetService("DBService"):AdminRequest("SetData",
+                        userIdInputText,
+                        keyTest,
+                        mergedData
+                    ):andThen(function(tip)
+                        Knit.GetController('TipController').Tip:Fire(tip)
+                        -- 删除成功后重新获取数据
+                        Knit.GetService("DBService"):AdminRequest("GetData",
+                            userIdInputText
+                        ):andThen(function(newData)
+                            UpdateDataDisplay(self, self.scrollFrame, userIdInputText, newData)
+                        end)
+                    end)
+                end
             end)
         end
     end
@@ -274,7 +363,6 @@ function AdminPanelUI:Init()
     fetchBtn.MouseButton1Click:Connect(function()
         -- 初始化远程事件监听
         Knit.GetService("DBService"):AdminRequest("GetData", tonumber(userIdBox.Text)):andThen(function(data)
-            print(data)
             if type(data) == "table" then
                 UpdateDataDisplay(self, self.scrollFrame, tonumber(userIdBox.Text), data)
                 return

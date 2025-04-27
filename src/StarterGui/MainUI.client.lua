@@ -169,26 +169,30 @@ _lootButton.MouseButton1Click:Connect(function()
     _lootPopup.Visible = true
 end)
 
--- 用户控制按钮
-local _adminButton = Instance.new('TextButton')
-_adminButton.Name = '_adminButton'
-_adminButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-_adminButton.Position = UDim2.new(0.75, 0, 0.15, 0) -- 右侧5%位置
-_adminButton.Text = '数据库'
-_adminButton.Font = Enum.Font.SourceSansBold
-_adminButton.TextSize = 24
-_adminButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
-_adminButton.Parent = _screenGui
-
--- 用户控制按钮点击事件
-_adminButton.MouseButton1Click:Connect(function()
-    local adminPanel = require(script.Parent:WaitForChild('AdminPanelUI'))
-    adminPanel:Init()
-end)
-
 Knit:OnStart():andThen(function()
-    Knit.GetService('PlayerAttributeService').ChangeGold:Connect(function(gold)
+    local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
+    PlayerAttributeService.ChangeGold:Connect(function(gold)
         _goldLabel.Text = "黄金: "..gold
+    end)
+    PlayerAttributeService:IsAdmin():andThen(function(isAdmin)
+        if isAdmin then
+            -- 用户控制按钮
+            local _adminButton = Instance.new('TextButton')
+            _adminButton.Name = '_adminButton'
+            _adminButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+            _adminButton.Position = UDim2.new(0.75, 0, 0.15, 0) -- 右侧5%位置
+            _adminButton.Text = '数据库'
+            _adminButton.Font = Enum.Font.SourceSansBold
+            _adminButton.TextSize = 24
+            _adminButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
+            _adminButton.Parent = _screenGui
+            
+            -- 用户控制按钮点击事件
+            _adminButton.MouseButton1Click:Connect(function()
+                local adminPanel = require(script.Parent:WaitForChild('AdminPanelUI'))
+                adminPanel:Init()
+            end)
+        end
     end)
 
     local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
@@ -196,30 +200,4 @@ Knit:OnStart():andThen(function()
         _startBoatButton.Visible = not data.explore
         _stopBoatButton.Visible = data.explore
     end)
-
-    local function RefreshUI()
-        -- 刷新UI元素
-        local boat = workspace:FindFirstChild("PlayerBoat_" .. Players.LocalPlayer.UserId)
-        if boat then
-            _startBoatButton.Visible = false
-            _stopBoatButton.Visible = true
-        else
-            _startBoatButton.Visible = true
-            _stopBoatButton.Visible = false
-        end
-        _lootButton.Visible = true
-        _lootPopup.Visible = false
-
-        local gold = Players.LocalPlayer:GetAttribute('Gold') or 0
-        _goldLabel.Text = "黄金: " .. gold
-    end
-
-    -- 处理初始角色
-    if Players.LocalPlayer.Character then
-        RefreshUI()
-    else
-        Players.LocalPlayer.CharacterAdded:Connect(function(character)
-            RefreshUI()
-        end)
-    end
 end):catch(warn)

@@ -9,6 +9,7 @@ print('InventoryUI.lua loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 local localPlayer = Players.LocalPlayer
 
 local _inventoryItems = {}
@@ -83,14 +84,14 @@ local function UpdateInventoryUI()
     -- 遍历物品数据创建新槽位
     for itemId, itemData in pairs(_inventoryItems) do
         -- 数据校验：确保必需字段存在
-        if type(itemData) ~= 'table' or not itemData.icon or not itemData.num then
+        if type(itemData) ~= 'table' or not itemData.num or not ItemConfig[itemData.itemName] or not ItemConfig[itemData.itemName].icon then
             warn("无效的物品数据:", itemId, itemData)
             continue
         end
         -- 克隆物品模板并初始化
         local newItem = _itemTemplate:Clone()
         newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
-        newItem.Image = itemData.icon
+        newItem.Image = ItemConfig[itemData.itemName].icon
         newItem.Visible = true
 
         -- 数量文本
@@ -148,6 +149,10 @@ Knit:OnStart():andThen(function()
         Knit.GetController('TipController').Tip:Fire('您失去了: '.. itemData.itemName)
         RemoveItemToInventory(itemData)
     end)
+    InventoryService.InitInventory:Connect(function(inventoryData)
+        _inventoryItems = inventoryData
+        UpdateInventoryUI()
+    end)
 
     Knit.GetService('BoatAssemblingService').UpdateInventory:Connect(function(modelName)
         for _, item in pairs(_inventoryItems) do
@@ -158,21 +163,10 @@ Knit:OnStart():andThen(function()
         UpdateInventoryUI()
     end)
 
-    local function RefreshUI()
-        -- 刷新UI元素
-        _inventoryFrame.Visible = true
-        InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
-            _inventoryItems = inventoryData
-            UpdateInventoryUI()
-        end)
-    end
-    
-    -- 处理初始角色
-    if Players.LocalPlayer.Character then
-        RefreshUI()
-    else
-        Players.LocalPlayer.CharacterAdded:Connect(function(character)
-            RefreshUI()
-        end)
-    end
+    -- 刷新UI元素
+    _inventoryFrame.Visible = true
+    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
+        _inventoryItems = inventoryData
+        UpdateInventoryUI()
+    end)
 end):catch(warn)

@@ -7,6 +7,7 @@ local InventoryService = Knit.CreateService({
     Client = {
         AddItem = Knit.CreateSignal(),
         RemoveItem = Knit.CreateSignal(),
+        InitInventory = Knit.CreateSignal(),
     },
     playersInventory = {},
 })
@@ -18,6 +19,7 @@ function InventoryService:InitPlayerInventory(player, inventoryStore)
         self.playersInventory[userId] = {}
     end
 
+    print('InitPlayerInventory', userId, inventoryStore)
     for itemName, itemData in pairs(inventoryStore) do
         self.playersInventory[userId][itemName] = itemData
     end
@@ -27,6 +29,7 @@ function InventoryService:InitPlayerInventory(player, inventoryStore)
     --         self.playersInventory[userId][itemName] = itemData
     --     end
     -- end
+    self.Client.InitInventory:Fire(player, self.playersInventory[userId])
 end
 
 function InventoryService:AddItemToInventory(player, itemName, modelName)
@@ -39,11 +42,14 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         itemName = itemName,
         modelName = modelName,
         num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
-        icon = "rbxassetid://12345678",
         isUsed = 0
     }
     
-    Knit.GetService('DBService'):Set(userId, "PlayerInventory", self.playersInventory[userId])
+    local data = {}
+    for i, v in pairs(self.playersInventory[userId]) do
+        data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
+    end
+    Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
     self.Client.AddItem:Fire(player, self.playersInventory[userId][itemName])
     
     return true
@@ -61,7 +67,11 @@ function InventoryService:RemoveItemFromInventory(player, itemName)
             self.playersInventory[userId][itemName] = nil
         end
         
-        Knit.GetService('DBService'):Set(userId, "PlayerInventory", self.playersInventory[userId])
+        local data = {}
+        for i, v in pairs(self.playersInventory[userId]) do
+            data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
+        end
+        Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
         self.Client.RemoveItem:Fire(player, self.playersInventory[userId][itemName])
     end
 end

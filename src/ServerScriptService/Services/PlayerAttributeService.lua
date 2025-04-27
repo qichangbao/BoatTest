@@ -2,6 +2,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
+local AdminUserIds = {
+	4803414780,
+	7689724124,
+}
+
 local PlayerAttributeService = Knit.CreateService({
     Name = 'PlayerAttributeService',
     Client = {
@@ -9,6 +14,15 @@ local PlayerAttributeService = Knit.CreateService({
         ChangeGold = Knit.CreateSignal(),
     },
 })
+
+function PlayerAttributeService.Client:IsAdmin(player)
+	for i, v in ipairs(AdminUserIds) do
+		if v == player.UserId then
+			return true
+		end
+	end
+	return false
+end
 
 function PlayerAttributeService:GetPlayerHealth(player)
     if player.Humanoid then
@@ -51,6 +65,7 @@ function PlayerAttributeService:KnitInit()
     local function playerAdded(player)
         -- 初始化重生点
         player.RespawnLocation = game.Workspace.LandSpawnLocation
+
         player.CharacterAdded:Connect(function(character)
             local boat = Knit.GetService('BoatAttributeService'):GetPlayerBoat(player)
             if boat then

@@ -1,7 +1,5 @@
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("ProfileService"):WaitForChild("ProfileService"))
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
@@ -13,16 +11,16 @@ local dataTemplate = {
 local DBService = Knit.CreateService({
     Name = 'DBService',
     Client = {
-        AdminRequest = Knit.CreateSignal()
     },
 })
 
-function DBService.Client:AdminRequest(player, action, ...)
-    if RunService:IsStudio() then
-        return self.Server:ProcessAdminRequest(player, action, ...)
+function DBService.Client:AdminRequest(player, action, userId, ...)
+	local PlayerAttributeService = Knit.GetService("PlayerAttributeService")
+    if PlayerAttributeService:IsAdmin(userId) then
+        return self.Server:ProcessAdminRequest(player, action, userId, ...)
     end
 
-	return "非Studio环境，无法执行该操作"
+	return "不是管理员，无法执行该操作"
 end
 
 function DBService:ProcessAdminRequest(player, action, userId, ...)
@@ -36,10 +34,11 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 	
 	if action == "GetData" then
 		local data = {}
+		local statu = 0
 		for i, v in pairs(dataTemplate) do
-			data[i] = self:GetToAllStore(userId, i)
+			data[i], statu = self:GetToAllStore(userId, i)
 		end
-		return data
+		return data, statu
 	elseif action == "SetData" then
 		if self:SetToAllStore(userId, ...) then
 			return "数据更新成功"
@@ -94,7 +93,7 @@ end
 
 function DBService:InitDataFromUserId(userId)
 	if Profiles[userId] then
-		return
+		return 1
 	end
 
 	local profileKey = "Player_"..userId
@@ -109,6 +108,7 @@ function DBService:InitDataFromUserId(userId)
 
 		Profiles[userId] = profile
 	end
+	return 0
 end
 
 local function getProfile(userId)
@@ -117,8 +117,8 @@ end
 
 -- getter/setter methods
 function DBService:GetToAllStore(userId, key)
-	self:InitDataFromUserId(userId)
-	return self:Get(userId, key)
+	local statu = self:InitDataFromUserId(userId)
+	return self:Get(userId, key), statu
 end
 
 function DBService:SetToAllStore(userId, key, value)
