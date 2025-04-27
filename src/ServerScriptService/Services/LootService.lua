@@ -23,7 +23,7 @@ local function getRandomParts(player, price)
     local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
     if not boatTemplate then return {} end
 
-    local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
     local rewardCount = REWARD_COUNT[price] or 1
     local availableParts = {}
     local InventoryService = Knit.GetService("InventoryService")

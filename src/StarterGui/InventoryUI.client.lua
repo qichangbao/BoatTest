@@ -56,7 +56,7 @@ local function UpdateInventoryUI()
     if boat then
         local modelName = boat:GetAttribute('ModelName')
         for _, itemData in pairs(_inventoryItems) do
-            if itemData.modelName == modelName and itemData.isUsed == 1 then
+            if itemData.modelName == modelName and itemData.isUsed == 0 then
                 isShowAddButton = true
                 break
             end
@@ -84,14 +84,15 @@ local function UpdateInventoryUI()
     -- 遍历物品数据创建新槽位
     for itemId, itemData in pairs(_inventoryItems) do
         -- 数据校验：确保必需字段存在
-        if type(itemData) ~= 'table' or not itemData.num or not ItemConfig[itemData.itemName] or not ItemConfig[itemData.itemName].icon then
+        local itemConfig = ItemConfig.GetItemConfig(itemData.itemName)
+        if type(itemData) ~= 'table' or not itemData.num or not itemConfig or not itemConfig.icon then
             warn("无效的物品数据:", itemId, itemData)
             continue
         end
         -- 克隆物品模板并初始化
         local newItem = _itemTemplate:Clone()
         newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
-        newItem.Image = ItemConfig[itemData.itemName].icon
+        newItem.Image = itemConfig.icon
         newItem.Visible = true
 
         -- 数量文本

@@ -1,4 +1,4 @@
-return {
+local BoatConfig = {
     ["船"] = {
         ["Polysurface351"] = {isPrimaryPart = true, HP = 100, speed = 10},
         ["Polysurface11"] = {HP = 10, speed = 10},
@@ -37,3 +37,9 @@ return {
         ["对象023"] = {HP = 10, speed = 10},
     }
 }
+
+function BoatConfig.GetBoatConfig(boatName)
+    return BoatConfig[boatName]
+end
+
+return BoatConfig

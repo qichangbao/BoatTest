@@ -45,7 +45,7 @@ function BoatAssemblingService:CreateBoat(player)
         return '没有在ServerStorage找到船模板'
     end
 
-    local curBoatConfig = BoatConfig[BOAT_PARTS_FOLDER_NAME]
+    local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
     local primaryPartName = ''
     for name, data in pairs(curBoatConfig) do
         if data.isPrimaryPart then
@@ -303,7 +303,7 @@ function BoatAssemblingService:AttachPartToBoat(boat, partType)
         return '找不到部件模板'
     end
     
-    local curBoatConfig = BoatConfig[modelName]
+    local curBoatConfig = BoatConfig.GetBoatConfig(modelName)
     local primaryPartName = ''
     for name, data in pairs(curBoatConfig) do
         if data.isPrimaryPart then
@@ -338,7 +338,7 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
     if not player or not player.Character or not player.Character.Humanoid then
         return '添加部件失败，玩家不存在'
     end
-    local curBoatConfig = BoatConfig[boat:GetAttribute('ModelName')]
+    local curBoatConfig = BoatConfig.GetBoatConfig(boat:GetAttribute('ModelName'))
     local boatHP = boat:GetAttribute('Health')
     local boatMaxHP = boat:GetAttribute('MaxHealth')
     local boatSpeed = boat:GetAttribute('Speed')

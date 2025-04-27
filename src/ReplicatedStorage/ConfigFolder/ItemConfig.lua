@@ -1,4 +1,4 @@
-return {
+local ItemConfig = {
     ["Polysurface351"] = {icon = "rbxassetid://12345678"},
     ["Polysurface11"] = {icon = "rbxassetid://12345678"},
     ["Polysurface121"] = {icon = "rbxassetid://12345678"},
@@ -35,3 +35,9 @@ return {
     ["对象022"] = {icon = "rbxassetid://12345678"},
     ["对象023"] = {icon = "rbxassetid://12345678"},
 }
+
+function ItemConfig.GetItemConfig(itemName)
+    return ItemConfig[itemName]
+end
+
+return ItemConfig
