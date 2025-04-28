@@ -16,6 +16,7 @@ function AttackState:Enter()
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")
+            self.AIManager:SetState("Dead")
             return
         end
 

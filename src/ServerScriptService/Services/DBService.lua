@@ -16,7 +16,7 @@ local DBService = Knit.CreateService({
 
 function DBService.Client:AdminRequest(player, action, userId, ...)
 	local PlayerAttributeService = Knit.GetService("PlayerAttributeService")
-    if PlayerAttributeService:IsAdmin(userId) then
+    if PlayerAttributeService.Client:IsAdmin(player) then
         return self.Server:ProcessAdminRequest(player, action, userId, ...)
     end
 

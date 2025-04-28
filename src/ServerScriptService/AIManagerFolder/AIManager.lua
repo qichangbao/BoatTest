@@ -4,12 +4,9 @@ local MonsterConfig = require(script.Parent:WaitForChild("MonsterConfig"))
 
 local AIManager = {}
 AIManager.__index = AIManager
-_G._count = 0
 
 function AIManager.new(name, position)
     local self = setmetatable({}, AIManager)
-    _G._count = _G._count + 1
-    self.count = _G._count
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:WaitForChild(name):Clone()

@@ -7,6 +7,7 @@ print('BoatAttributeUI.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 
 local screenGui = Instance.new('ScreenGui')
 screenGui.Name = 'BoatAttributeUI'
@@ -71,8 +72,8 @@ local function createLabel(text, parent)
     return label
 end
 
-createLabel('生命值:', healthBar)
-createLabel('速度:', speedBar)
+createLabel(LanguageConfig:Get(10013), healthBar)
+createLabel(LanguageConfig:Get(10014), speedBar)
 
 healthBar.Parent = container
 speedBar.Parent = container

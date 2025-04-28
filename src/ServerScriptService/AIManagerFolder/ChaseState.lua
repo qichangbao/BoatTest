@@ -28,7 +28,6 @@ function ChaseState:Enter()
 
         local target = self.AIManager.target
         if not target then
-            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -49,7 +48,6 @@ function ChaseState:Enter()
 
         if not targetPosition then
             self.AIManager.target = nil
-            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -65,7 +63,6 @@ function ChaseState:Enter()
         raycastParams.FilterDescendantsInstances = {self.AIManager.NPC}
         local ray = workspace:Raycast(currentPos, (newPos - currentPos) * 20, raycastParams)
         if ray then
-            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -85,6 +82,7 @@ function ChaseState:FindNearestModel()
     local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
     if not HumanoidRootPart then
         print("HumanoidRootPart not found")
+        self.AIManager:SetState("Dead")
         return
     end
     local npcPos = HumanoidRootPart.CFrame.Position
@@ -135,7 +133,6 @@ function ChaseState:CheckDistance()
     if modelType == "Boat" then
         if target:GetAttribute("Destroying") then
             self.AIManager.target = nil
-            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         else
@@ -148,7 +145,6 @@ function ChaseState:CheckDistance()
             distanceToPlayer = (targetHumanoidRootPart.CFrame.Position - currentPos).Magnitude
         else
             self.AIManager.target = nil
-            print('111111    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -165,7 +161,6 @@ function ChaseState:CheckDistance()
         return
     elseif distanceToPlayer > visionRange then
         self.AIManager.target = nil
-        print('111111    ', self.AIManager.count)
         self.AIManager:SetState("Idle")
         return
     end

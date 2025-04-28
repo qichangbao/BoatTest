@@ -9,7 +9,7 @@ print('InventoryUI.lua loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local localPlayer = Players.LocalPlayer
 
 local _inventoryItems = {}
@@ -84,15 +84,14 @@ local function UpdateInventoryUI()
     -- 遍历物品数据创建新槽位
     for itemId, itemData in pairs(_inventoryItems) do
         -- 数据校验：确保必需字段存在
-        local itemConfig = ItemConfig.GetItemConfig(itemData.itemName)
-        if type(itemData) ~= 'table' or not itemData.num or not itemConfig or not itemConfig.icon then
+        if type(itemData) ~= 'table' or not itemData.num or not itemData.icon then
             warn("无效的物品数据:", itemId, itemData)
             continue
         end
         -- 克隆物品模板并初始化
         local newItem = _itemTemplate:Clone()
         newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
-        newItem.Image = itemConfig.icon
+        newItem.Image = itemData.icon
         newItem.Visible = true
 
         -- 数量文本
@@ -105,6 +104,21 @@ local function UpdateInventoryUI()
         text.Parent = newItem
 
         newItem.Parent = _inventoryFrame
+
+        -- 添加点击事件处理
+        newItem.MouseButton1Click:Connect(function()
+            Knit.GetController('UIController').ShowMessageBox:Fire({
+                Title = LanguageConfig:Get(10009),
+                Content = string.format(LanguageConfig:Get(10010), itemData.sellPrice),
+                OnConfirm = function()
+                    if itemData.isUsed == 1 then
+                        Knit.GetController('UIController').ShowTip:Fire(LanguageConfig:Get(10023))
+                        return
+                    end
+                    Knit.GetService('InventoryService'):SellItem(itemData.modelName, itemData.itemName)
+                end,
+            })
+        end)
     end
 end
 
@@ -119,16 +133,16 @@ local function AddItemToInventory(itemData)
     end
 
     if not isExist then
-        table.insert(_inventoryItems, itemData)
+        _inventoryItems[itemData.itemName] = itemData
     end
     UpdateInventoryUI()
 end
 
-local function RemoveItemToInventory(itemData)
+local function RemoveItemToInventory(modelName, itemName)
     local isExist = false
-    for index, item in pairs(_inventoryItems) do
-        if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
-            table.remove(_inventoryItems, index)
+    for name, item in pairs(_inventoryItems) do
+        if item.itemName == itemName and item.modelName == modelName then
+            _inventoryItems[name] = nil
             isExist = true
             break
         end
@@ -140,17 +154,24 @@ local function RemoveItemToInventory(itemData)
 end
 
 Knit:OnStart():andThen(function()
+    -- 刷新UI元素
+    _inventoryFrame.Visible = true
+
     -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
     local InventoryService = Knit.GetService('InventoryService')
     InventoryService.AddItem:Connect(function(itemData)
-        Knit.GetController('TipController').Tip:Fire('恭喜您获得了: '.. itemData.itemName)
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10011), itemData.itemName))
         AddItemToInventory(itemData)
     end)
-    InventoryService.RemoveItem:Connect(function(itemData)
-        Knit.GetController('TipController').Tip:Fire('您失去了: '.. itemData.itemName)
-        RemoveItemToInventory(itemData)
+    InventoryService.RemoveItem:Connect(function(modelName, itemName)
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10012), itemName))
+        RemoveItemToInventory(modelName, itemName)
     end)
     InventoryService.InitInventory:Connect(function(inventoryData)
+        _inventoryItems = inventoryData
+        UpdateInventoryUI()
+    end)
+    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
         _inventoryItems = inventoryData
         UpdateInventoryUI()
     end)
@@ -161,13 +182,6 @@ Knit:OnStart():andThen(function()
                 item.isUsed = 1
             end
         end
-        UpdateInventoryUI()
-    end)
-
-    -- 刷新UI元素
-    _inventoryFrame.Visible = true
-    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
-        _inventoryItems = inventoryData
         UpdateInventoryUI()
     end)
 end):catch(warn)

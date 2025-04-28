@@ -1,6 +1,7 @@
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local PlayerGui = game.Players.LocalPlayer:WaitForChild('PlayerGui')
 
 local Theme = {
     Primary = Color3.fromRGB(0, 150, 255),
@@ -16,7 +17,7 @@ local Theme = {
     BackgroundColor = Color3.fromRGB(40, 40, 40)
 }
 
-local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, parentPath)
+local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
     -- 清空现有显示内容
     for _, child in ipairs(parent:GetChildren()) do
         if child:IsA('Frame') and (child.Name == 'DataContainerTop' or child.Name == 'DataContainer') then
@@ -91,7 +92,7 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
             local subContainer
             toggleButton.MouseButton1Click:Connect(function()
                 if not subContainer then
-                    subContainer = UpdateDataDisplay(self, entryFrame, userIdInputText, value, depth + 1, currentPath)
+                    subContainer = UpdateDataDisplay(entryFrame, userIdInputText, value, depth + 1, currentPath)
                     subContainer.Position = UDim2.new(0, 0, 0, 30)
                     subContainer.Visible = false
                 end
@@ -189,7 +190,7 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                             keyTest,
                             mergedData
                         ):andThen(function(tip)
-                            Knit.GetController('TipController').Tip:Fire(tip)
+                            Knit.GetController('UIController').ShowTip:Fire(tip)
                         end)
                     end
                 else
@@ -199,7 +200,7 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                         keyTest,
                         mergedData
                     ):andThen(function(tip)
-                        Knit.GetController('TipController').Tip:Fire(tip)
+                        Knit.GetController('UIController').ShowTip:Fire(tip)
                     end)
                 end
             end)
@@ -246,12 +247,13 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                             keyTest,
                             mergedData
                         ):andThen(function(tip)
-                            Knit.GetController('TipController').Tip:Fire(tip)
+                            Knit.GetController('UIController').ShowTip:Fire(tip)
                             -- 删除成功后重新获取数据
                             Knit.GetService("DBService"):AdminRequest("GetData",
                                 userIdInputText
                             ):andThen(function(newData)
-                                UpdateDataDisplay(self, self.scrollFrame, userIdInputText, newData)
+                                local scrollFrame = PlayerGui:FindFirstChild('AdminPanelUI'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
+                                UpdateDataDisplay(scrollFrame, userIdInputText, newData)
                             end)
                         end)
                     end
@@ -262,12 +264,13 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
                         keyTest,
                         mergedData
                     ):andThen(function(tip)
-                        Knit.GetController('TipController').Tip:Fire(tip)
+                        Knit.GetController('UIController').ShowTip:Fire(tip)
                         -- 删除成功后重新获取数据
                         Knit.GetService("DBService"):AdminRequest("GetData",
                             userIdInputText
                         ):andThen(function(newData)
-                            UpdateDataDisplay(self, self.scrollFrame, userIdInputText, newData)
+                            local scrollFrame = PlayerGui:FindFirstChild('AdminPanelUI'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
+                            UpdateDataDisplay(scrollFrame, userIdInputText, newData)
                         end)
                     end)
                 end
@@ -279,13 +282,13 @@ local function UpdateDataDisplay(self, parent, userIdInputText, data, depth, par
     return container
 end
 
-local AdminPanelUI = {}
-function AdminPanelUI:Init()
+local function Show()
     local screenGui = Instance.new('ScreenGui')
     screenGui.Name = 'AdminPanel'
-    screenGui.Parent = game.Players.LocalPlayer:WaitForChild('PlayerGui')
+    screenGui.Parent = PlayerGui
 
     local frame = Instance.new('Frame')
+    frame.Name = 'AdminFrame'
     frame.Size = UDim2.new(0.8, 0, 0.9, 0)
     frame.AnchorPoint = Vector2.new(0.5, 0.5)
     frame.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -326,17 +329,18 @@ function AdminPanelUI:Init()
     end)
 
     -- 调整滚动框架位置和尺寸
-    self.scrollFrame = Instance.new('ScrollingFrame')
-    self.scrollFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
-    self.scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
-    self.scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
-    self.scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    self.scrollFrame.ScrollBarThickness = 8
-    self.scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-    self.scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
-    self.scrollFrame.BackgroundTransparency = 0.2
-    self.scrollFrame.Parent = frame
+    local scrollFrame = Instance.new('ScrollingFrame')
+    scrollFrame.Name = 'AdminScrollFrame'
+    scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+    scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
+    scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
+    scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
+    scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scrollFrame.ScrollBarThickness = 8
+    scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
+    scrollFrame.BackgroundTransparency = 0.2
+    scrollFrame.Parent = frame
 
     local userIdBox = Instance.new('TextBox')
     userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
@@ -364,14 +368,16 @@ function AdminPanelUI:Init()
         -- 初始化远程事件监听
         Knit.GetService("DBService"):AdminRequest("GetData", tonumber(userIdBox.Text)):andThen(function(data)
             if type(data) == "table" then
-                UpdateDataDisplay(self, self.scrollFrame, tonumber(userIdBox.Text), data)
+                UpdateDataDisplay(scrollFrame, tonumber(userIdBox.Text), data)
                 return
             elseif type(data) == "string" then
-                Knit.GetController('TipController').Tip:Fire(data)
+                Knit.GetController('UIController').ShowTip:Fire(data)
                 return
             end
         end)
     end)
 end
 
-return AdminPanelUI
+Knit:OnStart():andThen(function()
+    Knit.GetController('UIController').ShowAdminUI:Connect(Show)
+end)

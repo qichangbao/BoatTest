@@ -15,6 +15,77 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 
 local _lastPlayerChunk = nil
 local _chunkSize = GameConfig.TerrainType.Water.ChunkSize
+local _depth = GameConfig.TerrainType.Water.Depth
+local _loadDistance = GameConfig.TerrainType.Water.LoadDistance
+local _floors = {}
+local _activeChunks = {}
+local Floors = workspace:FindFirstChild("Floors")
+if not Floors then
+    Floors = Instance.new("Folder")
+    Floors.Name = "Floors"
+    Floors.Parent = workspace
+end
+
+local function GetFloor()
+    local part
+    if #_floors == 0 then
+        part = Instance.new("Part")
+        part.Size = Vector3.new(_chunkSize, 1, _chunkSize)
+        part.Anchored = true
+        part.CanCollide = true
+        part.CanQuery = true
+        part.CastShadow = false
+        part.Material = Enum.Material.Neon
+        part.Transparency = 0
+        part.Color = Color3.fromRGB(51, 40, 40)
+    else
+        part = _floors[#_floors]
+        table.remove(_floors)
+    end
+    return part
+end
+
+local function FillFloor(currentChunk, coordStr)
+    local part = GetFloor()
+    part.Name = coordStr
+    part.Position = Vector3.new(
+        currentChunk.X * _chunkSize,
+        -_depth,
+        currentChunk.Z * _chunkSize
+    )
+    part.Parent = Floors
+end
+
+local function RemoveFloor(coordStr)
+    local part = Floors:FindFirstChild(coordStr)
+    if part then
+        part.Parent = nil
+        table.insert(_floors, part)
+    end
+end
+
+local function UpdateFloors(currentChunk)
+    local newChunks = {}
+    for x = -_loadDistance, _loadDistance do
+        for z = -_loadDistance, _loadDistance do
+            local coord = Vector3.new(currentChunk.X + x, 0, currentChunk.Z + z)
+            local coordStr = tostring(currentChunk.X + x)..":"..tostring(currentChunk.Z + z)
+            newChunks[coordStr] = true
+            
+            if not _activeChunks[coordStr] then
+                FillFloor(coord, coordStr)
+                _activeChunks[coordStr] = true
+            end
+        end
+    end
+
+    for coordStr in pairs(_activeChunks) do
+        if not newChunks[coordStr] then
+            RemoveFloor(coordStr)
+            _activeChunks[coordStr] = nil
+        end
+    end
+end
 
 local function UpdateChunks(position)
     local currentChunk = Vector3.new(
@@ -27,6 +98,8 @@ local function UpdateChunks(position)
     end
 
     _lastPlayerChunk = currentChunk
+    UpdateFloors(currentChunk)
+
     local TerrainGenerationService = Knit.GetService('TerrainGenerationService')
     TerrainGenerationService:ChangeChunk(currentChunk):andThen(function()
     end)

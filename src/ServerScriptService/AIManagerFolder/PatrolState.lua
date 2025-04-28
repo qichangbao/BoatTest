@@ -37,13 +37,13 @@ function PatrolState:Enter()
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")
+            self.AIManager:SetState("Dead")
             return
         end
         
         local currentPos = HumanoidRootPart.CFrame.Position
         -- 检测是否到达目标点
         if (currentPos - targetPosition).Magnitude < 1 then
-            print('33333    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end
@@ -59,7 +59,6 @@ function PatrolState:Enter()
         raycastParams.FilterDescendantsInstances = {self.AIManager.NPC}
         local ray = workspace:Raycast(currentPos, (newPos - currentPos) * 20, raycastParams)
         if ray then
-            print('33333    ', self.AIManager.count)
             self.AIManager:SetState("Idle")
             return
         end

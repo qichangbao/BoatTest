@@ -24,7 +24,7 @@ function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
 
     local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if not boat then
-        print("船只 "..boat.Name.." 不存在")
+        warn("船只 "..boat.Name.." 不存在")
         return
     end
     -- 使用船头方向作为前进方向

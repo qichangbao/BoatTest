@@ -1,6 +1,8 @@
 print('InventoryService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local ItemConfig = require(ServerScriptService:WaitForChild('ConfigFolder'):WaitForChild('ItemConfig'))
 
 local InventoryService = Knit.CreateService({
     Name = 'InventoryService',
@@ -21,6 +23,9 @@ function InventoryService:InitPlayerInventory(player, inventoryStore)
 
     print('InitPlayerInventory', userId, inventoryStore)
     for itemName, itemData in pairs(inventoryStore) do
+        itemData.isUsed = 0
+        itemData.icon = ItemConfig[itemName].icon
+        itemData.sellPrice = ItemConfig[itemName].sellPrice
         self.playersInventory[userId][itemName] = itemData
     end
     -- if inventoryStore and string.len(inventoryStore) > 0 then
@@ -42,6 +47,8 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         itemName = itemName,
         modelName = modelName,
         num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
+        icon = ItemConfig[itemName].icon,
+        sellPrice = ItemConfig[itemName].sellPrice,
         isUsed = 0
     }
     
@@ -55,13 +62,14 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
     return true
 end
 
-function InventoryService:RemoveItemFromInventory(player, itemName)
+function InventoryService:RemoveItemFromInventory(player, modelName, itemName)
     local userId = player.UserId
     if not self.playersInventory[userId] then
         self.playersInventory[userId] = {}
     end
 
-    if self.playersInventory[userId][itemName] then
+    if self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].modelName == modelName 
+    and self.playersInventory[userId][itemName].isUsed == 0 then
         self.playersInventory[userId][itemName].num = math.max(0, self.playersInventory[userId][itemName].num - 1)
         if self.playersInventory[userId][itemName].num == 0 then
             self.playersInventory[userId][itemName] = nil
@@ -72,8 +80,10 @@ function InventoryService:RemoveItemFromInventory(player, itemName)
             data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
         end
         Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
-        self.Client.RemoveItem:Fire(player, self.playersInventory[userId][itemName])
+        self.Client.RemoveItem:Fire(player, modelName, itemName)
+        return true
     end
+    return false
 end
 
 function InventoryService:CheckExists(player, itemName)
@@ -135,6 +145,15 @@ function InventoryService:GetUnusedParts(player, modelName)
         end
     end
     return unused
+end
+
+function InventoryService.Client:SellItem(player, modelName, itemName)
+    if self.Server:RemoveItemFromInventory(player, modelName, itemName) then
+        local itemConfig = ItemConfig[itemName]
+        if itemConfig then
+            player:SetAttribute('Gold', player:GetAttribute('Gold') + itemConfig.sellPrice)
+        end
+    end
 end
 
 function InventoryService.Client:GetInventory(player)

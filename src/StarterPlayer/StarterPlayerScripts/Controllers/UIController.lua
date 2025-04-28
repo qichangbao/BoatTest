@@ -5,7 +5,10 @@ local Signal = require(ReplicatedStorage.Packages.Knit.Signal)
 
 local UIController = Knit.CreateController {
     Name = "UIController",
-    ShowAddBoatPartButton = Signal.new()
+    ShowAddBoatPartButton = Signal.new(),
+    ShowMessageBox = Signal.new(),
+    ShowTip = Signal.new(),
+    ShowAdminUI = Signal.new(),
 }
 
 function UIController:KnitInit()

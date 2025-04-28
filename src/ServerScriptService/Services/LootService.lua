@@ -1,8 +1,11 @@
 print('LootService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService('ServerStorage')
+local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local BoatConfig = require(ServerScriptService:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 
 local LootService = Knit.CreateService({
     Name = 'LootService',
@@ -12,19 +15,15 @@ local LootService = Knit.CreateService({
 
 -- 配件生成配置
 local BOAT_PARTS_FOLDER_NAME = '船'
-local REWARD_COUNT = {
-    [5] = 1,
-    [15] = 2,
-    [50] = 3,
-    [100] = 4
-}
+local LOOT_COOLDOWN = 3.6
+local _playerCoolDown = {}
 
-local function getRandomParts(player, price)
+local function getRandomParts(player)
     local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
     if not boatTemplate then return {} end
 
     local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
-    local rewardCount = REWARD_COUNT[price] or 1
+    local rewardCount = 1
     local availableParts = {}
     local InventoryService = Knit.GetService("InventoryService")
     
@@ -64,30 +63,46 @@ local function getRandomParts(player, price)
     return availableParts
 end
 
-function LootService.Client:Loot(player, price)
+function LootService.Client:Loot(player)
     -- 获取玩家数据组件
-    local gold = player:GetAttribute('Gold')
-    if not gold or gold < price then
-        return "黄金不够"
+    if _playerCoolDown[player.UserId] > 0 then
+        return 10015
     end
-    
-    -- 扣除黄金
-    gold -= price
-    player:SetAttribute('Gold', gold)
+    _playerCoolDown[player.UserId] = LOOT_COOLDOWN
     
     -- 获取随机配件
-    local parts = getRandomParts(player, price)
+    local parts = getRandomParts(player)
     local InventoryService = Knit.GetService("InventoryService")
     for _, name in ipairs(parts) do
         -- 调用背包管理器添加物品
         InventoryService:Inventory(player, 'AddItem', name, BOAT_PARTS_FOLDER_NAME)
     end
 
-    return "黄金扣除成功"
+    return
 end
 
 function LootService:KnitInit()
     print('LootService initialized')
+    RunService.Heartbeat:Connect(function(dt)
+        for userId, cooldown in pairs(_playerCoolDown) do
+            local player = Players:GetPlayerByUserId(userId)
+            if player then
+                if cooldown > 0 then
+                    _playerCoolDown[userId] = cooldown - dt
+                else
+                    _playerCoolDown[userId] = 0
+                end
+            else
+                _playerCoolDown[userId] = nil
+            end
+        end
+    end)
+    Players.PlayerAdded:Connect(function(player)
+        _playerCoolDown[player.UserId] = LOOT_COOLDOWN
+    end)
+    Players.PlayerRemoving:Connect(function(player)
+        _playerCoolDown[player.UserId] = nil
+    end)
 end
 
 function LootService:KnitStart()

@@ -1,11 +1,12 @@
 print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService('ServerStorage')
 local CollectionService = game:GetService("CollectionService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
-local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local BoatConfig = require(ServerScriptService:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
 local BoatAssemblingService = Knit.CreateService({
@@ -19,7 +20,7 @@ local BoatAssemblingService = Knit.CreateService({
 
 function BoatAssemblingService:CreateBoat(player)
     if not player or not player.Character or not player.Character.Humanoid then
-        return '创建船失败，玩家不存在'
+        return
     end
 
     local InventoryService = Knit.GetService("InventoryService")
@@ -35,14 +36,14 @@ function BoatAssemblingService:CreateBoat(player)
     end
 
     if #boatParts == 0 then
-        return "玩家没有可用的船部件"
+        return
     end
 
     -- 确保ServerStorage中存在船舶模板
     local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
     -- 校验服务器预置的船只模板是否存在
     if not boatTemplate then
-        return '没有在ServerStorage找到船模板'
+        return
     end
 
     local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
@@ -54,7 +55,38 @@ function BoatAssemblingService:CreateBoat(player)
         end
     end
     if primaryPartName == '' then
-        return '找不到主船体部件'
+        return
+    end
+
+    -- 先收集所有部件偏移量
+    local templatePrimaryPart = boatTemplate:FindFirstChild(primaryPartName)
+    local partOffsets = {}
+    for _, partInfo in ipairs(boatParts) do
+        for _, templatePart in ipairs(boatTemplate:GetChildren()) do
+            if templatePart:IsA('MeshPart') and partInfo.Name == templatePart.Name then
+                -- 记录部件相对于模板主船体的偏移
+                local offsetCFrame = templatePrimaryPart.CFrame:ToObjectSpace(templatePart.CFrame)
+                partOffsets[partInfo.Name] = offsetCFrame
+                break
+            end
+        end
+    end
+    
+    local primaryPart = nil
+    local boatHP = 0
+    local boatSpeed = 0
+    -- 创建主船体
+    for _, partInfo in ipairs(boatParts) do
+        if partInfo.Name == primaryPartName then
+            primaryPart = boatTemplate:FindFirstChild(partInfo.Name):Clone()
+            boatHP += curBoatConfig[partInfo.Name].HP
+            boatSpeed += curBoatConfig[partInfo.Name].speed
+            break
+        end
+    end
+
+    if not primaryPart then
+        return
     end
 
     -- 克隆模板并定位部件
@@ -67,6 +99,10 @@ function BoatAssemblingService:CreateBoat(player)
     boat:SetAttribute('ModelType', 'Boat')
     boat:SetAttribute('Destroying', false)
     CollectionService:AddTag(boat, "Boat")
+
+    primaryPart.CFrame = templatePrimaryPart.CFrame
+    primaryPart.Parent = boat
+    boat.PrimaryPart = primaryPart
 
     -- 监听船的销毁事件
     boat.Destroying:Connect(function()
@@ -86,7 +122,6 @@ function BoatAssemblingService:CreateBoat(player)
         Knit.GetService('BoatAttributeService'):ChangeBoatHealth(player, health, maxHealth)
         
         if health <= 0 then
-            print('船被销毁')
             self:DestroyBoat(player)
             return
         end
@@ -97,37 +132,6 @@ function BoatAssemblingService:CreateBoat(player)
         local maxSpeed = boat:GetAttribute('MaxSpeed')
         Knit.GetService('BoatAttributeService'):ChangeBoatSpeed(player, speed, maxSpeed)
     end)
-    
-    local primaryPart = nil
-    -- 先收集所有部件偏移量
-    local templatePrimaryPart = boatTemplate:FindFirstChild(primaryPartName)
-    local partOffsets = {}
-    
-    for _, partInfo in ipairs(boatParts) do
-        for _, templatePart in ipairs(boatTemplate:GetChildren()) do
-            if templatePart:IsA('MeshPart') and partInfo.Name == templatePart.Name then
-                -- 记录部件相对于模板主船体的偏移
-                local offsetCFrame = templatePrimaryPart.CFrame:ToObjectSpace(templatePart.CFrame)
-                partOffsets[partInfo.Name] = offsetCFrame
-                break
-            end
-        end
-    end
-
-    local boatHP = 0
-    local boatSpeed = 0
-    -- 创建主船体
-    for _, partInfo in ipairs(boatParts) do
-        if partInfo.Name == primaryPartName then
-            primaryPart = boatTemplate:FindFirstChild(partInfo.Name):Clone()
-            primaryPart.CFrame = templatePrimaryPart.CFrame
-            primaryPart.Parent = boat
-            boat.PrimaryPart = primaryPart
-            boatHP += curBoatConfig[partInfo.Name].HP
-            boatSpeed += curBoatConfig[partInfo.Name].speed
-            break
-        end
-    end
 
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
@@ -268,12 +272,12 @@ end
 function BoatAssemblingService.Client:AssembleBoat(player)
     local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if boat then
-        return "船已存在"
+        return 10020
     end
 
     boat = self.Server:CreateBoat(player)
     if not boat or not boat.primaryPart then
-        return "玩家没有可用的船主部件"
+        return 10021
     end
 
     self.Server:CreateVehicleSeat(boat)
@@ -288,19 +292,21 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     self.UpdateMainUI:Fire(player, {explore = true})
     self.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
 
-    return "船组装成功"
+    return 10022
 end
 
 function BoatAssemblingService:AttachPartToBoat(boat, partType)
     if not boat or not boat.PrimaryPart then
-        return '无效的船只模型'
+        print('无效的船只模型')
+        return
     end
     
     local modelName = boat:GetAttribute('ModelName')
     local boatTemplate = ServerStorage:FindFirstChild(modelName)
     local templatePart = boatTemplate:FindFirstChild(partType)
     if not templatePart then
-        return '找不到部件模板'
+        print('找不到部件模板')
+        return
     end
     
     local curBoatConfig = BoatConfig.GetBoatConfig(modelName)
@@ -312,7 +318,8 @@ function BoatAssemblingService:AttachPartToBoat(boat, partType)
         end
     end
     if primaryPartName == '' then
-        return '找不到主船体部件'
+        print('找不到主船体部件')
+        return
     end
     local templatePrimaryPart = boatTemplate:FindFirstChild(primaryPartName)
     -- 计算模板部件相对主船体的偏移
@@ -332,11 +339,11 @@ end
 function BoatAssemblingService:AddUnusedPartsToBoat(player)
     local boat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not boat then
-        return '添加部件失败，船不存在'
+        return 10017
     end
     
     if not player or not player.Character or not player.Character.Humanoid then
-        return '添加部件失败，玩家不存在'
+        return 10018
     end
     local curBoatConfig = BoatConfig.GetBoatConfig(boat:GetAttribute('ModelName'))
     local boatHP = boat:GetAttribute('Health')
@@ -359,7 +366,7 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
     InventoryService:BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
-    return '部件添加成功'
+    return 10019
 end
 
 -- 执行船只组装核心逻辑
@@ -399,11 +406,13 @@ function BoatAssemblingService.Client:StopBoat(player)
 
     local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not playerBoat then
-        return "船不存在"
+        print("船不存在")
+        return
     end
 
     playerBoat:Destroy()
-    return "船已销毁"
+    print("船已销毁")
+    return
 end
 
 function BoatAssemblingService:KnitInit()
