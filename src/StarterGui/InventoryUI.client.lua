@@ -18,18 +18,21 @@ local _gui = Instance.new("ScreenGui")
 _gui.Name = "InventoryUI"
 _gui.Parent = localPlayer:WaitForChild("PlayerGui")
 
-local _inventoryFrame = Instance.new("Frame")
+local _inventoryFrame = Instance.new("ScrollingFrame")
 _inventoryFrame.Name = "InventoryFrame"
 _inventoryFrame.Size = UDim2.new(0.8, 0, 0.3, 0)
 _inventoryFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
 _inventoryFrame.BackgroundTransparency = 0.7
+_inventoryFrame.ScrollBarThickness = 8
+_inventoryFrame.CanvasSize = UDim2.new(0, 0, 2, 0) -- 可滚动区域高度
+_inventoryFrame.ScrollBarThickness = 8 -- 滚动条宽度
 _inventoryFrame.Parent = _gui
 
 -- 创建物品模板
 -- 创建原生物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.15, 0, 0.8, 0)
+_itemTemplate.Size = UDim2.new(0.15, 0, 0.15, 0)
 _itemTemplate.BackgroundTransparency = 0.5
 _itemTemplate.Visible = false
 
@@ -40,6 +43,7 @@ _countText.Size = UDim2.new(0.3,0,0.3,0)
 _countText.Position = UDim2.new(0.7,0,0.7,0)
 _countText.TextColor3 = Color3.new(1,1,1)
 _countText.Parent = _itemTemplate
+_countText.TextSize = 14 -- 缩小数量文字
 
 --[[
 更新库存UI
@@ -75,12 +79,14 @@ local function UpdateInventoryUI()
     -- 创建UIGridLayout自动排列
     if not _inventoryFrame:FindFirstChild('GridLayout') then
         local gridLayout = Instance.new('UIGridLayout')
-        gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
-        gridLayout.CellSize = UDim2.new(0.15, 0, 0.8, 0)
-        gridLayout.FillDirectionMaxCells = 5
+        gridLayout.CellPadding = UDim2.new(0.02,0,0.02,0)
+        gridLayout.CellSize = UDim2.new(0.15,0,0.15,0)
+        gridLayout.FillDirectionMaxCells = 6
+        gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
         gridLayout.Parent = _inventoryFrame
     end
 
+    local yOffset = 0
     -- 遍历物品数据创建新槽位
     for itemId, itemData in pairs(_inventoryItems) do
         -- 数据校验：确保必需字段存在
@@ -93,6 +99,7 @@ local function UpdateInventoryUI()
         newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
         newItem.Image = itemData.icon
         newItem.Visible = true
+        newItem.Parent = _inventoryFrame
 
         -- 数量文本
         local text = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
@@ -103,23 +110,10 @@ local function UpdateInventoryUI()
         text.TextColor3 = Color3.new(1,1,1)
         text.Parent = newItem
 
-        newItem.Parent = _inventoryFrame
-
-        -- 添加点击事件处理
-        newItem.MouseButton1Click:Connect(function()
-            Knit.GetController('UIController').ShowMessageBox:Fire({
-                Title = LanguageConfig:Get(10009),
-                Content = string.format(LanguageConfig:Get(10010), itemData.sellPrice),
-                OnConfirm = function()
-                    if itemData.isUsed == 1 then
-                        Knit.GetController('UIController').ShowTip:Fire(LanguageConfig:Get(10023))
-                        return
-                    end
-                    Knit.GetService('InventoryService'):SellItem(itemData.modelName, itemData.itemName)
-                end,
-            })
-        end)
+        yOffset += _itemTemplate.Size.Y.Offset
     end
+
+    --_inventoryFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset) -- 可滚动区域高度
 end
 
 local function AddItemToInventory(itemData)

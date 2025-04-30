@@ -44,6 +44,13 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
     local padding = Instance.new('UIPadding')
     padding.PaddingLeft = UDim.new(0, depth * 15)
     padding.Parent = container
+
+    local function FindTopParent(frame)
+        while frame.Parent ~= nil and frame.Parent.Name ~= 'DataContainerTop' do
+            frame = frame.Parent
+        end
+        return frame
+    end
     
     for key, value in pairs(data) do
         local currentPath = table.clone(parentPath)
@@ -113,7 +120,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             local addBtn = Instance.new('TextButton')
             addBtn.Size = UDim2.new(0.1, 0, 0, 30)
             addBtn.AnchorPoint = Vector2.new(1, 0)
-            addBtn.Position = UDim2.new(1, 0, 0, 0)
+            addBtn.Position = UDim2.new(0.9, 0, 0, 0)
             addBtn.Text = "增加"
             addBtn.TextSize = 16
             addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -153,37 +160,28 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             saveBtn.TextColor3 = Theme.TextBottonPrimary
             saveBtn.Parent = entryFrame
 
-            local function FindTopParent(frame)
-                while frame.Parent ~= nil and frame.Parent.Name ~= 'DataContainerTop' do
-                    frame = frame.Parent
-                end
-                return frame
-            end
-
             saveBtn.MouseButton1Click:Connect(function()
                 local topParent = FindTopParent(entryFrame)
                 local sValue = topParent:FindFirstChild('StringValue')
                 local keyTest = sValue:GetAttribute('Key')
                 local mergedData = HttpService:JSONDecode(sValue.Value)
-                print(mergedData)
-                local function findKey(tbl)
+
+                local function findKey(tbl, delKey, parentKey)
                     for k, v in pairs(tbl) do
-                        if type(v) == 'table' then
-                            local result = findKey(v)
+                        if k == label.Text and parentKey == delKey then
+                            tbl[k] = valueBox.Text
+                            return true
+                        elseif type(v) == 'table' then
+                            local result = findKey(v, delKey, k)
                             if result then
                                 return result
-                            end
-                        else
-                            if k == label.Text then
-                                tbl[k] = valueBox.Text
-                                return tbl[k]
                             end
                         end
                     end
                     return nil
                 end
                 if type(mergedData) == 'table' then
-                    local result = findKey(mergedData)
+                    local result = findKey(mergedData, currentPath[depth] or {}, currentPath[1])
                     if result then
                         Knit.GetService("DBService"):AdminRequest("SetData",
                             userIdInputText,
@@ -204,61 +202,48 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                     end)
                 end
             end)
+        end
             
-            -- 添加删除按钮
-            local deleteBtn = Instance.new('TextButton')
-            deleteBtn.Size = UDim2.new(0.1, 0, 0, 30)
-            deleteBtn.AnchorPoint = Vector2.new(1, 0)
-            deleteBtn.Position = UDim2.new(1, 0, 0, 0)
-            deleteBtn.Text = "删除"
-            deleteBtn.TextSize = 16
-            deleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            deleteBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-            deleteBtn.Parent = entryFrame
+        -- 添加删除按钮
+        local deleteBtn = Instance.new('TextButton')
+        deleteBtn.Size = UDim2.new(0.1, 0, 0, 30)
+        deleteBtn.AnchorPoint = Vector2.new(1, 0)
+        deleteBtn.Position = UDim2.new(1, 0, 0, 0)
+        deleteBtn.Text = "删除"
+        deleteBtn.TextSize = 16
+        deleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        deleteBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        deleteBtn.Parent = entryFrame
 
-            deleteBtn.MouseButton1Click:Connect(function()
-                local topParent = FindTopParent(entryFrame)
-                local sValue = topParent:FindFirstChild('StringValue')
-                local keyTest = sValue:GetAttribute('Key')
-                local mergedData = HttpService:JSONDecode(sValue.Value)
-                
-                local function findKey(tbl)
-                    for k, v in pairs(tbl) do
-                        if type(v) == 'table' then
-                            local result = findKey(v)
-                            if result then
-                                return result
-                            end
-                        else
-                            if k == label.Text then
-                                tbl[k] = nil
-                                return true
-                            end
+        deleteBtn.MouseButton1Click:Connect(function()
+            local topParent = FindTopParent(entryFrame)
+            local sValue = topParent:FindFirstChild('StringValue')
+            local keyTest = sValue:GetAttribute('Key')
+            local mergedData = HttpService:JSONDecode(sValue.Value)
+            local function findKey(tbl, delKey, parentKey)
+                for k, v in pairs(tbl) do
+                    if k == label.Text and parentKey == delKey then
+                        tbl[k] = nil
+                        return true
+                    elseif type(v) == 'table' then
+                        local result = findKey(v, delKey, k)
+                        if result then
+                            return result
                         end
                     end
-                    return nil
                 end
+                return nil
+            end
 
-                if type(mergedData) == 'table' then
-                    local result = findKey(mergedData)
-                    if result then
-                        Knit.GetService("DBService"):AdminRequest("SetData",
-                            userIdInputText,
-                            keyTest,
-                            mergedData
-                        ):andThen(function(tip)
-                            Knit.GetController('UIController').ShowTip:Fire(tip)
-                            -- 删除成功后重新获取数据
-                            Knit.GetService("DBService"):AdminRequest("GetData",
-                                userIdInputText
-                            ):andThen(function(newData)
-                                local scrollFrame = PlayerGui:FindFirstChild('AdminPanelUI'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
-                                UpdateDataDisplay(scrollFrame, userIdInputText, newData)
-                            end)
-                        end)
-                    end
-                else
+            if type(mergedData) == 'table' then
+                local result
+                if depth == 0 then
                     mergedData = nil
+                    result = true
+                else
+                    result = findKey(mergedData, currentPath[depth] or {}, currentPath[1])
+                end
+                if result then
                     Knit.GetService("DBService"):AdminRequest("SetData",
                         userIdInputText,
                         keyTest,
@@ -269,13 +254,29 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                         Knit.GetService("DBService"):AdminRequest("GetData",
                             userIdInputText
                         ):andThen(function(newData)
-                            local scrollFrame = PlayerGui:FindFirstChild('AdminPanelUI'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
+                            local scrollFrame = PlayerGui:FindFirstChild('AdminPanel'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
                             UpdateDataDisplay(scrollFrame, userIdInputText, newData)
                         end)
                     end)
                 end
-            end)
-        end
+            else
+                mergedData = nil
+                Knit.GetService("DBService"):AdminRequest("SetData",
+                    userIdInputText,
+                    keyTest,
+                    mergedData
+                ):andThen(function(tip)
+                    Knit.GetController('UIController').ShowTip:Fire(tip)
+                    -- 删除成功后重新获取数据
+                    Knit.GetService("DBService"):AdminRequest("GetData",
+                        userIdInputText
+                    ):andThen(function(newData)
+                        local scrollFrame = PlayerGui:FindFirstChild('AdminPanel'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
+                        UpdateDataDisplay(scrollFrame, userIdInputText, newData)
+                    end)
+                end)
+            end
+        end)
     end
     
     container.Parent = parent

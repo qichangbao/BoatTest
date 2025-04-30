@@ -167,8 +167,13 @@ _lootButton.MouseButton1Click:Connect(function()
     _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
     local LootService = Knit.GetService('LootService')
-    LootService:Loot():andThen(function(tipId)
-        Knit.GetController('UIController').ShowTip:Fire(tipId)
+    LootService:Loot():andThen(function(tipId, itemName)
+        if itemName then
+            local str = string.format(LanguageConfig:Get(tipId), itemName)
+            Knit.GetController('UIController').ShowTip:Fire(str)
+        else
+            Knit.GetController('UIController').ShowTip:Fire(tipId)
+        end
     end)
 end)
 

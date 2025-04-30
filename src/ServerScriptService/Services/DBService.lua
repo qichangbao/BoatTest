@@ -122,6 +122,15 @@ function DBService:GetToAllStore(userId, key)
 end
 
 function DBService:SetToAllStore(userId, key, value)
+	if key == "Gold" then
+		local player = Players:GetPlayerByUserId(userId)
+		if player then
+			player:SetAttribute("Gold", value)
+		end
+	elseif key == "PlayerInventory" then
+		Knit.GetService("InventoryService"):GetInventoryFromDBService(userId, value)
+	end
+	-- 初始化用户数据，确保用户数据存在，并且可以设置valu
 	self:InitDataFromUserId(userId)
 	return self:Set(userId, key, value)
 end

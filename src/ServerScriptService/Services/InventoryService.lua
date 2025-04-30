@@ -17,23 +17,16 @@ local InventoryService = Knit.CreateService({
 -- 从DataStoreService初始化玩家库存数据
 function InventoryService:InitPlayerInventory(player, inventoryStore)
     local userId = player.UserId
-    if not self.playersInventory[userId] then
-        self.playersInventory[userId] = {}
-    end
+    self.playersInventory[userId] = {}
 
-    print('InitPlayerInventory', userId, inventoryStore)
-    for itemName, itemData in pairs(inventoryStore) do
-        itemData.isUsed = 0
-        itemData.icon = ItemConfig[itemName].icon
-        itemData.sellPrice = ItemConfig[itemName].sellPrice
-        self.playersInventory[userId][itemName] = itemData
+    if inventoryStore then
+        for itemName, itemData in pairs(inventoryStore) do
+            itemData.isUsed = 0
+            itemData.icon = ItemConfig.GetItemConfig(itemName).icon
+            itemData.sellPrice = ItemConfig.GetItemConfig(itemName).sellPrice
+            self.playersInventory[userId][itemName] = itemData
+        end
     end
-    -- if inventoryStore and string.len(inventoryStore) > 0 then
-    --     local inventory = HttpService:JSONDecode(inventoryStore)
-    --     for itemName, itemData in pairs(inventory) do
-    --         self.playersInventory[userId][itemName] = itemData
-    --     end
-    -- end
     self.Client.InitInventory:Fire(player, self.playersInventory[userId])
 end
 
@@ -47,8 +40,8 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         itemName = itemName,
         modelName = modelName,
         num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
-        icon = ItemConfig[itemName].icon,
-        sellPrice = ItemConfig[itemName].sellPrice,
+        icon = ItemConfig.GetItemConfig(itemName).icon,
+        sellPrice = ItemConfig.GetItemConfig(itemName).sellPrice,
         isUsed = 0
     }
     
@@ -88,7 +81,7 @@ end
 
 function InventoryService:CheckExists(player, itemName)
     local inventory = self:GetPlayerInventory(player)
-    return inventory[itemName] ~= nil
+    return inventory ~= {} and inventory[itemName] ~= nil
 end
 
 function InventoryService:GetPlayerInventory(player)
@@ -147,13 +140,12 @@ function InventoryService:GetUnusedParts(player, modelName)
     return unused
 end
 
-function InventoryService.Client:SellItem(player, modelName, itemName)
-    if self.Server:RemoveItemFromInventory(player, modelName, itemName) then
-        local itemConfig = ItemConfig[itemName]
-        if itemConfig then
-            player:SetAttribute('Gold', player:GetAttribute('Gold') + itemConfig.sellPrice)
-        end
+function InventoryService:GetInventoryFromDBService(userId, value)
+    local player = game.Players:GetPlayerByUserId(userId)
+    if not player then
+        return
     end
+    self:InitPlayerInventory(player, value)
 end
 
 function InventoryService.Client:GetInventory(player)

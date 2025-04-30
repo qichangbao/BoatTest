@@ -6,6 +6,7 @@ local ServerStorage = game:GetService('ServerStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local BoatConfig = require(ServerScriptService:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local ItemConfig = require(ServerScriptService:WaitForChild('ConfigFolder'):WaitForChild('ItemConfig'))
 
 local LootService = Knit.CreateService({
     Name = 'LootService',
@@ -23,17 +24,7 @@ local function getRandomParts(player)
     if not boatTemplate then return {} end
 
     local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
-    local rewardCount = 1
-    local availableParts = {}
     local InventoryService = Knit.GetService("InventoryService")
-    
-    -- 收集所有非主要部件配置
-    local partKeys = {}
-    for name, data in pairs(curBoatConfig) do
-        if not data.isPrimaryPart then
-            table.insert(partKeys, name)
-        end
-    end
     
     -- 添加主要部件（如果首次获取）
     local primaryPartName = ''
@@ -46,21 +37,15 @@ local function getRandomParts(player)
     
     local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', primaryPartName)
     if not isFirstLoot and primaryPartName ~= '' then
-        table.insert(availableParts, primaryPartName)
-        rewardCount = math.max(rewardCount - 1, 0)
-    end
-    
-    -- 随机选择其他部件
-    for _ = 1, rewardCount do
-        if not curBoatConfig or #partKeys == 0 then break end
-        
-        local randomIndex = math.random(1, #partKeys)
-        local partName = partKeys[randomIndex]
-        table.insert(availableParts, partName)
-        table.remove(partKeys, randomIndex)
+        return primaryPartName
     end
 
-    return availableParts
+    local randomItem = ItemConfig.GetRandomItem()
+    for name, data in pairs(curBoatConfig) do
+        if name == randomItem.itemName then
+            return name
+        end
+    end
 end
 
 function LootService.Client:Loot(player)
@@ -71,11 +56,17 @@ function LootService.Client:Loot(player)
     _playerCoolDown[player.UserId] = LOOT_COOLDOWN
     
     -- 获取随机配件
-    local parts = getRandomParts(player)
+    local partName = getRandomParts(player)
     local InventoryService = Knit.GetService("InventoryService")
-    for _, name in ipairs(parts) do
+    if InventoryService:Inventory(player, 'CheckExists', partName) then
+        local itemConfig = ItemConfig.GetItemConfig(partName)
+        if itemConfig then
+            player:SetAttribute('Gold', player:GetAttribute('Gold') + itemConfig.sellPrice)
+        end
+        return 10016, partName
+    else
         -- 调用背包管理器添加物品
-        InventoryService:Inventory(player, 'AddItem', name, BOAT_PARTS_FOLDER_NAME)
+        InventoryService:Inventory(player, 'AddItem', partName, BOAT_PARTS_FOLDER_NAME)
     end
 
     return
