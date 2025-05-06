@@ -2,10 +2,11 @@ return {
     -- 单独的位置触发器
     {
         ConditionType = "Position", -- 条件类型：基于位置的触发器
-        MaxConditions = -1, -- 最大触发次数，超过此次数后不再触发
-        Position = Vector3.new(0, 0, -200), -- 触发位置
+        MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
+        Position = Vector3.new(0, 0, -400), -- 触发位置
         Radius = 50, -- 触发区域的半径，与Position共同定义触发区域
         Cooldown = 20, -- 触发冷却时间（秒），在此时间内不会再次触发
+        RandomChance = 50, -- 随机触发的概率，10%的概率触发
         -- Action = {
         --     ActionType = "Wave",
         --     Lifetime = 5,
@@ -17,7 +18,9 @@ return {
         Action = {
             ActionType = "CreateMonster",
             MonsterName = "怪物1",
-            Position = Vector3.new(0, 0, -300),
+            Position = Vector3.new(0, 0, -450),
+            DestroyToResetCondition = true, -- 死亡是否重置条件
+            ResetConditionDelayTime = {30, 50}, -- 重置条件的延迟时间
         }
     },
     
@@ -39,30 +42,26 @@ return {
     --     },
     -- },
     
-    -- -- 组合触发器示例：玩家到达特定区域后跳跃才触发
+    -- 组合触发器示例：玩家到达特定区域后跳跃才触发
     -- {
     --     ConditionType = "Composite", -- 条件类型：组合多个触发条件的复合触发器
     --     MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
-    --     ConditionMode = "Sequential", -- 触发模式：Sequential(按顺序触发), Parallel(同时满足条件)
+    --     ConditionMode = "Parallel", -- 触发模式：Sequential(按顺序触发), Parallel(同时满足条件)
+    --     ResetOnFail = true, -- 如果任一子触发器失败，重置所有子触发器状态
+    --     Cooldown = 20, -- 组合触发器的冷却时间（秒）
     --     Conditions = { -- 子触发器列表
     --         {
     --             ConditionType = "Position", -- 第一个子触发器：位置条件
     --             MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
-    --             Position = Vector3.new(5, 0, 5), -- 触发位置
-    --             Radius = 10, -- 触发区域的半径
-    --             MaxConditions = 1 -- 最大触发次数，这里设为1表示只触发一次
+    --             Position = Vector3.new(0, 0, -200), -- 触发位置
+    --             Radius = 50, -- 触发区域的半径
+    --             Cooldown = 20, -- 触发冷却时间（秒），在此时间内不会再次触发1
     --         },
     --         {
-    --             ConditionType = "PlayerAction", -- 第二个子触发器：玩家动作条件
-    --             MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
-    --             SubConditionType = "Jump", -- 子触发器类型
-    --             RequiredActions = 1, -- 需要玩家动作1次
-    --             TimeWindow = 5, -- 5秒内完成跳跃
-    --             ResetOnLeave = false -- 玩家离开区域后不重置状态
+    --             ConditionType = "Random", -- 第二个子触发器：随机条件
+    --             RandomChance = 10, -- 随机触发的概率，10%的概率触发
     --         }
     --     },
-    --     ResetOnFail = true, -- 如果任一子触发器失败，重置所有子触发器状态
-    --     Cooldown = 10, -- 组合触发器的冷却时间（秒）
     --     Action = {
     --         ActionType = "CreatePart",
     --         Lifetime = 5,

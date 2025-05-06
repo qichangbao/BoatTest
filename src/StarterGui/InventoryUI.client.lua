@@ -32,16 +32,16 @@ _inventoryFrame.Parent = _gui
 -- 创建原生物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.15, 0, 0.15, 0)
+_itemTemplate.Size = UDim2.new(0.05, 0, 0.05, 0)
 _itemTemplate.BackgroundTransparency = 0.5
 _itemTemplate.Visible = false
 
 local _countText = Instance.new("TextLabel")
 _countText.Name = "CountText"
 _countText.Text = "0"
-_countText.Size = UDim2.new(0.3,0,0.3,0)
-_countText.Position = UDim2.new(0.7,0,0.7,0)
-_countText.TextColor3 = Color3.new(1,1,1)
+_countText.Size = UDim2.new(0.3, 0, 0.3, 0)
+_countText.Position = UDim2.new(0.7, 0, 0.7, 0)
+_countText.TextColor3 = Color3.new(1, 1, 1)
 _countText.Parent = _itemTemplate
 _countText.TextSize = 14 -- 缩小数量文字
 
@@ -79,8 +79,8 @@ local function UpdateInventoryUI()
     -- 创建UIGridLayout自动排列
     if not _inventoryFrame:FindFirstChild('GridLayout') then
         local gridLayout = Instance.new('UIGridLayout')
-        gridLayout.CellPadding = UDim2.new(0.02,0,0.02,0)
-        gridLayout.CellSize = UDim2.new(0.15,0,0.15,0)
+        gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
+        gridLayout.CellSize = UDim2.new(0.15, 0, 0.15, 0)
         gridLayout.FillDirectionMaxCells = 6
         gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
         gridLayout.Parent = _inventoryFrame
@@ -104,10 +104,10 @@ local function UpdateInventoryUI()
         -- 数量文本
         local text = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
         text.Text = tostring(itemData.num)
-        text.Size = UDim2.new(0.3,0,0.3,0)
-        text.Position = UDim2.new(0.7,0,0.7,0)
+        text.Size = UDim2.new(0.3, 0, 0.3, 0)
+        text.Position = UDim2.new(0.7, 0, 0.7, 0)
         text.BackgroundTransparency = 1
-        text.TextColor3 = Color3.new(1,1,1)
+        text.TextColor3 = Color3.new(1, 1, 1)
         text.Parent = newItem
 
         yOffset += _itemTemplate.Size.Y.Offset

@@ -14,7 +14,7 @@ local BoatMovementService = Knit.CreateService({
     LinearDamping = 0.85, -- 调整线性阻尼系数，使船更快停止
 })
 
-function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
+function BoatMovementService:ApplyVelocity(userId, primaryPart, direction)
     local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
     -- 处理停止移动的情况
     if direction == Vector3.new(0, 0, 0) then
@@ -22,7 +22,7 @@ function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
         return
     end
 
-    local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+    local boat = workspace:FindFirstChild("PlayerBoat_"..userId)
     if not boat then
         warn("船只 "..boat.Name.." 不存在")
         return
@@ -36,7 +36,7 @@ function BoatMovementService:ApplyVelocity(player, primaryPart, direction)
     boatBodyVelocity.Velocity = worldDirection * speed
 end
 
-function BoatMovementService:ApplyAngular(player, primaryPart, direction)
+function BoatMovementService:ApplyAngular(userId, primaryPart, direction)
     local bodyAngularVelocity = primaryPart:FindFirstChild("BoatBodyAngularVelocity")
     
     -- 当方向为0时完全停止旋转
@@ -64,74 +64,74 @@ function BoatMovementService:ApplyAngular(player, primaryPart, direction)
     bodyAngularVelocity.AngularVelocity = Vector3.new(0, angularSpeed, 0)
 end
 
-function BoatMovementService:ApplyMovement(player, primaryPart, direction, angular)
+function BoatMovementService:ApplyMovement(userId, primaryPart, direction, angular)
     -- 应用物理效果到船体
-    self:ApplyAngular(player, primaryPart, angular)
-    self:ApplyVelocity(player, primaryPart, direction)
+    self:ApplyAngular(userId, primaryPart, angular)
+    self:ApplyVelocity(userId, primaryPart, direction)
 end
 
 function BoatMovementService:OnBoat(player, isOnBoat)
     if isOnBoat then
-        self.Boats[player] = {direction = Vector3.new(), angular = Vector3.new(), hasPlayer = true}
+        self.Boats[player.UserId] = {direction = Vector3.new(), angular = Vector3.new(), hasPlayer = true}
         local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
         local driverSeat = boat:FindFirstChild('DriverSeat')
         local handle
         handle = driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
-            if not self.Boats[player] then
+            if not self.Boats[player.UserId] then
                 handle:Disconnect()
                 return
             end
             local occupant = driverSeat.Occupant
             -- 玩家从座位上移除时（跳起）
             if not occupant then
-                self.Boats[player].direction = Vector3.new()
-                self.Boats[player].angular = Vector3.new()
-                self.Boats[player].hasPlayer = false
+                self.Boats[player.UserId].direction = Vector3.new()
+                self.Boats[player.UserId].angular = Vector3.new()
+                self.Boats[player.UserId].hasPlayer = false
                 return
             else
-                self.Boats[player].hasPlayer = true
+                self.Boats[player.UserId].hasPlayer = true
             end
         end)
     else
-        self.Boats[player] = nil
+        self.Boats[player.UserId] = nil
     end
     self.Client.isOnBoat:Fire(player, isOnBoat)
 end
 
 function BoatMovementService.Client:UpdateMovement(player, direction, angular)
-    if not self.Server.Boats[player] or not self.Server.Boats[player].hasPlayer then
+    if not self.Server.Boats[player.UserId] or not self.Server.Boats[player.UserId].hasPlayer then
         print("玩家不在船座上   ", player.Name)
         return
     end
 
-    self.Server.Boats[player] = {direction = direction, angular = angular, hasPlayer = true}
+    self.Server.Boats[player.UserId] = {direction = direction, angular = angular, hasPlayer = true}
 end
 
 function BoatMovementService:KnitInit()
     print('BoatMovementService Initialized')
     -- 初始化心跳事件
     game:GetService('RunService').Heartbeat:Connect(function()
-        for player, data in pairs(self.Boats) do
-            local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
+        for userId, data in pairs(self.Boats) do
+            local boat = workspace:FindFirstChild("PlayerBoat_"..userId)
             if not boat then
-                self.Boats[player] = nil
+                self.Boats[userId] = nil
                 continue
             end
 
             local primaryPart = boat.PrimaryPart
             if not primaryPart then
-                self.Boats[player] = nil
+                self.Boats[userId] = nil
                 print("船只 "..boat.Name.." 缺少PrimaryPart")
                 continue
             end
 
-            self:ApplyMovement(player, primaryPart, data.direction, data.angular)
+            self:ApplyMovement(userId, primaryPart, data.direction, data.angular)
         end
     end)
 
     Players.PlayerRemoving:Connect(function(player)
         print("玩家 "..player.Name.." 退出游戏，移除玩家船数据")
-        self.Boats[player] = nil
+        self.Boats[player.UserId] = nil
     end)
 end
 

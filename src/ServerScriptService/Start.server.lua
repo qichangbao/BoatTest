@@ -4,6 +4,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
 local PhysicsService = game:GetService("PhysicsService")
 
+math.randomseed(os.time())
+
 -- 初始化Knit框架
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 Knit.AddServices(game.ServerScriptService.Services)

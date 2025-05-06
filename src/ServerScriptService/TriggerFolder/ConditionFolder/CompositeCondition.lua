@@ -106,16 +106,11 @@ function CompositeCondition:HandleChildCondition(conditionIndex, data)
 end
 
 function CompositeCondition:FireCompositeCondition(data)
-    self.conditionCount += 1
-    self.lastConditionTime = tick()
-    
     print("触发了CompositeCondition")
     -- 触发组合事件
-    self.bindableEvent:Fire({
-        ConditionType = "Composite",
+    self:Fire({
         ConditionMode = self.conditionMode,
         ChildData = data,
-        Timestamp = self.lastConditionTime
     })
 end
 

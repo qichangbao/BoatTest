@@ -5,8 +5,8 @@ local CreatePartAction = {}
 setmetatable(CreatePartAction, ActionBase)
 CreatePartAction.__index = CreatePartAction
 
-function CreatePartAction.new(config)
-    local self = setmetatable(ActionBase.new(config), CreatePartAction)
+function CreatePartAction.new(config, condition)
+    local self = setmetatable(ActionBase.new(config, condition), CreatePartAction)
     return self
 end
 

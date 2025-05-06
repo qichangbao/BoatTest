@@ -16,31 +16,20 @@ local TriggerManager = {}
 
 function TriggerManager.new()
     local self = setmetatable({}, { __index = TriggerManager })
-    self.triggersCount = 0
-    self.positionConditions = {}
 
     self:Init()
-
-    game:GetService("RunService").Heartbeat:Connect(function()
-        for _, condition in ipairs(self.positionConditions) do
-            for _, v in pairs(game.Players:GetPlayers()) do
-                condition:MonitorPlayer(v)
-            end
-        end
-    end)
     return self
 end
 
 -- 加载条件
 function TriggerManager:Init()
     -- 遍历所有触发器配置
-    for i, triggerConfig in ipairs(ConfigTriggers) do
+    for _, triggerConfig in ipairs(ConfigTriggers) do
         local condition
         
         -- 根据触发器类型创建相应的触发器实例
         if triggerConfig.ConditionType == "Position" then
             condition = PositionCondition.new(triggerConfig)
-            table.insert(self.positionConditions, condition)
         elseif triggerConfig.ConditionType == "PlayerAction" then
             condition = PlayerActionCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "Composite" then
@@ -55,7 +44,7 @@ function TriggerManager:Init()
 
         local action
         if triggerConfig.Action then
-            action = self:InitAction(triggerConfig.Action)
+            action = self:InitAction(triggerConfig.Action, condition)
         end
         
         -- 连接触发器事件
@@ -64,6 +53,8 @@ function TriggerManager:Init()
                 print("位置触发器被触发!", data.Player.Name, "在位置", data.Position)
             elseif triggerConfig.ConditionType == "PlayerAction" then
                 print("玩家动作触发器被触发!", data.Player.Name)
+            elseif triggerConfig.ConditionType == "Random" then
+                print("玩家随机触发器被触发!", data.Player.Name)
             elseif triggerConfig.ConditionType == "Composite" then
                 print("组合触发器被触发!", "模式:", data.ConditionMode)
             else
@@ -76,20 +67,18 @@ function TriggerManager:Init()
                 action:Execute()
             end
         end)
-        
-        self.triggersCount += 1
     end
 end
 
 -- 加载动作
-function TriggerManager:InitAction(actionConfig)
+function TriggerManager:InitAction(actionConfig, condition)
     local action
     if actionConfig.ActionType == "CreatePart" then
-        action = CreatePartAction.new(actionConfig)
+        action = CreatePartAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "Wave" then
-        action = WaveAction.new(actionConfig)
+        action = WaveAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "CreateMonster" then
-        action = CreateMonsterAction.new(actionConfig)
+        action = CreateMonsterAction.new(actionConfig, condition)
     else
         warn("未知的动作类型:", actionConfig.ActionType)
         return nil

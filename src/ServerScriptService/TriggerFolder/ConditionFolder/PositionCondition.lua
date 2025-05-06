@@ -10,13 +10,18 @@ function PositionCondition.new(config)
     
     self.position = self.config.Position
     self.radius = self.config.Radius
-    self.lastConditionTime = 0
     
     return self
 end
 
 function PositionCondition:StartMonitoring()
     ConditionBase.StartMonitoring(self)
+
+    game:GetService("RunService").Heartbeat:Connect(function()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            self:MonitorPlayer(v)
+        end
+    end)
 end
 
 function PositionCondition:MonitorPlayer(player)
@@ -37,14 +42,10 @@ function PositionCondition:MonitorPlayer(player)
 
     local distance = (rootPart.Position - self.position).Magnitude
     if distance <= self.radius then
-        self.conditionCount += 1
-        self.lastConditionTime = tick()
-
-        self.bindableEvent:Fire({
+        self:Fire({
             Player = player,
             Position = rootPart.Position,
             ConditionPosition = self.position,
-            ConditionCount = self.conditionCount
         })
     end
 end

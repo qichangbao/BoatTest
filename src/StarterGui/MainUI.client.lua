@@ -71,6 +71,7 @@ _stopBoatButton.MouseButton1Click:Connect(function()
                 inventoryFrame.Visible = true
             end
         end
+        require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).InitPlayerPos(Players.LocalPlayer)
     end)
 end)
 
@@ -98,13 +99,15 @@ end)
 
 -- 金币显示标签
 local _goldLabel = Instance.new('TextLabel')
-_goldLabel.Size = UDim2.new(0.25, 0, 0.08, 0)
-_goldLabel.Position = UDim2.new(0.7, 0, 0.85, 0)
+_goldLabel.Name = 'GoldLabel'
+_goldLabel.AnchorPoint = Vector2.new(1, 1)
+_goldLabel.Position = UDim2.new(0.99, 0, 0.95, 0)
 _goldLabel.Text = LanguageConfig:Get(10007) .. ": 0"
 _goldLabel.Font = Enum.Font.SourceSansSemibold
 _goldLabel.TextSize = 20
 _goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 _goldLabel.BackgroundTransparency = 1
+_goldLabel.TextXAlignment = Enum.TextXAlignment.Right
 _goldLabel.Parent = _screenGui
 
 -- 抽奖按钮

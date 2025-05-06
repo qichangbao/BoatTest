@@ -5,8 +5,8 @@ local WaveAction = {}
 setmetatable(WaveAction, ActionBase)
 WaveAction.__index = WaveAction
 
-function WaveAction.new(config)
-    local self = setmetatable(ActionBase.new(config), WaveAction)
+function WaveAction.new(config, condition)
+    local self = setmetatable(ActionBase.new(config, condition), WaveAction)
     return self
 end
 

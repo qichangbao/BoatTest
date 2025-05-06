@@ -1,6 +1,8 @@
 print("ReplicatedFirst start.lua loaded")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayer = game:GetService("StarterPlayer")
+
+math.randomseed(os.time())
 -- 初始化Knit框架
 local Knit = require(ReplicatedStorage:WaitForChild('Packages'):WaitForChild('Knit'):waitForChild('Knit'))
 Knit.AddControllers(StarterPlayer:WaitForChild('StarterPlayerScripts'):WaitForChild('Controllers'))

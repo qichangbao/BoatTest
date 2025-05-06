@@ -25,6 +25,11 @@ function DeadState:Enter()
     -- 禁用碰撞和移动
     self.AIManager.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
     self.AIManager.Humanoid.WalkSpeed = 0
+
+    task.delay(10, function()
+        self.AIManager:Destroy()
+        self.AIManager = nil
+    end)
     
     -- -- 触发物品掉落
     -- local monsterType = self.AIManager.NPC:GetAttribute("MonsterType")

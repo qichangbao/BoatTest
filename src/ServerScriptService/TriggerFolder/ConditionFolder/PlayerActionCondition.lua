@@ -15,7 +15,7 @@ function PlayerActionCondition.new(config)
     
     -- 初始化动作计数和时间记录
     self.actionCount = 0
-    self.lastActionTime = 0  -- 修正变量名，移除多余的't'
+    self.lastActionTime = 0
     
     return self
 end
@@ -23,7 +23,6 @@ end
 function PlayerActionCondition:StartMonitoring()
     ConditionBase.StartMonitoring(self)
     
-    local RunService = game:GetService("RunService")
     local function monitorPlayer(player)
         player.CharacterAdded:Connect(function(character)
             local function actionStart()
@@ -34,7 +33,7 @@ function PlayerActionCondition:StartMonitoring()
                 
                 local currentTime = tick()
                 -- 检查时间窗口
-                if currentTime - self.lastActionTime > self.timeWindow then  -- 修正变量名
+                if currentTime - self.lastActionTime > self.timeWindow then
                     -- 超出时间窗口，重置计数
                     self.actionCount = 1
                 else
@@ -45,14 +44,13 @@ function PlayerActionCondition:StartMonitoring()
                 -- 检查是否达到触发条件
                 if self.actionCount >= self.requiredActions then
                     print("触发了PlayerActionCondition")
-                    self.bindableEvent:Fire({
+                    self:Fire({
                         Player = player,
                         JumpCount = self.actionCount,  -- 修改为正确的计数值
                     })
                     
                     -- 触发后重置
                     self.actionCount = 0  -- 重置计数器
-                    self.conditionCount += 1
                     self.lastActionTime = tick()  -- 修正变量名
                 end
             end
@@ -75,14 +73,8 @@ function PlayerActionCondition:StartMonitoring()
             end
         end)
     end
-    
-    if RunService:IsServer() then
-        -- 服务器端通过PlayerAdded监听
-        game:GetService("Players").PlayerAdded:Connect(monitorPlayer)
-    else
-        -- 客户端保持原有逻辑
-        monitorPlayer(game.Players.LocalPlayer)
-    end
+
+    game:GetService("Players").PlayerAdded:Connect(monitorPlayer)
 end
 
 return PlayerActionCondition

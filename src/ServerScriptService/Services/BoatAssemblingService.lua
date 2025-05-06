@@ -251,22 +251,22 @@ function BoatAssemblingService:CreateStabilizer(boat)
     end
     local size = Vector3.new(4, 1, 20)
     createPart("BoatStabilizerPart1", size,
-    CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 - 5,
-    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-    boat.PrimaryPart.Position.Z))
+        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 - 5,
+            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+            boat.PrimaryPart.Position.Z))
     createPart("BoatStabilizerPart2", size,
-    CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 + 5,
-    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-    boat.PrimaryPart.Position.Z))
+        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 + 5,
+            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+            boat.PrimaryPart.Position.Z))
     size = Vector3.new(10, 1, 4)
     createPart("BoatStabilizerPart3", size,
-    CFrame.new(boat.PrimaryPart.Position.X,
-    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-    boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
+        CFrame.new(boat.PrimaryPart.Position.X,
+            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+            boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
     createPart("BoatStabilizerPart4", size,
-    CFrame.new(boat.PrimaryPart.Position.X,
-    boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-    boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
+        CFrame.new(boat.PrimaryPart.Position.X,
+            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+            boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
 end
 
 function BoatAssemblingService.Client:AssembleBoat(player)
@@ -285,7 +285,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     self.Server:CreateMoveVelocity(boat.primaryPart)
 
     -- 设置船的初始位置
-    Interface:InitBoatWaterPos(player.character, boat)
+    Interface.InitBoatWaterPos(player.character, boat)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     Knit.GetService('InventoryService'):BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     -- 触发客户端事件更新主界面UI
@@ -399,11 +399,6 @@ function BoatAssemblingService:DestroyBoat(player)
 end
 
 function BoatAssemblingService.Client:StopBoat(player)
-    Knit.GetService('BoatMovementService'):OnBoat(player, false)
-    self.UpdateMainUI:Fire(player, {explore = false})
-
-    Interface:InitPlayerPos(player)
-
     local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
     if not playerBoat then
         print("船不存在")
@@ -411,6 +406,8 @@ function BoatAssemblingService.Client:StopBoat(player)
     end
 
     playerBoat:Destroy()
+
+    Interface.InitPlayerPos(player)
     print("船已销毁")
     return
 end

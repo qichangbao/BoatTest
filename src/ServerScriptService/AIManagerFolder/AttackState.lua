@@ -16,7 +16,6 @@ function AttackState:Enter()
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")
-            self.AIManager:SetState("Dead")
             return
         end
 
@@ -31,7 +30,7 @@ function AttackState:Enter()
             local targetPosition = nil
             local modelType = target:GetAttribute("ModelType")
             if modelType == "Boat" then
-                if not target:GetAttribute("Destroying") then
+                if not target:GetAttribute("Destroying") and target.PrimaryPart then
                     targetPosition = target.PrimaryPart.CFrame.Position
                 end
             elseif modelType == "Player" then

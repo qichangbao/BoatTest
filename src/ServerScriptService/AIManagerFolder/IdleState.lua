@@ -18,7 +18,6 @@ function IdleState:Enter()
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")
-            self.AIManager:SetState("Dead")
             return
         end
 
@@ -29,7 +28,6 @@ function IdleState:Enter()
         local maxDisForSpawn = self.AIManager.NPC:GetAttribute("MaxDisForSpawn")
         local spawnPosition = self.AIManager.NPC:GetAttribute("SpawnPosition")
         if (spawnPosition - npcPos).Magnitude > maxDisForSpawn then
-            print('22222    ', self.AIManager.count)
             self.AIManager:SetState("Patrol")
             return
         end
@@ -40,7 +38,6 @@ function IdleState:Enter()
             if not v:GetAttribute("Destroying") then
                 local dis = (v.PrimaryPart.CFrame.Position - npcPos).Magnitude
                 if dis <= visionRange then
-                    print('22222    ', self.AIManager.count)
                     self.AIManager:SetState("Chase")
                     return
                 end
@@ -55,7 +52,6 @@ function IdleState:Enter()
                 if targetHumanoidRootPart and targetHumanoid and targetHumanoid.Health > 0 then
                     local dis = (targetHumanoidRootPart.CFrame.Position - npcPos).Magnitude
                     if dis <= visionRange then
-                        print('22222    ', self.AIManager.count)
                         self.AIManager:SetState("Chase")
                         return
                     end
@@ -83,7 +79,6 @@ function IdleState:Enter()
         -- end
         
         if self.timer <= 0 then
-            print('22222    ', self.AIManager.count)
             self.AIManager:SetState("Patrol")
             return
         end
