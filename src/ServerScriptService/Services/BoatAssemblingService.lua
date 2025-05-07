@@ -196,7 +196,7 @@ function BoatAssemblingService:CreateVehicleSeat(boat)
     end)
 
     local currentCFrame = driverSeat:GetPivot()
-    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 6, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
 
     -- 创建焊接约束
     local weldConstraint = Instance.new('WeldConstraint')
@@ -283,6 +283,9 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     self.Server:CreateVehicleSeat(boat)
     self.Server:CreateStabilizer(boat)
     self.Server:CreateMoveVelocity(boat.primaryPart)
+    local buoyancySensor = Instance.new("BuoyancySensor")
+    buoyancySensor.Name = "BoatBuoyancySensor"
+    buoyancySensor.Parent = boat.primaryPart
 
     -- 设置船的初始位置
     Interface.InitBoatWaterPos(player.character, boat)
@@ -377,7 +380,7 @@ function BoatAssemblingService.Client:AddUnusedPartsToBoat(player)
 end
 
 function BoatAssemblingService:DestroyBoat(player)
-    local boat = Knit.GetService('BoatAttributeService'):GetPlayerBoat(player)
+    local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(player.UserId)
     boat:SetAttribute('Destroying', true)
     -- 断开所有焊接约束
     for _, part in ipairs(boat:GetDescendants()) do

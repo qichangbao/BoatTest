@@ -1,5 +1,7 @@
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(game:GetService('ReplicatedStorage').Packages.Knit.Knit)
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local BoatMovementService = Knit.CreateService({
     Name = 'BoatMovementService',
@@ -65,9 +67,20 @@ function BoatMovementService:ApplyAngular(userId, primaryPart, direction)
 end
 
 function BoatMovementService:ApplyMovement(userId, primaryPart, direction, angular)
-    -- 应用物理效果到船体
-    self:ApplyAngular(userId, primaryPart, angular)
-    self:ApplyVelocity(userId, primaryPart, direction)
+    local boat = Interface.GetBoatByPlayerUserId(userId)
+    if boat and boat.PrimaryPart then
+        local pos = boat.PrimaryPart.Position
+        local size = boat.PrimaryPart.Size
+        -- 在陆地上
+        if Interface.IsInLand(pos, size) then
+            self:ApplyAngular(userId, primaryPart, Vector3.new())
+            self:ApplyVelocity(userId, primaryPart, Vector3.new())
+        else
+            -- 应用物理效果到船体
+            self:ApplyAngular(userId, primaryPart, angular)
+            self:ApplyVelocity(userId, primaryPart, direction)
+        end
+    end
 end
 
 function BoatMovementService:OnBoat(player, isOnBoat)

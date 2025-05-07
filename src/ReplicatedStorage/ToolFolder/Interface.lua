@@ -7,10 +7,6 @@ function Interface.InitPlayerPos(player)
     local spawnLocation = player.RespawnLocation
     if spawnLocation and player.Character then
         player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
-        -- local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-        -- if humanoidRootPart then
-        --     humanoidRootPart.CFrame = spawnLocation.CFrame
-        -- end
         local humanoid = player.Character:FindFirstChild('Humanoid')
         if humanoid then
             humanoid.Sit = false
@@ -26,18 +22,31 @@ function Interface.InitBoatWaterPos(character, boat)
     local currentCFrame = boat:GetPivot()
     local newPosition = Vector3.new(position.X, position.Y + boat.PrimaryPart.size.y, position.Z)
     local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
-    --local newCFrame = CFrame.new(Vector3.new(0, newPosition.Y, 0))
     boat:PivotTo(newCFrame)
 
     -- 玩家自动入座
     if character then
-        character:PivotTo(boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0))
-        -- local humanoid = character:FindFirstChild('Humanoid')
-        -- if humanoid then
-        --     --humanoid.Sit = true
-        --     character:WaitForChild('HumanoidRootPart').CFrame = boat.PrimaryPart.CFrame * CFrame.new(0, 2, 0)
-        -- end
+        local driverSeat = boat:FindFirstChild('DriverSeat')
+        character:PivotTo(driverSeat.CFrame)
     end
+end
+
+-- 通过玩家ID获取船
+function Interface.GetBoatByPlayerUserId(userId)
+    return workspace:FindFirstChild('PlayerBoat_' .. userId)
+end
+
+local _params = OverlapParams.new()
+_params.FilterType = Enum.RaycastFilterType.Include
+for _, land in pairs(workspace:GetChildren()) do
+    if land:IsA("BasePart") and land.Name:match("Land") then
+        _params:AddToFilter(land)
+    end
+end
+-- 判断是否在陆地上
+function Interface.IsInLand(pos, size)
+    local parts = workspace:GetPartBoundsInBox(CFrame.new(pos - size / 2), size, _params)
+    return #parts > 0
 end
 
 return Interface

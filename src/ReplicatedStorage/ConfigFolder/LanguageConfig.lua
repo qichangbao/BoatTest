@@ -23,6 +23,7 @@ LanguageConfig.Text = {
     [10021] = {zh_cn = "玩家没有可用的船主部件", en_us = "玩家没有可用的船主部件"},
     [10022] = {zh_cn = "船组装成功", en_us = "船组装成功"},
     [10023] = {zh_cn = "你正在使用它，不能分解", en_us = "你正在使用它，不能分解"},
+    [10024] = {zh_cn = "是否将出生地设置为本区域?", en_us = "是否将出生地设置为本区域?"},
 }
 
 local Players = game:GetService("Players")

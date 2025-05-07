@@ -6,6 +6,7 @@ local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChil
 local dataTemplate = {
 	Gold = 50,
 	PlayerInventory = {},
+	SpawnLocation = "Land",
 }
 
 local DBService = Knit.CreateService({
@@ -130,7 +131,7 @@ function DBService:SetToAllStore(userId, key, value)
 	elseif key == "PlayerInventory" then
 		Knit.GetService("InventoryService"):GetInventoryFromDBService(userId, value)
 	end
-	-- 初始化用户数据，确保用户数据存在，并且可以设置valu
+	-- 初始化用户数据，确保用户数据存在，并且可以设置value
 	self:InitDataFromUserId(userId)
 	return self:Set(userId, key, value)
 end

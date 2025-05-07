@@ -59,15 +59,24 @@ function PlayerAttributeService:ChangeGold(player, gold)
     self.Client.ChangeGold:Fire(player, math.max(gold, 0))
 end
 
+function PlayerAttributeService.Client:SetSpawnLocation(player, spawnLocation)
+    local DBService = Knit.GetService('DBService')
+    DBService:Set(player.UserId, "SpawnLocation", spawnLocation)
+end
+
 function PlayerAttributeService:KnitInit()
     print('PlayerAttributeService initialized')
 
     local function playerAdded(player)
+        local DBService = Knit.GetService('DBService')
+        DBService:PlayerAdded(player)
         -- 初始化重生点
-        player.RespawnLocation = game.Workspace.LandSpawnLocation
+        local areaName = DBService:Get(player.UserId, "SpawnLocation")
+        local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
+        player.RespawnLocation = spawnLocation
 
         player.CharacterAdded:Connect(function(character)
-            local boat = Knit.GetService('BoatAttributeService'):GetPlayerBoat(player)
+            local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(player.UserId)
             if boat then
                 boat:Destroy()
             end
@@ -77,9 +86,6 @@ function PlayerAttributeService:KnitInit()
         player:GetAttributeChangedSignal('Gold'):Connect(function()
             self:ChangeGold(player, player:GetAttribute('Gold'))
         end)
-
-        local DBService = Knit.GetService('DBService')
-        DBService:PlayerAdded(player)
 
         local gold = DBService:Get(player.UserId, "Gold")
         player:SetAttribute("Gold", gold)

@@ -116,7 +116,7 @@ function ChaseState:FindNearestModel()
     -- 如果目标是玩家且在船内，切换目标为船
     if self.AIManager.target and self.AIManager.target:GetAttribute("ModelType") == "Player" then
         local playr = Players:GetPlayerFromCharacter(self.AIManager.target)
-        local boat = Knit.GetService('BoatAttributeService'):GetPlayerBoat(playr)
+        local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(playr.UserId)
         if boat and not boat:GetAttribute("Destroying") and self.AIManager.target.Humanoid.Sit then
             self.AIManager.target = boat
             return

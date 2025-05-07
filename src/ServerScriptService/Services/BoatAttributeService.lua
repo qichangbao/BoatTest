@@ -10,12 +10,8 @@ local BoatAttributeService = Knit.CreateService({
     },
 })
 
-function BoatAttributeService:GetPlayerBoat(player)
-    return workspace:FindFirstChild('PlayerBoat_'..player.UserId)
-end
-
 function BoatAttributeService:GetBoatHealth(player)
-    local boat = self:GetPlayerBoat(player)
+    local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(player.UserId)
     if boat then
         return boat:GetAttribute('Health')
     end
@@ -31,7 +27,7 @@ function BoatAttributeService:ChangeBoatHealth(player, hp, maxHp)
 end
 
 function BoatAttributeService:GetBoatSpeed(player)
-    local boat = self:GetPlayerBoat(player)
+    local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(player.UserId)
     if boat then
         return boat:GetAttribute('Speed')
     end
