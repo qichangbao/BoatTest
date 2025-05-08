@@ -10,13 +10,12 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local localPlayer = Players.LocalPlayer
 
-local _inventoryItems = {}
--- 创建原生UI元素
-local _gui = Instance.new("ScreenGui")
-_gui.Name = "InventoryUI"
-_gui.Parent = localPlayer:WaitForChild("PlayerGui")
+local _screenGui = Instance.new("ScreenGui")
+_screenGui.Name = "InventoryUI_Gui"
+_screenGui.Parent = PlayerGui
 
 local _inventoryFrame = Instance.new("ScrollingFrame")
 _inventoryFrame.Name = "InventoryFrame"
@@ -26,7 +25,7 @@ _inventoryFrame.BackgroundTransparency = 0.7
 _inventoryFrame.ScrollBarThickness = 8
 _inventoryFrame.CanvasSize = UDim2.new(0, 0, 2, 0) -- 可滚动区域高度
 _inventoryFrame.ScrollBarThickness = 8 -- 滚动条宽度
-_inventoryFrame.Parent = _gui
+_inventoryFrame.Parent = _screenGui
 
 -- 创建物品模板
 -- 创建原生物品模板
@@ -45,6 +44,7 @@ _countText.TextColor3 = Color3.new(1, 1, 1)
 _countText.Parent = _itemTemplate
 _countText.TextSize = 14 -- 缩小数量文字
 
+local _inventoryItems = {}
 --[[
 更新库存UI
 @param inventoryData 物品数据表，需包含id/icon/num/isSelected字段
@@ -148,9 +148,6 @@ local function RemoveItemToInventory(modelName, itemName)
 end
 
 Knit:OnStart():andThen(function()
-    -- 刷新UI元素
-    _inventoryFrame.Visible = true
-
     -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
     local InventoryService = Knit.GetService('InventoryService')
     InventoryService.AddItem:Connect(function(itemData)

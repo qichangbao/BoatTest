@@ -4,13 +4,18 @@ local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 
-local _screenGui = Instance.new('ScreenGui')
-_screenGui.Name = 'TipUI'
+local _screenGui = PlayerGui:FindFirstChild('TipUI_Gui')
+if _screenGui then
+    return
+end
+_screenGui = Instance.new('ScreenGui')
+_screenGui.Name = 'TipUI_Gui'
 _screenGui.ResetOnSpawn = false
 _screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 _screenGui.DisplayOrder = 999
-_screenGui.Parent = Players.LocalPlayer:WaitForChild('PlayerGui')
+_screenGui.Parent = PlayerGui
 
 -- 消息队列和UI容器
 
@@ -25,7 +30,7 @@ _tipTemplate.ZIndex = 1000
 local _textLabel = Instance.new("TextLabel")
 _textLabel.Size = UDim2.new(1, 0, 1, 0)
 _textLabel.TextColor3 = Color3.fromRGB(255,0,0)
-_textLabel.Font = Enum.Font.SourceSansSemibold
+_textLabel.Font = Enum.Font.Arimo
 _textLabel.TextSize = 20
 _textLabel.BackgroundTransparency = 1
 _textLabel.ZIndex = 1001

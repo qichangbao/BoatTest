@@ -69,10 +69,8 @@ end
 function BoatMovementService:ApplyMovement(userId, primaryPart, direction, angular)
     local boat = Interface.GetBoatByPlayerUserId(userId)
     if boat and boat.PrimaryPart then
-        local pos = boat.PrimaryPart.Position
-        local size = boat.PrimaryPart.Size
         -- 在陆地上
-        if Interface.IsInLand(pos, size) then
+        if Interface.IsInLand(boat) then
             self:ApplyAngular(userId, primaryPart, Vector3.new())
             self:ApplyVelocity(userId, primaryPart, Vector3.new())
         else

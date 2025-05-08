@@ -17,6 +17,8 @@ local Theme = {
     BackgroundColor = Color3.fromRGB(40, 40, 40)
 }
 
+local AdminPanelUI = {}
+
 local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
     -- 清空现有显示内容
     for _, child in ipairs(parent:GetChildren()) do
@@ -285,7 +287,7 @@ end
 
 local function Show()
     local screenGui = Instance.new('ScreenGui')
-    screenGui.Name = 'AdminPanel'
+    screenGui.Name = 'AdminPanelUI_Gui'
     screenGui.Parent = PlayerGui
 
     local frame = Instance.new('Frame')
@@ -312,7 +314,7 @@ local function Show()
     closeBtn.Size = UDim2.new(0, 40, 0, 40)
     closeBtn.Text = '×'
     closeBtn.TextSize = 24
-    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Font = Enum.Font.Arimo
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.AutoButtonColor = false
     closeBtn.BackgroundColor3 = Theme.ClosePrimary
@@ -382,3 +384,5 @@ end
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').ShowAdminUI:Connect(Show)
 end)
+
+return AdminPanelUI

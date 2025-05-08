@@ -196,7 +196,7 @@ function BoatAssemblingService:CreateVehicleSeat(boat)
     end)
 
     local currentCFrame = driverSeat:GetPivot()
-    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 6, primaryCFrame.Z) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 6, primaryCFrame.Z + 5) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
 
     -- 创建焊接约束
     local weldConstraint = Instance.new('WeldConstraint')
@@ -288,7 +288,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     buoyancySensor.Parent = boat.primaryPart
 
     -- 设置船的初始位置
-    Interface.InitBoatWaterPos(player.character, boat)
+    Interface.InitBoatWaterPos(player, boat)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     Knit.GetService('InventoryService'):BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     -- 触发客户端事件更新主界面UI

@@ -56,7 +56,6 @@ local ProfileStore = ProfileService.GetProfileStore(
 local Profiles = {}
 
 function DBService:PlayerAdded(player)
-	print("PlayerAdded")
 	local userId = player.UserId
 	if Profiles[userId] then
 		return
