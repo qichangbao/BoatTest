@@ -1,1 +1,1 @@
-print('StarteGui start.lua loaded')
+print('StarteGui Start.lua loaded')

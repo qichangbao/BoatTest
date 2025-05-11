@@ -19,7 +19,7 @@ local Theme = {
 
 local AdminPanelUI = {}
 
-local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
+function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
     -- 清空现有显示内容
     for _, child in ipairs(parent:GetChildren()) do
         if child:IsA('Frame') and (child.Name == 'DataContainerTop' or child.Name == 'DataContainer') then
@@ -101,7 +101,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             local subContainer
             toggleButton.MouseButton1Click:Connect(function()
                 if not subContainer then
-                    subContainer = UpdateDataDisplay(entryFrame, userIdInputText, value, depth + 1, currentPath)
+                    subContainer = self:UpdateDataDisplay(entryFrame, userIdInputText, value, depth + 1, currentPath)
                     subContainer.Position = UDim2.new(0, 0, 0, 30)
                     subContainer.Visible = false
                 end
@@ -130,6 +130,83 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             addBtn.TextColor3 = Theme.TextBottonPrimary
             addBtn.Parent = entryFrame
             addBtn.MouseButton1Click:Connect(function()
+                local popupFrame = Instance.new('Frame')
+                popupFrame.Size = UDim2.new(0.4, 0, 0.3, 0)
+                popupFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+                popupFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+                popupFrame.BackgroundColor3 = Theme.BackgroundColor
+                popupFrame.Parent = self.screenGui
+                
+                local keyInput = Instance.new('TextBox')
+                keyInput.Size = UDim2.new(0.8, 0, 0.2, 0)
+                keyInput.Position = UDim2.new(0.1, 0, 0.1, 0)
+                keyInput.PlaceholderText = '输入Key'
+                keyInput.BackgroundColor3 = Theme.InputFieldBG
+                keyInput.Parent = popupFrame
+                
+                local valueInput = Instance.new('TextBox')
+                valueInput.Size = UDim2.new(0.8, 0, 0.2, 0)
+                valueInput.Position = UDim2.new(0.1, 0, 0.4, 0)
+                valueInput.PlaceholderText = '输入Value'
+                valueInput.BackgroundColor3 = Theme.InputFieldBG
+                valueInput.Parent = popupFrame
+                
+                local confirmBtn = Instance.new('TextButton')
+                confirmBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+                confirmBtn.Position = UDim2.new(0.2, 0, 0.7, 0)
+                confirmBtn.Text = '确认'
+                confirmBtn.BackgroundColor3 = Theme.Primary
+                confirmBtn.TextColor3 = Theme.TextBottonPrimary
+                confirmBtn.Parent = popupFrame
+                
+                local closeBtn = Instance.new('TextButton')
+                closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+                closeBtn.Position = UDim2.new(0.5, 0, 0.7, 0)
+                closeBtn.Text = '关闭'
+                closeBtn.BackgroundColor3 = Theme.ClosePrimary
+                closeBtn.TextColor3 = Theme.TextBottonPrimary
+                closeBtn.Parent = popupFrame
+                
+                closeBtn.MouseButton1Click:Connect(function()
+                    popupFrame:Destroy()
+                end)
+                
+                confirmBtn.MouseButton1Click:Connect(function()
+                    if keyInput.Text == '' or valueInput.Text == '' then
+                        Knit.GetController('UIController').ShowTip:Fire('Key/Value不能为空')
+                        return
+                    end
+                    
+                    local topParent = FindTopParent(entryFrame)
+                    local sValue = topParent:FindFirstChild('StringValue')
+                    local keyTest = sValue:GetAttribute('Key')
+                    local mergedData = HttpService:JSONDecode(sValue.Value)
+                    
+                    local function insertData(tbl, path, key1, value1)
+                        local current = tbl
+                        for i = 2, #path do
+                            current = current[path[i]]
+                        end
+                        current[tostring(key1)] = value1
+                    end
+                    
+                    if type(mergedData) == 'table' then
+                        insertData(mergedData, currentPath, keyInput.Text, valueInput.Text)
+                        Knit.GetService("DBService"):AdminRequest("SetData",
+                            userIdInputText,
+                            keyTest,
+                            mergedData
+                        ):andThen(function(tip)
+                            Knit.GetController('UIController').ShowTip:Fire(tip)
+                            popupFrame:Destroy()
+                            Knit.GetService("DBService"):AdminRequest("GetData",
+                                userIdInputText
+                            ):andThen(function(newData)
+                                self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
+                            end)
+                        end)
+                    end
+                end)
             end)
         else
             -- 调整布局比例为4:3:1
@@ -137,7 +214,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             label.Position = UDim2.new(0, 0, 0, 0)
             
             local valueBox = Instance.new('TextBox')
-            valueBox.Size = UDim2.new(0.4, -5, 0, 30)
+            valueBox.Size = UDim2.new(1, 0, 0, 30)
             valueBox.Position = UDim2.new(0.4, 0, 0, 0)
             valueBox.Text = tostring(value)
             valueBox.PlaceholderText = valueBox.Text
@@ -145,10 +222,8 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             valueBox.TextSize = 16
             valueBox.TextColor3 = Theme.TextBoxPrimary
             valueBox.BackgroundColor3 = Theme.InputFieldBG
+            valueBox.TextXAlignment = Enum.TextXAlignment.Left
             valueBox.Parent = entryFrame
-            
-            valueBox.FocusLost:Connect(function()
-            end)
             
             -- 添加保存按钮
             local saveBtn = Instance.new('TextButton')
@@ -256,8 +331,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                         Knit.GetService("DBService"):AdminRequest("GetData",
                             userIdInputText
                         ):andThen(function(newData)
-                            local scrollFrame = PlayerGui:FindFirstChild('AdminPanel'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
-                            UpdateDataDisplay(scrollFrame, userIdInputText, newData)
+                            self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
                         end)
                     end)
                 end
@@ -273,8 +347,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                     Knit.GetService("DBService"):AdminRequest("GetData",
                         userIdInputText
                     ):andThen(function(newData)
-                        local scrollFrame = PlayerGui:FindFirstChild('AdminPanel'):FindFirstChild('AdminFrame'):FindFirstChild('AdminScrollFrame')
-                        UpdateDataDisplay(scrollFrame, userIdInputText, newData)
+                        self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
                     end)
                 end)
             end
@@ -285,10 +358,9 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
     return container
 end
 
-local function Show()
-    local screenGui = Instance.new('ScreenGui')
-    screenGui.Name = 'AdminPanelUI_Gui'
-    screenGui.Parent = PlayerGui
+function AdminPanelUI:Show()
+    self.screenGui = Instance.new('ScreenGui')
+    self.screenGui.Parent = PlayerGui
 
     local frame = Instance.new('Frame')
     frame.Name = 'AdminFrame'
@@ -297,7 +369,7 @@ local function Show()
     frame.Position = UDim2.new(0.5, 0, 0.5, 0)
     frame.BackgroundTransparency = 1
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    frame.Parent = screenGui
+    frame.Parent = self.screenGui
 
     -- 创建顶部控制栏
     local controlFrame = Instance.new('Frame')
@@ -328,22 +400,21 @@ local function Show()
     corner.Parent = closeBtn
 
     closeBtn.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
+        self.screenGui:Destroy()
     end)
 
     -- 调整滚动框架位置和尺寸
-    local scrollFrame = Instance.new('ScrollingFrame')
-    scrollFrame.Name = 'AdminScrollFrame'
-    scrollFrame.Size = UDim2.new(1, 0, 1, 0)
-    scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
-    scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
-    scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
-    scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    scrollFrame.ScrollBarThickness = 8
-    scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-    scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
-    scrollFrame.BackgroundTransparency = 0.2
-    scrollFrame.Parent = frame
+    self.scrollFrame = Instance.new('ScrollingFrame')
+    self.scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+    self.scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
+    self.scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
+    self.scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
+    self.scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    self.scrollFrame.ScrollBarThickness = 8
+    self.scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+    self.scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
+    self.scrollFrame.BackgroundTransparency = 0.2
+    self.scrollFrame.Parent = frame
 
     local userIdBox = Instance.new('TextBox')
     userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
@@ -371,7 +442,7 @@ local function Show()
         -- 初始化远程事件监听
         Knit.GetService("DBService"):AdminRequest("GetData", tonumber(userIdBox.Text)):andThen(function(data)
             if type(data) == "table" then
-                UpdateDataDisplay(scrollFrame, tonumber(userIdBox.Text), data)
+                self:UpdateDataDisplay(self.scrollFrame, tonumber(userIdBox.Text), data)
                 return
             elseif type(data) == "string" then
                 Knit.GetController('UIController').ShowTip:Fire(data)
@@ -382,7 +453,9 @@ local function Show()
 end
 
 Knit:OnStart():andThen(function()
-    Knit.GetController('UIController').ShowAdminUI:Connect(Show)
+    Knit.GetController('UIController').ShowAdminUI:Connect(function()
+        AdminPanelUI:Show()
+    end)
 end)
 
 return AdminPanelUI

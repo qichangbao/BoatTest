@@ -44,42 +44,20 @@ for _, land in pairs(workspace:GetChildren()) do
         _params:AddToFilter(land)
     end
 end
+
 -- 判断是否在陆地上
+local _lands = {workspace:WaitForChild('Land'), workspace:WaitForChild('IsLand1')}
 function Interface.IsInLand(boat)
-    -- local boatPivot = boat.PrimaryPart:GetPivot()
-    -- local size = boat.PrimaryPart.Size
-    -- -- 调试绘图
-    -- local debugPart = Instance.new('Part')
-    -- debugPart.Size = size
-
-    -- -- 根据船体旋转计算实际检测位置
-    -- local rotatedPos = boatPivot:PointToWorldSpace()
-    
-    -- -- 使用定向包围盒检测
-    -- local orientation = boatPivot.Rotation
-    -- local params = OverlapParams.new()
-    -- params.FilterType = Enum.RaycastFilterType.Include
-    -- params.CollisionGroup = "Water"
-    
-    -- local parts = workspace:GetPartBoundsInBox(
-    --     CFrame.new(rotatedPos) * orientation,
-    --     size,
-    --     params
-    -- )
-    -- debugPart.CFrame = CFrame.new(rotatedPos)-- * orientation
-    -- debugPart.Transparency = 0.7
-    -- debugPart.Color = Color3.new(1, 0, 0)
-    -- debugPart.Anchored = true
-    -- debugPart.CanCollide = false
-    -- debugPart.Parent = workspace
-
     local pos = boat.PrimaryPart.Position
-    local size = boat.PrimaryPart.Size
-    local parts = workspace:GetPartBoundsInBox(CFrame.new(pos - size / 2), size, _params)
-    -- local parts = workspace:GetPartBoundsInBox(CFrame.new(pos), size, _params)
-    -- debugPart.Color = #parts > 0 and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
-    
-    return #parts > 0
+    for _, land in pairs(_lands) do
+        local min = land.Position - land.Size / 2
+        local max = land.Position + land.Size / 2
+        if pos.X >= min.X and pos.X <= max.X and pos.Z >= min.Z and pos.Z <= max.Z then
+            return true
+        end
+    end
+
+    return false
 end
 
 return Interface
