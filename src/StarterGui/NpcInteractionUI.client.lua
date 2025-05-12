@@ -63,7 +63,7 @@ while ContentProvider.RequestQueueSize > 0 do
 end
 
 for _, land in pairs(workspace:GetChildren()) do
-    if land:IsA("BasePart") and land.Name:match("Land") then
+    if land.Name:match("Land") then--land:IsA("BasePart") and 
         for _, npc in pairs(land:GetChildren()) do
             if npc:IsA("Model") and npc.Name:match("NPC") then
                 local config = NPCConfig[npc.Name]

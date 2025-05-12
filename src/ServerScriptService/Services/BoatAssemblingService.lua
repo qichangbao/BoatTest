@@ -251,11 +251,11 @@ function BoatAssemblingService:CreateStabilizer(boat)
     end
     local size = Vector3.new(4, 1, 20)
     createPart("BoatStabilizerPart1", size,
-        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 - 5,
+        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 15,
             boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
             boat.PrimaryPart.Position.Z))
     createPart("BoatStabilizerPart2", size,
-        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 + 5,
+        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 15,
             boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
             boat.PrimaryPart.Position.Z))
     size = Vector3.new(10, 1, 4)
@@ -283,9 +283,6 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     self.Server:CreateVehicleSeat(boat)
     self.Server:CreateStabilizer(boat)
     self.Server:CreateMoveVelocity(boat.primaryPart)
-    local buoyancySensor = Instance.new("BuoyancySensor")
-    buoyancySensor.Name = "BoatBuoyancySensor"
-    buoyancySensor.Parent = boat.primaryPart
 
     -- 设置船的初始位置
     Interface.InitBoatWaterPos(player, boat)

@@ -37,16 +37,8 @@ function Interface.GetBoatByPlayerUserId(userId)
     return workspace:FindFirstChild('PlayerBoat_' .. userId)
 end
 
-local _params = OverlapParams.new()
-_params.FilterType = Enum.RaycastFilterType.Include
-for _, land in pairs(workspace:GetChildren()) do
-    if land:IsA("BasePart") and land.Name:match("Land") then
-        _params:AddToFilter(land)
-    end
-end
-
 -- 判断是否在陆地上
-local _lands = {workspace:WaitForChild('Land'), workspace:WaitForChild('IsLand1')}
+local _lands = {workspace:WaitForChild('Land'):WaitForChild("Floor"), workspace:WaitForChild('IsLand1'):WaitForChild("Floor")}
 function Interface.IsInLand(boat)
     local pos = boat.PrimaryPart.Position
     for _, land in pairs(_lands) do
