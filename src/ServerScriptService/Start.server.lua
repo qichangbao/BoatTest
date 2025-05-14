@@ -20,9 +20,12 @@ TriggerManager.new()
 local function setupBoatCollisionGroup(boatModel)
     PhysicsService:RegisterCollisionGroup('BoatCollisionGroup')
     PhysicsService:RegisterCollisionGroup('WaveCollisionGroup')
+    PhysicsService:RegisterCollisionGroup('BoatStabilizerCollisionGroup')
+    PhysicsService:RegisterCollisionGroup('PlayerCollisionGroup')
     -- 设置碰撞关系
     PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
     PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'BoatCollisionGroup', true)
+    PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
     
     -- 给所有部件设置碰撞组
     for _, part in ipairs(boatModel:GetDescendants()) do

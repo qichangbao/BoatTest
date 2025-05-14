@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local localPlayer = Players.LocalPlayer
 
@@ -31,18 +32,51 @@ _inventoryFrame.Parent = _screenGui
 -- 创建原生物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.05, 0, 0.05, 0)
+_itemTemplate.Size = UDim2.new(0.05, 0, 0.02, 0)
+_itemTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 _itemTemplate.BackgroundTransparency = 0.5
 _itemTemplate.Visible = false
 
+local _nameText = Instance.new("TextLabel")
+_nameText.Name = "NameText"
+_nameText.Text = "物品名称"
+_nameText.Size = UDim2.new(0.9, 0, 0.3, 0)
+_nameText.Position = UDim2.new(0.05, 0, 0.05, 0)
+_nameText.TextColor3 = Color3.new(1, 1, 1)
+_nameText.TextXAlignment = Enum.TextXAlignment.Left
+_nameText.Font = Enum.Font.SourceSansBold
+_nameText.TextSize = 16
+_nameText.Parent = _itemTemplate
+
+local _hpText = Instance.new("TextLabel")
+_hpText.Name = "HpText"
+_hpText.Text = "HP: 0"
+_hpText.Size = UDim2.new(0.9, 0, 0.2, 0)
+_hpText.Position = UDim2.new(0.05, 0, 0.4, 0)
+_hpText.TextColor3 = Color3.new(0.8, 0.2, 0.2)
+_hpText.TextXAlignment = Enum.TextXAlignment.Left
+_hpText.TextSize = 12
+_hpText.Parent = _itemTemplate
+
+local _speedText = Instance.new("TextLabel")
+_speedText.Name = "SpeedText"
+_speedText.Text = "SPEED: 0"
+_speedText.Size = UDim2.new(0.9, 0, 0.2, 0)
+_speedText.Position = UDim2.new(0.05, 0, 0.6, 0)
+_speedText.TextColor3 = Color3.new(0.2, 0.6, 1)
+_speedText.TextXAlignment = Enum.TextXAlignment.Left
+_speedText.TextSize = 12
+_speedText.Parent = _itemTemplate
+
 local _countText = Instance.new("TextLabel")
 _countText.Name = "CountText"
-_countText.Text = "0"
+_countText.Text = "x0"
 _countText.Size = UDim2.new(0.3, 0, 0.3, 0)
 _countText.Position = UDim2.new(0.7, 0, 0.7, 0)
 _countText.TextColor3 = Color3.new(1, 1, 1)
-_countText.Parent = _itemTemplate
-_countText.TextSize = 14 -- 缩小数量文字
+_countText.TextSize = 20
+_countText.Font = Enum.Font.SourceSansBold
+_countText.Parent = _itemTemplate -- 缩小数量文字
 
 local _inventoryItems = {}
 --[[
@@ -79,9 +113,9 @@ local function UpdateInventoryUI()
     -- 创建UIGridLayout自动排列
     if not _inventoryFrame:FindFirstChild('GridLayout') then
         local gridLayout = Instance.new('UIGridLayout')
-        gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
-        gridLayout.CellSize = UDim2.new(0.15, 0, 0.15, 0)
-        gridLayout.FillDirectionMaxCells = 6
+        gridLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0)
+        gridLayout.CellSize = UDim2.new(0.1, 0, 0.1, 0)
+        gridLayout.FillDirectionMaxCells = 9
         gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
         gridLayout.Parent = _inventoryFrame
     end
@@ -90,14 +124,25 @@ local function UpdateInventoryUI()
     -- 遍历物品数据创建新槽位
     for itemId, itemData in pairs(_inventoryItems) do
         -- 数据校验：确保必需字段存在
-        if type(itemData) ~= 'table' or not itemData.num or not itemData.icon then
+        if type(itemData) ~= 'table' or not itemData.num then
             warn("无效的物品数据:", itemId, itemData)
             continue
         end
+
+        local model = BoatConfig.GetBoatConfig(itemData.modelName)
+        if not model or not model[itemData.itemName] then
+            continue
+        end
+
         -- 克隆物品模板并初始化
         local newItem = _itemTemplate:Clone()
         newItem.Name = 'Item_'..itemId  -- 按物品ID命名实例
-        newItem.Image = itemData.icon
+
+        local partConfig = model[itemData.itemName]
+        -- 初始化物品信息
+        newItem:FindFirstChild("NameText").Text = itemData.itemName
+        newItem:FindFirstChild("HpText").Text = "HP: " .. partConfig.HP
+        newItem:FindFirstChild("SpeedText").Text = "SPEED: " .. partConfig.speed
         newItem.Visible = true
         newItem.Parent = _inventoryFrame
 

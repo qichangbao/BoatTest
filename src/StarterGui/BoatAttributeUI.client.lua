@@ -7,22 +7,68 @@ print('BoatAttributeUI.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
+local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
+local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'BoatAttributeUI_Gui'
+_screenGui.IgnoreGuiInset = true
+_screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
 -- 进度条容器
 local _container = Instance.new('Frame')
 _container.Name = 'StatusContainer'
 _container.Size = UDim2.new(0.4, 0, 0.15, 0)
-_container.Position = UDim2.new(0.5, 0, 0.05, 0)
-_container.AnchorPoint = Vector2.new(0.5, 1)
+_container.Position = UDim2.new(0.5, 0, 0.1, 0)
+_container.AnchorPoint = Vector2.new(0.5, 0)
 _container.BackgroundTransparency = 1
 _container.Parent = _screenGui
-_container.Visible = false
+_container.Visible = true
+
+-- 新增指南针界面
+local compassFrame = Instance.new('Frame')
+compassFrame.Name = 'CompassFrame'
+compassFrame.Size = UDim2.new(0.5, 0, 0.1, 0)
+compassFrame.Position = UDim2.new(0.5, 0, 0, 0)  -- 清除Y轴偏移
+compassFrame.AnchorPoint = Vector2.new(0.5, 0)
+compassFrame.BackgroundTransparency = 0.2
+compassFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.4)
+compassFrame.Parent = _screenGui
+
+local gradient = Instance.new('UIGradient')
+gradient.Rotation = 0
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
+    ColorSequenceKeypoint.new(0.5, Color3.new(1,1,1)),
+    ColorSequenceKeypoint.new(1, Color3.new(1,1,1))
+})
+gradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.45, 0),
+    NumberSequenceKeypoint.new(0.55, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+gradient.Parent = compassFrame
+
+local viewportFrame = Instance.new('Frame')
+viewportFrame.Size = UDim2.new(1, 0, 1, 0)
+viewportFrame.ClipsDescendants = true
+viewportFrame.BackgroundTransparency = 1
+viewportFrame.Parent = compassFrame
+
+local labelGradient = Instance.new('UIGradient')
+labelGradient.Rotation = 0
+labelGradient.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.4, 0),
+    NumberSequenceKeypoint.new(0.6, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+labelGradient.Parent = viewportFrame
 
 -- 生命值进度条
 local _healthBar = Instance.new('Frame')
@@ -92,8 +138,112 @@ Knit:OnStart():andThen(function()
         UpdateUI(type, value, maxValue)
     end)
 
+    -- 动态更新指南针
+    local function UpdateCompass()
+        if not _screenGui.Enabled then
+            return
+        end
+        
+        -- 更新方位指示器
+        local boat = Interface.GetBoatByPlayerUserId(game.Players.LocalPlayer.UserId)
+        if not boat or not boat.PrimaryPart then return end
+        
+        local boatCFrame = boat.PrimaryPart.CFrame or CFrame.new()
+        local lookVector = -boatCFrame.LookVector  -- 取反获得船头方向
+        local rightVector = boatCFrame.RightVector
+        
+        -- 计算正北方向（世界坐标系Z轴负方向）
+        local northDir = Vector3.new(0, 0, -1)
+        local angleFromNorth = math.deg(math.atan2(northDir:Dot(rightVector), northDir:Dot(lookVector)))
+        
+        -- 更新四个方位标签位置
+        for _, dirLabel in ipairs(viewportFrame:GetChildren()) do
+            if dirLabel:GetAttribute('IsDirection') then
+                local baseAngle = dirLabel:GetAttribute('BaseAngle')
+                local targetAngle = (baseAngle - angleFromNorth) % 360
+                
+                -- 将角度映射到-180~180范围
+                if targetAngle > 180 then
+                    targetAngle = targetAngle - 360
+                end
+                
+                -- 显示视角前方±60度范围内的方位
+                dirLabel.Visible = math.abs(targetAngle) <= 60
+                
+                -- 计算水平位置比例 (-60~60度 => 0~1)
+                local positionRatio = (60 - targetAngle) / 120
+                
+                -- 根据位置计算透明度（中间0.5时0.3，边缘时1）
+                local transparency = 1 - math.clamp(1 - math.abs(positionRatio - 0.5)*2, 0, 0.7)
+                dirLabel.TextTransparency = transparency
+                
+                dirLabel.Position = UDim2.new(positionRatio, 0, 0.5, 0)
+            end
+        end
+
+        for _, child in ipairs(viewportFrame:GetChildren()) do
+            if child:IsA('TextLabel') then
+                local landPos = child:GetAttribute('Position')
+                if landPos then
+                    local direction = (landPos - boatCFrame.Position).Unit
+                    
+                    local horizontalAngle = math.deg(math.atan2(direction:Dot(rightVector), lookVector:Dot(direction)))
+                    local positionRatio = (60 + horizontalAngle) / 120  -- 反转滑动方向
+                    
+                    -- 根据位置计算透明度
+                    local transparency = 1 - math.clamp(1 - math.abs(positionRatio - 0.5)*2, 0, 0.7)
+                    child.TextTransparency = transparency
+                    
+                    child.Position = UDim2.new(positionRatio, 0, 0.5, 0)
+                    child.AnchorPoint = Vector2.new(0.5, 0.5)
+                    
+                    -- 更新距离显示
+                    local distance = (boatCFrame.Position - landPos).Magnitude
+                    child.Visible = distance <= 5000
+                    child.Text = string.format('%s\n%d', child.Name, math.floor(distance))
+                end
+            end
+        end
+    end
+
+    game:GetService('RunService').Heartbeat:Connect(UpdateCompass)
+
+    -- 创建方位指示器
+    local directions = {
+        {Name = 'N', Angle = 0},
+        {Name = 'E', Angle = 90},
+        {Name = 'S', Angle = 180},
+        {Name = 'W', Angle = 270}
+    }
+
+    for _, dir in pairs(directions) do
+        local dirLabel = Instance.new('TextLabel')
+        dirLabel.Name = dir.Name
+        dirLabel.Text = dir.Name
+        dirLabel.TextSize = 20
+        dirLabel.BackgroundTransparency = 1
+        dirLabel.TextTransparency = 0.3
+        dirLabel.TextColor3 = Color3.new(1, 1, 0.184313)
+        dirLabel:SetAttribute('IsDirection', true)
+        dirLabel:SetAttribute('BaseAngle', dir.Angle)
+        dirLabel.Parent = viewportFrame
+    end
+
+    -- 初始化陆地数据
+    for _, landName in pairs(GameConfig.TerrainType.Land) do
+        local land = workspace:WaitForChild(landName):WaitForChild('Floor')
+        local landLabel = Instance.new('TextLabel')
+        landLabel.Name = landName
+        landLabel.TextSize = 16
+        landLabel.BackgroundTransparency = 1
+        landLabel.TextTransparency = 0.3
+        landLabel.TextColor3 = Color3.new(1,1,1)
+        landLabel.Parent = viewportFrame
+        landLabel:SetAttribute('Position', land.Position)
+    end
+
     local BoatMovementService = Knit.GetService("BoatMovementService")
     BoatMovementService.isOnBoat:Connect(function(isOnBoat)
-        _container.Visible = isOnBoat
+        _screenGui.Enabled = isOnBoat
     end)
 end):catch(warn)

@@ -4,12 +4,13 @@ local TweenService = game:GetService('TweenService')
 local function CreateLoadingUI()
     local screenGui = Instance.new('ScreenGui')
     screenGui.Name = 'LoadingUI_Gui'
+    screenGui.IgnoreGuiInset = true
     screenGui.DisplayOrder = 10
 
     -- 背景遮罩
     local background = Instance.new('Frame', screenGui)
     background.BackgroundColor3 = Color3.new(0, 0, 0)
-    background.Size = UDim2.new(1, 0, 1.5, 0)
+    background.Size = UDim2.new(1, 0, 1, 0)
     background.AnchorPoint = Vector2.new(0.5, 0.5)
     background.Position = UDim2.new(0.5, 0, 0.5, 0)
     

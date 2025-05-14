@@ -82,6 +82,12 @@ function PlayerAttributeService:KnitInit()
                 boat:Destroy()
             end
             character:SetAttribute("ModelType", "Player")
+            
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CollisionGroup = "PlayerCollisionGroup"
+                end
+            end
         end)
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()
@@ -92,7 +98,6 @@ function PlayerAttributeService:KnitInit()
         DBService:PlayerAdded(player)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
-        print("areaName    ", areaName)
         local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
         player.RespawnLocation = spawnLocation
 

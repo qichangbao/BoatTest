@@ -1,8 +1,6 @@
 print('InventoryService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-local ItemConfig = require(ServerScriptService:WaitForChild('ConfigFolder'):WaitForChild('ItemConfig'))
 
 local InventoryService = Knit.CreateService({
     Name = 'InventoryService',
@@ -22,8 +20,6 @@ function InventoryService:InitPlayerInventory(player, inventoryStore)
     if inventoryStore then
         for itemName, itemData in pairs(inventoryStore) do
             itemData.isUsed = 0
-            itemData.icon = ItemConfig.GetItemConfig(itemName).icon
-            itemData.sellPrice = ItemConfig.GetItemConfig(itemName).sellPrice
             self.playersInventory[userId][itemName] = itemData
         end
     end
@@ -40,8 +36,6 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
         itemName = itemName,
         modelName = modelName,
         num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
-        icon = ItemConfig.GetItemConfig(itemName).icon,
-        sellPrice = ItemConfig.GetItemConfig(itemName).sellPrice,
         isUsed = 0
     }
     
@@ -132,7 +126,7 @@ function InventoryService:GetUnusedParts(player, modelName)
     local unused = {}
     if self.playersInventory[userId] then
         for _, itemData in pairs(self.playersInventory[userId]) do
-            if itemData.modelName == modelName and itemData.isUsed == 1 then
+            if itemData.modelName == modelName and itemData.isUsed == 0 then
                 table.insert(unused, itemData)
             end
         end

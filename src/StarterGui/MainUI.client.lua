@@ -72,7 +72,7 @@ _stopBoatButton.MouseButton1Click:Connect(function()
                 inventoryFrame.Visible = true
             end
         end
-        require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).InitPlayerPos(Players.LocalPlayer)
+        --require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).InitPlayerPos(Players.LocalPlayer)
     end)
 end)
 

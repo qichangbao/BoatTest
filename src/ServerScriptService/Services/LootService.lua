@@ -1,12 +1,11 @@
 print('LootService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService('ServerStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-local BoatConfig = require(ServerScriptService:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
-local ItemConfig = require(ServerScriptService:WaitForChild('ConfigFolder'):WaitForChild('ItemConfig'))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local ItemConfig = require(ReplicatedStorage:WaitForChild('ConfigFolder'):WaitForChild('ItemConfig'))
 
 local LootService = Knit.CreateService({
     Name = 'LootService',

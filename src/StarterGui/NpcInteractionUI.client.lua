@@ -2,8 +2,10 @@ local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
-local NPCConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("NpcConfig"))
-local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
+local NPCConfig = require(ConfigFolder:WaitForChild("NpcConfig"))
+local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
+local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
 
 local _NpcUI = Instance.new('ScreenGui')
 _NpcUI.Name = 'NpcDialogUI_Gui'
@@ -56,79 +58,72 @@ _CloseButton.MouseButton1Click:Connect(function()
     CloseUI()
 end)
 
--- 等待所有模型加载完成
-local ContentProvider = game:GetService("ContentProvider")
-while ContentProvider.RequestQueueSize > 0 do
-    task.wait(1)
-end
+for _, landName in pairs(GameConfig.TerrainType.Land) do
+    local land = workspace:WaitForChild(landName)
+    for _, npc in pairs(land:GetChildren()) do
+        if npc:IsA("Model") and npc.Name:match("NPC") then
+            local config = NPCConfig[npc.Name]
+            -- 先创建ProximityPrompt实例
+            local HumanoidRootPart = npc:WaitForChild('HumanoidRootPart')
+            local prompt = HumanoidRootPart:FindFirstChild("ProximityPrompt")
+            if not prompt then
+                prompt = Instance.new('ProximityPrompt')
+                prompt.Name = 'ProximityPrompt'
+                prompt.HoldDuration = 0
+                prompt.ActionText = '对话'
+                prompt.ObjectText = npc.Name
+                prompt.MaxActivationDistance = 20
+                prompt.ClickablePrompt = true
+                prompt.RequiresLineOfSight = false
+                prompt.Parent = HumanoidRootPart
+            end
 
-for _, land in pairs(workspace:GetChildren()) do
-    if land.Name:match("Land") then--land:IsA("BasePart") and 
-        for _, npc in pairs(land:GetChildren()) do
-            if npc:IsA("Model") and npc.Name:match("NPC") then
-                local config = NPCConfig[npc.Name]
-                -- 先创建ProximityPrompt实例
-                local HumanoidRootPart = npc:WaitForChild('HumanoidRootPart')
-                local prompt = HumanoidRootPart:FindFirstChild("ProximityPrompt")
-                if not prompt then
-                    prompt = Instance.new('ProximityPrompt')
-                    prompt.Name = 'ProximityPrompt'
-                    prompt.HoldDuration = 0
-                    prompt.ActionText = '对话'
-                    prompt.ObjectText = npc.Name
-                    prompt.MaxActivationDistance = 20
-                    prompt.ClickablePrompt = true
-                    prompt.RequiresLineOfSight = false
-                    prompt.Parent = HumanoidRootPart
-                end
-
-                -- 修改后的ProximityPrompt监听
-                prompt.Triggered:Connect(function(player)
-                    if player == Players.LocalPlayer then
-                        _NpcUI.Enabled = true
-                        if config.Buttons.Confirm and config.Buttons.Confirm.Text then
-                            _ConfirmButton.Text = config.Buttons.Confirm.Text
-                        else
-                            _ConfirmButton.Text = LanguageConfig:Get(10002)
-                        end
-                        if config.Buttons.Cancel and config.Buttons.Cancel.Text then
-                            _CancelButton.Text = config.Buttons.Cancel.Text
-                        else
-                            _CancelButton.Text = LanguageConfig:Get(10003)
-                        end
-                        _TextLabel.Text = config.DialogText
-                        
-                        _ConfirmButton.MouseButton1Click:Connect(function()
-                            if config.Buttons.Confirm and config.Buttons.Confirm.Callback then
-                                if config.Buttons.Confirm.Callback == 'SetSpawnLocation' then
-                                    Knit.GetService("PlayerAttributeService"):SetSpawnLocation(land.Name)
-                                end
+            -- 修改后的ProximityPrompt监听
+            prompt.Triggered:Connect(function(player)
+                if player == Players.LocalPlayer then
+                    _NpcUI.Enabled = true
+                    if config.Buttons.Confirm and config.Buttons.Confirm.Text then
+                        _ConfirmButton.Text = config.Buttons.Confirm.Text
+                    else
+                        _ConfirmButton.Text = LanguageConfig:Get(10002)
+                    end
+                    if config.Buttons.Cancel and config.Buttons.Cancel.Text then
+                        _CancelButton.Text = config.Buttons.Cancel.Text
+                    else
+                        _CancelButton.Text = LanguageConfig:Get(10003)
+                    end
+                    _TextLabel.Text = config.DialogText
+                    
+                    _ConfirmButton.MouseButton1Click:Connect(function()
+                        if config.Buttons.Confirm and config.Buttons.Confirm.Callback then
+                            if config.Buttons.Confirm.Callback == 'SetSpawnLocation' then
+                                Knit.GetService("PlayerAttributeService"):SetSpawnLocation(land.Name)
                             end
-                            CloseUI()
-                        end)
-                        _CancelButton.MouseButton1Click:Connect(function()
-                            if config.Buttons.Cancel and config.Buttons.Cancel.Callback then
-                            end
-                            CloseUI()
-                        end)
+                        end
+                        CloseUI()
+                    end)
+                    _CancelButton.MouseButton1Click:Connect(function()
+                        if config.Buttons.Cancel and config.Buttons.Cancel.Callback then
+                        end
+                        CloseUI()
+                    end)
+                    
+                    -- 启动距离检测循环
+                    _connection = game:GetService('RunService').Heartbeat:Connect(function()
+                        local playerPos = player.Character and player.Character:FindFirstChild('HumanoidRootPart').Position
+                        local npcPos = HumanoidRootPart.Position
                         
-                        -- 启动距离检测循环
-                        _connection = game:GetService('RunService').Heartbeat:Connect(function()
-                            local playerPos = player.Character and player.Character:FindFirstChild('HumanoidRootPart').Position
-                            local npcPos = HumanoidRootPart.Position
-                            
-                            if playerPos and npcPos then
-                                local distance = (playerPos - npcPos).Magnitude
-                                if distance > prompt.MaxActivationDistance then
-                                    CloseUI()
-                                end
-                            else
+                        if playerPos and npcPos then
+                            local distance = (playerPos - npcPos).Magnitude
+                            if distance > prompt.MaxActivationDistance then
                                 CloseUI()
                             end
-                        end)
-                    end
-                end)
-            end
+                        else
+                            CloseUI()
+                        end
+                    end)
+                end
+            end)
         end
     end
 end

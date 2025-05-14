@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig'))
 
 local Interface = {}
 
@@ -6,11 +7,12 @@ local Interface = {}
 function Interface.InitPlayerPos(player)
     local spawnLocation = player.RespawnLocation
     if spawnLocation and player.Character then
-        player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
         local humanoid = player.Character:FindFirstChild('Humanoid')
         if humanoid then
             humanoid.Sit = false
         end
+        task.wait(0.1)
+        player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
     end
 end
 
@@ -38,10 +40,11 @@ function Interface.GetBoatByPlayerUserId(userId)
 end
 
 -- 判断是否在陆地上
-local _lands = {workspace:WaitForChild('Land'):WaitForChild("Floor"), workspace:WaitForChild('IsLand1'):WaitForChild("Floor")}
 function Interface.IsInLand(boat)
+    local landConfig = GameConfig.TerrainType.Land
     local pos = boat.PrimaryPart.Position
-    for _, land in pairs(_lands) do
+    for _, landName in pairs(landConfig) do
+        local land = workspace:WaitForChild(landName):WaitForChild("Floor")
         local min = land.Position - land.Size / 2
         local max = land.Position + land.Size / 2
         if pos.X >= min.X and pos.X <= max.X and pos.Z >= min.Z and pos.Z <= max.Z then

@@ -6,7 +6,7 @@ local CollectionService = game:GetService("CollectionService")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
-local BoatConfig = require(ServerScriptService:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local BOAT_PARTS_FOLDER_NAME = '船'
 
 local BoatAssemblingService = Knit.CreateService({
@@ -183,8 +183,8 @@ function BoatAssemblingService:CreateVehicleSeat(boat)
         if occupant and occupant.Parent then
             local humanoid = occupant.Parent:FindFirstChildOfClass('Humanoid')
             if humanoid and humanoid.Parent:IsA('Model') then
-                local playerTemp = game.Players:GetPlayerFromCharacter(humanoid.Parent)
-                if playerTemp and playerTemp.UserId ~= tonumber(string.match(boat.Name, 'PlayerBoat_(%d+)')) then
+                local player = game.Players:GetPlayerFromCharacter(humanoid.Parent)
+                if player and player.UserId ~= tonumber(string.match(boat.Name, 'PlayerBoat_(%d+)')) then
                     driverSeat.Disabled = false
                     task.wait(0.1)
                     driverSeat.Disabled = true
@@ -248,17 +248,20 @@ function BoatAssemblingService:CreateStabilizer(boat)
         weldConstraint.Part0 = boat.PrimaryPart
         weldConstraint.Part1 = part
         weldConstraint.Parent = part
+
+        part.CollisionGroup = "BoatStabilizerCollisionGroup"
     end
-    local size = Vector3.new(4, 1, 20)
+
+    local size = Vector3.new(10, 5, 20)
     createPart("BoatStabilizerPart1", size,
-        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 15,
+        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 5,
             boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
             boat.PrimaryPart.Position.Z))
     createPart("BoatStabilizerPart2", size,
-        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 15,
+        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 5,
             boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
             boat.PrimaryPart.Position.Z))
-    size = Vector3.new(10, 1, 4)
+    size = Vector3.new(20, 5, 10)
     createPart("BoatStabilizerPart3", size,
         CFrame.new(boat.PrimaryPart.Position.X,
             boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
@@ -399,15 +402,14 @@ function BoatAssemblingService:DestroyBoat(player)
 end
 
 function BoatAssemblingService.Client:StopBoat(player)
-    local playerBoat = workspace:FindFirstChild('PlayerBoat_'..player.UserId)
+    Interface.InitPlayerPos(player)
+    local playerBoat = workspace:FindFirstChild('PlayerBoat_' .. player.UserId)
     if not playerBoat then
         print("船不存在")
         return
     end
 
     playerBoat:Destroy()
-
-    Interface.InitPlayerPos(player)
     print("船已销毁")
     return
 end
