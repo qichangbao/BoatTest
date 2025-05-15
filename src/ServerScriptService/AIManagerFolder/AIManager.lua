@@ -11,6 +11,11 @@ function AIManager.new(name, position)
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:WaitForChild(name):Clone()
     self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
+    for _, part in ipairs(self.NPC:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CollisionGroup = "MonsterCollisionGroup"
+        end
+    end
     self.NPC.Parent = workspace
     self.target = nil
     self.Humanoid = self.NPC:FindFirstChildOfClass('Humanoid')

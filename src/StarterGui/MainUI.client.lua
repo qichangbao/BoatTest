@@ -13,20 +13,39 @@ local RunService = game:GetService('RunService')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
+local ShareData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ShareData"))
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'MainUI_Gui'
 _screenGui.Parent = PlayerGui
 
+-- 玩家按钮
+local _playersButton = Instance.new('TextButton')
+_playersButton.Name = '_playersButton'
+_playersButton.Size = UDim2.new(0.08, 0, 0.08, 0)
+_playersButton.Position = UDim2.new(0.02, 0, 0.02, 0)
+_playersButton.Text = LanguageConfig:Get(10026)
+_playersButton.Font = UIConfig.Font
+_playersButton.TextSize = 18
+_playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
+_playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_playersButton.Parent = _screenGui
+-- 玩家按钮点击事件
+_playersButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowPlayersUI:Fire()
+end)
+
 -- 启航按钮布局
 local _startBoatButton = Instance.new('TextButton')
 _startBoatButton.Name = 'StartBoatButton'
-_startBoatButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-_startBoatButton.Position = UDim2.new(0.05, 0, 0.45, 0)
+_startBoatButton.Size = UDim2.new(0.12, 0, 0.06, 0)
+_startBoatButton.Position = UDim2.new(0.02, 0, 0.92, 0)
 _startBoatButton.Text = LanguageConfig:Get(10004)
-_startBoatButton.Font = Enum.Font.Arimo
-_startBoatButton.TextSize = 24
-_startBoatButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+_startBoatButton.Font = UIConfig.Font
+_startBoatButton.TextSize = 18
+_startBoatButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)  -- 海洋蓝
+_startBoatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _startBoatButton.Parent = _screenGui
 -- 点击事件处理：向服务端发送船只组装请求
 _startBoatButton.MouseButton1Click:Connect(function()
@@ -52,13 +71,14 @@ end)
 -- 止航按钮
 local _stopBoatButton = Instance.new('TextButton')
 _stopBoatButton.Name = 'StopBoatButton'
-_stopBoatButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-_stopBoatButton.Position = UDim2.new(0.05, 0, 0.45, 0)  -- 原启航按钮Y轴位置调整为0.35
+_stopBoatButton.Size = UDim2.new(0.12, 0, 0.06, 0)
+_stopBoatButton.Position = UDim2.new(0.02, 0, 0.92, 0)
 _stopBoatButton.Text = LanguageConfig:Get(10005)
-_stopBoatButton.Font = Enum.Font.Arimo
-_stopBoatButton.TextSize = 24
-_stopBoatButton.BackgroundColor3 = Color3.fromRGB(215, 0, 0)
-_stopBoatButton.Visible = false  -- 初始隐藏止航按钮
+_stopBoatButton.Font = UIConfig.Font
+_stopBoatButton.TextSize = 18
+_stopBoatButton.BackgroundColor3 = Color3.fromRGB(209, 52, 56)  -- 警示红
+_stopBoatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_stopBoatButton.Visible = false
 _stopBoatButton.Parent = _screenGui
 -- 止航按钮点击事件
 _stopBoatButton.MouseButton1Click:Connect(function()
@@ -79,12 +99,13 @@ end)
 -- 创建添加部件按钮
 local _addBoatPartButton = Instance.new('TextButton')
 _addBoatPartButton.Name = 'AddPartButton'
-_addBoatPartButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-_addBoatPartButton.Position = UDim2.new(0.05, 0, 0.35, 0)
+_addBoatPartButton.Size = UDim2.new(0.12, 0, 0.06, 0)
+_addBoatPartButton.Position = UDim2.new(0.02, 0, 0.84, 0)
 _addBoatPartButton.Text = LanguageConfig:Get(10006)
-_addBoatPartButton.Font = Enum.Font.Arimo
-_addBoatPartButton.TextSize = 24
-_addBoatPartButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+_addBoatPartButton.Font = UIConfig.Font
+_addBoatPartButton.TextSize = 18
+_addBoatPartButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)
+_addBoatPartButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _addBoatPartButton.Visible = false
 _addBoatPartButton.Parent = _screenGui
 -- 添加部件按钮点击事件
@@ -102,9 +123,9 @@ end)
 local _goldLabel = Instance.new('TextLabel')
 _goldLabel.Name = 'GoldLabel'
 _goldLabel.AnchorPoint = Vector2.new(1, 1)
-_goldLabel.Position = UDim2.new(0.99, 0, 0.95, 0)
+_goldLabel.Position = UDim2.new(0.98, 0, 0.98, 0)
 _goldLabel.Text = LanguageConfig:Get(10007) .. ": 0"
-_goldLabel.Font = Enum.Font.Arimo
+_goldLabel.Font = UIConfig.Font
 _goldLabel.TextSize = 20
 _goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 _goldLabel.BackgroundTransparency = 1
@@ -114,16 +135,15 @@ _goldLabel.Parent = _screenGui
 -- 抽奖按钮
 local _lootButton = Instance.new('TextButton')
 _lootButton.Name = '_lootButton'
-_lootButton.Size = UDim2.new(0.2, 0, 0.1, 0)
-_lootButton.Position = UDim2.new(0.75, 0, 0.45, 0)
+_lootButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+_lootButton.Position = UDim2.new(0.85, 0, 0.45, 0)
 _lootButton.Text = LanguageConfig:Get(10008)
-_lootButton.Font = Enum.Font.Arimo
+_lootButton.Font = UIConfig.Font
 _lootButton.TextSize = 24
-_lootButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
-_lootButton.Parent = _screenGui
 _lootButton.Active = false
 _lootButton.AutoButtonColor = false
 _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+_lootButton.Parent = _screenGui
 
 local LOOT_TIME_COOLDOWN = 3.6
 -- 倒计时标签
@@ -181,20 +201,41 @@ _lootButton.MouseButton1Click:Connect(function()
     end)
 end)
 
+-- 背包按钮
+local _backpackButton = Instance.new('TextButton')
+_backpackButton.Name = '_backpackButton'
+_backpackButton.Size = UDim2.new(0.1, 0, 0.1, 0)
+_backpackButton.Position = UDim2.new(0.85, 0, 0.65, 0)
+_backpackButton.Text = LanguageConfig:Get(10025)
+_backpackButton.Font = UIConfig.Font
+_backpackButton.TextSize = 24
+_backpackButton.BackgroundColor3 = Color3.fromRGB(147, 51, 234)  -- 柔和紫罗兰色
+_backpackButton.Parent = _screenGui
+-- 背包按钮点击事件
+_backpackButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowInventoryUI:Fire()
+end)
+
 Knit:OnStart():andThen(function()
-    local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
-    PlayerAttributeService.ChangeGold:Connect(function(gold)
-        _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. gold
+    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
+    BoatAssemblingService.UpdateMainUI:Connect(function(data)
+        _startBoatButton.Visible = not data.explore
+        _stopBoatButton.Visible = data.explore
     end)
-    PlayerAttributeService:IsAdmin():andThen(function(isAdmin)
-        if isAdmin then
+    
+    Knit.GetController('UIController').UpdateGoldUI:Connect(function()
+        _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. ShareData.Gold
+    end)
+    
+    Knit.GetController('UIController').IsAdmin:Connect(function()
+        if ShareData.IsAdmin then
             -- 用户控制按钮
             local _adminButton = Instance.new('TextButton')
             _adminButton.Name = '_adminButton'
             _adminButton.Size = UDim2.new(0.1, 0, 0.1, 0)
-            _adminButton.Position = UDim2.new(0.75, 0, 0.15, 0) -- 右侧5%位置
+            _adminButton.Position = UDim2.new(0.85, 0, 0.15, 0) -- 右侧5%位置
             _adminButton.Text = '数据库'
-            _adminButton.Font = Enum.Font.Arimo
+            _adminButton.Font = UIConfig.Font
             _adminButton.TextSize = 24
             _adminButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
             _adminButton.Parent = _screenGui
@@ -204,11 +245,5 @@ Knit:OnStart():andThen(function()
                 Knit.GetController('UIController').ShowAdminUI:Fire()
             end)
         end
-    end)
-
-    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
-    BoatAssemblingService.UpdateMainUI:Connect(function(data)
-        _startBoatButton.Visible = not data.explore
-        _stopBoatButton.Visible = data.explore
     end)
 end):catch(warn)

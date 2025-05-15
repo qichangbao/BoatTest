@@ -12,6 +12,7 @@ local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
 local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'BoatAttributeUI_Gui'
@@ -76,7 +77,7 @@ _healthBar.Name = 'HealthBar'
 _healthBar.Size = UDim2.new(1, 0, 0.4, 0)
 _healthBar.Position = UDim2.new(0, 0, 0, 0)
 _healthBar.AnchorPoint = Vector2.new(0, 0)
-_healthBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+_healthBar.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
 _healthBar.BorderSizePixel = 0
 _healthBar.Parent = _container
 
@@ -85,7 +86,7 @@ _healthFill.Name = 'Fill'
 _healthFill.Size = UDim2.new(1, 0, 1, 0)
 _healthFill.AnchorPoint = Vector2.new(0, 0.5)
 _healthFill.Position = UDim2.new(0, 0, 0.5, 0)
-_healthFill.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+_healthFill.BackgroundColor3 = Color3.new(0.5, 1, 0.2)
 _healthFill.BorderSizePixel = 0
 _healthFill.Parent = _healthBar
 
@@ -95,7 +96,7 @@ _speedBar.Name = 'SpeedBar'
 _speedBar.Size = UDim2.new(1, 0, 0.4, 0)
 _speedBar.Position = UDim2.new(0, 0, 1, 0)
 _speedBar.AnchorPoint = Vector2.new(0, 1)
-_speedBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+_speedBar.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
 _speedBar.BorderSizePixel = 0
 _speedBar.Parent = _container
 
@@ -104,7 +105,7 @@ _speedFill.Name = 'Fill'
 _speedFill.Size = UDim2.new(1, 0, 1, 0)
 _speedFill.AnchorPoint = Vector2.new(0, 0.5)
 _speedFill.Position = UDim2.new(0, 0, 0.5, 0)
-_speedFill.BackgroundColor3 = Color3.fromRGB(60, 180, 255)
+_speedFill.BackgroundColor3 = Color3.new(0.2, 0.6, 1)
 _speedFill.BorderSizePixel = 0
 _speedFill.Parent = _speedBar
 
@@ -112,9 +113,11 @@ _speedFill.Parent = _speedBar
 local function createLabel(text, parent)
     local label = Instance.new('TextLabel')
     label.Text = text
-    label.Font = Enum.Font.Arimo
+    label.Font = UIConfig.Font
     label.TextSize = 18
     label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeColor3 = Color3.new(0, 0, 0)
+    label.TextStrokeTransparency = 0.5
     label.Size = UDim2.new(0.3, 0, 1, 0)
     label.BackgroundTransparency = 1
     label.Parent = parent

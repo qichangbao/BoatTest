@@ -16,17 +16,17 @@ end):catch(warn)
 local TriggerManager = require(ServerScriptService:WaitForChild("TriggerFolder"):WaitForChild("TriggerManager"))
 TriggerManager.new()
 
+PhysicsService:RegisterCollisionGroup('BoatCollisionGroup')
+PhysicsService:RegisterCollisionGroup('WaveCollisionGroup')
+PhysicsService:RegisterCollisionGroup('BoatStabilizerCollisionGroup')
+PhysicsService:RegisterCollisionGroup('PlayerCollisionGroup')
+PhysicsService:RegisterCollisionGroup('MonsterCollisionGroup')
+-- 设置碰撞关系
+PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
+PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
+PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'MonsterCollisionGroup', false)
 -- 在装配船只时初始化碰撞组
 local function setupBoatCollisionGroup(boatModel)
-    PhysicsService:RegisterCollisionGroup('BoatCollisionGroup')
-    PhysicsService:RegisterCollisionGroup('WaveCollisionGroup')
-    PhysicsService:RegisterCollisionGroup('BoatStabilizerCollisionGroup')
-    PhysicsService:RegisterCollisionGroup('PlayerCollisionGroup')
-    -- 设置碰撞关系
-    PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
-    PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'BoatCollisionGroup', true)
-    PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
-    
     -- 给所有部件设置碰撞组
     for _, part in ipairs(boatModel:GetDescendants()) do
         if part:IsA('BasePart') then

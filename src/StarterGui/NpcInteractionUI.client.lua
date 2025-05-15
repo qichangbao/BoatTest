@@ -6,6 +6,7 @@ local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
 local NPCConfig = require(ConfigFolder:WaitForChild("NpcConfig"))
 local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
 local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
+local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 
 local _NpcUI = Instance.new('ScreenGui')
 _NpcUI.Name = 'NpcDialogUI_Gui'
@@ -20,7 +21,7 @@ _Frame.Parent = _NpcUI
 
 local _CloseButton = Instance.new('TextButton')
 _CloseButton.Text = 'X'
-_CloseButton.Size = UDim2.new(0, 30, 0, 30)
+_CloseButton.Size = UIConfig.CloseButtonSize
 _CloseButton.Position = UDim2.new(1, -15, 0, -15)
 _CloseButton.Parent = _Frame
 local _ConfirmButton = Instance.new('TextButton')

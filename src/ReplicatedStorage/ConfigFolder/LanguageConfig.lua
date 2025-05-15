@@ -24,6 +24,9 @@ LanguageConfig.Text = {
     [10022] = {zh_cn = "船组装成功", en_us = "船组装成功"},
     [10023] = {zh_cn = "你正在使用它，不能分解", en_us = "你正在使用它，不能分解"},
     [10024] = {zh_cn = "是否将出生地设置为本区域?", en_us = "是否将出生地设置为本区域?"},
+    [10025] = {zh_cn = "背包", en_us = "背包"},
+    [10026] = {zh_cn = "玩家", en_us = "玩家"},
+    [10027] = {zh_cn = "赠送", en_us = "赠送"},
 }
 
 local Players = game:GetService("Players")

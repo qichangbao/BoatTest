@@ -9,51 +9,115 @@ print('InventoryUI.lua loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
+local ShareData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ShareData"))
 local localPlayer = Players.LocalPlayer
 
 local _screenGui = Instance.new("ScreenGui")
 _screenGui.Name = "InventoryUI_Gui"
+_screenGui.IgnoreGuiInset = true
+_screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
-local _inventoryFrame = Instance.new("ScrollingFrame")
+-- 新增模态背景
+local modalFrame = Instance.new("Frame")
+modalFrame.Size = UDim2.new(1, 0, 1, 0)
+modalFrame.BackgroundTransparency = 0.5
+modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+modalFrame.Parent = _screenGui
+
+-- 禁用背景点击
+local textButton = Instance.new("TextButton")
+textButton.Size = UDim2.new(1, 0, 1, 0)
+textButton.BackgroundTransparency = 1
+textButton.Text = ""
+textButton.Parent = modalFrame
+
+local _inventoryFrame = Instance.new("Frame")
 _inventoryFrame.Name = "InventoryFrame"
-_inventoryFrame.Size = UDim2.new(0.8, 0, 0.3, 0)
-_inventoryFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
-_inventoryFrame.BackgroundTransparency = 0.7
-_inventoryFrame.ScrollBarThickness = 8
-_inventoryFrame.CanvasSize = UDim2.new(0, 0, 2, 0) -- 可滚动区域高度
-_inventoryFrame.ScrollBarThickness = 8 -- 滚动条宽度
+_inventoryFrame.Size = UDim2.new(0.6, 0, 0.5, 0)
+_inventoryFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+_inventoryFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+_inventoryFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+_inventoryFrame.BackgroundTransparency = 0.3
 _inventoryFrame.Parent = _screenGui
 
+-- 标题栏
+local _titleBar = Instance.new("Frame")
+_titleBar.Name = "TitleBar"
+_titleBar.Size = UDim2.new(1, 0, 0.1, 0)
+_titleBar.Position = UDim2.new(0.5, 0, 0, 0)
+_titleBar.AnchorPoint = Vector2.new(0.5, 1)
+_titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+_titleBar.Parent = _inventoryFrame
+
+local _titleText = Instance.new("TextLabel")
+_titleText.Name = "TitleText"
+_titleText.Size = UDim2.new(0.3, 0, 1, 0)
+_titleText.Position = UDim2.new(0.5, 0, 0, 0)
+_titleText.AnchorPoint = Vector2.new(0.5, 0)
+_titleText.Text = "背包物品"
+_titleText.Font = UIConfig.Font
+_titleText.TextSize = 20
+_titleText.TextColor3 = Color3.new(1, 1, 1)
+_titleText.BackgroundTransparency = 1
+_titleText.TextXAlignment = Enum.TextXAlignment.Center
+_titleText.Parent = _titleBar
+
+-- 关闭按钮
+local _closeButton = Instance.new('TextButton')
+_closeButton.Name = 'CloseButton'
+_closeButton.Size = UIConfig.CloseButtonSize
+_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2, 0.5, 0)
+_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_closeButton.Text = 'X'
+_closeButton.Font = UIConfig.Font
+_closeButton.TextSize = 20
+_closeButton.TextColor3 = Color3.new(1, 1, 1)
+_closeButton.BackgroundTransparency = 1
+_closeButton.Parent = _titleBar
+_closeButton.MouseButton1Click:Connect(function()
+    _screenGui.Enabled = false
+end)
+
+-- 物品滚动区域
+local _scrollFrame = Instance.new("ScrollingFrame")
+_scrollFrame.Name = "ScrollFrame"
+_scrollFrame.Size = UDim2.new(0.95, 0, 0.95, 0)
+_scrollFrame.Position = UDim2.new(0.025, 0, 0.025, 0)
+_scrollFrame.BackgroundTransparency = 1
+_scrollFrame.ScrollBarThickness = 8
+_scrollFrame.Parent = _inventoryFrame
+
 -- 创建物品模板
--- 创建原生物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.05, 0, 0.02, 0)
-_itemTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-_itemTemplate.BackgroundTransparency = 0.5
+_itemTemplate.Size = UDim2.new(0.2, 0, 0.2, 0)
+_itemTemplate.BackgroundColor3 = Color3.fromRGB(255, 251, 251)
+_itemTemplate.BackgroundTransparency = 0.7
 _itemTemplate.Visible = false
 
+-- 物品名称
 local _nameText = Instance.new("TextLabel")
 _nameText.Name = "NameText"
-_nameText.Text = "物品名称"
-_nameText.Size = UDim2.new(0.9, 0, 0.3, 0)
+_nameText.Text = "ItemName"
+_nameText.Size = UDim2.new(0.9, 0, 0.2, 0)
 _nameText.Position = UDim2.new(0.05, 0, 0.05, 0)
 _nameText.TextColor3 = Color3.new(1, 1, 1)
-_nameText.TextXAlignment = Enum.TextXAlignment.Left
-_nameText.Font = Enum.Font.SourceSansBold
-_nameText.TextSize = 16
+_nameText.Font = UIConfig.Font
+_nameText.TextSize = 14
+_nameText.TextXAlignment = Enum.TextXAlignment.Center
+_nameText.BackgroundTransparency = 1
 _nameText.Parent = _itemTemplate
 
 local _hpText = Instance.new("TextLabel")
 _hpText.Name = "HpText"
 _hpText.Text = "HP: 0"
 _hpText.Size = UDim2.new(0.9, 0, 0.2, 0)
-_hpText.Position = UDim2.new(0.05, 0, 0.4, 0)
-_hpText.TextColor3 = Color3.new(0.8, 0.2, 0.2)
+_hpText.Position = UDim2.new(0.05, 0, 0.35, 0)
+_hpText.TextColor3 = Color3.new(0.5, 1, 0.2)
 _hpText.TextXAlignment = Enum.TextXAlignment.Left
 _hpText.TextSize = 12
 _hpText.Parent = _itemTemplate
@@ -68,17 +132,25 @@ _speedText.TextXAlignment = Enum.TextXAlignment.Left
 _speedText.TextSize = 12
 _speedText.Parent = _itemTemplate
 
+-- 物品数量
 local _countText = Instance.new("TextLabel")
 _countText.Name = "CountText"
-_countText.Text = "x0"
-_countText.Size = UDim2.new(0.3, 0, 0.3, 0)
-_countText.Position = UDim2.new(0.7, 0, 0.7, 0)
+_countText.Text = "X0"
+_countText.Size = UDim2.new(0.3, 0, 0.2, 0)
+_countText.Position = UDim2.new(0.7, 0, 0.8, 0)
 _countText.TextColor3 = Color3.new(1, 1, 1)
-_countText.TextSize = 20
-_countText.Font = Enum.Font.SourceSansBold
-_countText.Parent = _itemTemplate -- 缩小数量文字
+_countText.Font = UIConfig.Font
+_countText.TextSize = 16
+_countText.BackgroundTransparency = 1
+_countText.Parent = _itemTemplate
 
-local _inventoryItems = {}
+-- 网格布局
+local _gridLayout = Instance.new("UIGridLayout")
+_gridLayout.CellSize = UDim2.new(0.2, 0, 0.2, 0)
+_gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
+_gridLayout.FillDirectionMaxCells = 4
+_gridLayout.Parent = _scrollFrame
+
 --[[
 更新库存UI
 @param inventoryData 物品数据表，需包含id/icon/num/isSelected字段
@@ -93,7 +165,7 @@ local function UpdateInventoryUI()
     local boat = game.Workspace:FindFirstChild('PlayerBoat_'..localPlayer.UserId)
     if boat then
         local modelName = boat:GetAttribute('ModelName')
-        for _, itemData in pairs(_inventoryItems) do
+        for _, itemData in pairs(ShareData.InventoryItems) do
             if itemData.modelName == modelName and itemData.isUsed == 0 then
                 isShowAddButton = true
                 break
@@ -104,25 +176,15 @@ local function UpdateInventoryUI()
     Knit.GetController('UIController').ShowAddBoatPartButton:Fire(isShowAddButton)
 
     -- 清空现有物品槽（保留模板）
-    for _, child in ipairs(_inventoryFrame:GetChildren()) do
+    for _, child in ipairs(_scrollFrame:GetChildren()) do
         if child:IsA('ImageButton') and child ~= _itemTemplate then
             child:Destroy()
         end
     end
 
-    -- 创建UIGridLayout自动排列
-    if not _inventoryFrame:FindFirstChild('GridLayout') then
-        local gridLayout = Instance.new('UIGridLayout')
-        gridLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0)
-        gridLayout.CellSize = UDim2.new(0.1, 0, 0.1, 0)
-        gridLayout.FillDirectionMaxCells = 9
-        gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-        gridLayout.Parent = _inventoryFrame
-    end
-
     local yOffset = 0
     -- 遍历物品数据创建新槽位
-    for itemId, itemData in pairs(_inventoryItems) do
+    for itemId, itemData in pairs(ShareData.InventoryItems) do
         -- 数据校验：确保必需字段存在
         if type(itemData) ~= 'table' or not itemData.num then
             warn("无效的物品数据:", itemId, itemData)
@@ -142,18 +204,10 @@ local function UpdateInventoryUI()
         -- 初始化物品信息
         newItem:FindFirstChild("NameText").Text = itemData.itemName
         newItem:FindFirstChild("HpText").Text = "HP: " .. partConfig.HP
-        newItem:FindFirstChild("SpeedText").Text = "SPEED: " .. partConfig.speed
+        newItem:FindFirstChild("SpeedText").Text = "Speed: " .. partConfig.speed
+        newItem:FindFirstChild('CountText').Text = "X" .. tostring(itemData.num)
         newItem.Visible = true
-        newItem.Parent = _inventoryFrame
-
-        -- 数量文本
-        local text = newItem:FindFirstChild('CountText') or Instance.new('TextLabel')
-        text.Text = tostring(itemData.num)
-        text.Size = UDim2.new(0.3, 0, 0.3, 0)
-        text.Position = UDim2.new(0.7, 0, 0.7, 0)
-        text.BackgroundTransparency = 1
-        text.TextColor3 = Color3.new(1, 1, 1)
-        text.Parent = newItem
+        newItem.Parent = _scrollFrame
 
         yOffset += _itemTemplate.Size.Y.Offset
     end
@@ -161,63 +215,12 @@ local function UpdateInventoryUI()
     --_inventoryFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset) -- 可滚动区域高度
 end
 
-local function AddItemToInventory(itemData)
-    local isExist = false
-    for _, item in pairs(_inventoryItems) do
-        if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
-            item.num = itemData.num
-            isExist = true
-            break
-        end
-    end
-
-    if not isExist then
-        _inventoryItems[itemData.itemName] = itemData
-    end
-    UpdateInventoryUI()
-end
-
-local function RemoveItemToInventory(modelName, itemName)
-    local isExist = false
-    for name, item in pairs(_inventoryItems) do
-        if item.itemName == itemName and item.modelName == modelName then
-            _inventoryItems[name] = nil
-            isExist = true
-            break
-        end
-    end
-
-    if isExist then
-        UpdateInventoryUI()
-    end
-end
-
 Knit:OnStart():andThen(function()
-    -- 事件监听：处理库存更新事件（Update/Add/Remove等操作）
-    local InventoryService = Knit.GetService('InventoryService')
-    InventoryService.AddItem:Connect(function(itemData)
-        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10011), itemData.itemName))
-        AddItemToInventory(itemData)
-    end)
-    InventoryService.RemoveItem:Connect(function(modelName, itemName)
-        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10012), itemName))
-        RemoveItemToInventory(modelName, itemName)
-    end)
-    InventoryService.InitInventory:Connect(function(inventoryData)
-        _inventoryItems = inventoryData
-        UpdateInventoryUI()
-    end)
-    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
-        _inventoryItems = inventoryData
-        UpdateInventoryUI()
+    Knit.GetController('UIController').ShowInventoryUI:Connect(function()
+        _screenGui.Enabled = true
     end)
 
-    Knit.GetService('BoatAssemblingService').UpdateInventory:Connect(function(modelName)
-        for _, item in pairs(_inventoryItems) do
-            if item.modelName == modelName then
-                item.isUsed = 1
-            end
-        end
+    Knit.GetController('UIController').UpdateInventoryUI:Connect(function()
         UpdateInventoryUI()
     end)
 end):catch(warn)

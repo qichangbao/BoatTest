@@ -146,6 +146,12 @@ function InventoryService.Client:GetInventory(player)
     return self.Server:GetPlayerInventory(player)
 end
 
+function InventoryService:GetGiftableItems(player)
+    return self:Inventory(player):filter(function(item)
+        return item.Data.giftable
+    end)
+end
+
 function InventoryService:KnitInit()
     print('InventoryService initialized')
 end

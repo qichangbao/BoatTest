@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 
 local MessageBoxUI = {}
 function MessageBoxUI:Init()
@@ -30,10 +31,10 @@ function MessageBoxUI:Init()
     -- 关闭按钮
     self.closeButton = Instance.new('TextButton')
     self.closeButton.Name = 'CloseButton'
-    self.closeButton.Size = UDim2.new(0.1, 0, 0.15, 0)
+    self.closeButton.Size = UIConfig.CloseButtonSize
     self.closeButton.Position = UDim2.new(0.9, 0, 0, 0)
     self.closeButton.Text = 'X'
-    self.closeButton.Font = Enum.Font.Arimo
+    self.closeButton.Font = UIConfig.Font
     self.closeButton.TextSize = 20
     self.closeButton.Parent = self.mainFrame
 
@@ -41,7 +42,7 @@ function MessageBoxUI:Init()
     self.titleLabel = Instance.new('TextLabel')
     self.titleLabel.Size = UDim2.new(0.8, 0, 0.2, 0)
     self.titleLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
-    self.titleLabel.Font = Enum.Font.Arimo
+    self.titleLabel.Font = UIConfig.Font
     self.titleLabel.TextSize = 22
     self.titleLabel.TextColor3 = Color3.new(1, 1, 1)
     self.titleLabel.BackgroundTransparency = 1
@@ -51,7 +52,7 @@ function MessageBoxUI:Init()
     self.contentLabel = Instance.new('TextLabel')
     self.contentLabel.Size = UDim2.new(0.8, 0, 0.5, 0)
     self.contentLabel.Position = UDim2.new(0.1, 0, 0.3, 0)
-    self.contentLabel.Font = Enum.Font.Arimo
+    self.contentLabel.Font = UIConfig.Font
     self.contentLabel.TextSize = 18
     self.contentLabel.TextWrapped = true
     self.contentLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -68,13 +69,13 @@ function MessageBoxUI:Init()
     -- 创建操作按钮
     self.confirmButton = Instance.new('TextButton')
     self.confirmButton.Size = UDim2.new(0.4, 0, 0.8, 0)
-    self.confirmButton.Font = Enum.Font.Arimo
+    self.confirmButton.Font = UIConfig.Font
     self.confirmButton.TextSize = 18
     self.confirmButton.Parent = buttonContainer
 
     self.cancelButton = Instance.new('TextButton')
     self.cancelButton.Size = UDim2.new(0.4, 0, 0.8, 0)
-    self.cancelButton.Font = Enum.Font.Arimo
+    self.cancelButton.Font = UIConfig.Font
     self.cancelButton.TextSize = 18
     self.cancelButton.Parent = buttonContainer
 

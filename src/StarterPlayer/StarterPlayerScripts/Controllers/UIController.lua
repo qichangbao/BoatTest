@@ -9,6 +9,13 @@ local UIController = Knit.CreateController {
     ShowMessageBox = Signal.new(),
     ShowTip = Signal.new(),
     ShowAdminUI = Signal.new(),
+    ShowInventoryUI = Signal.new(),
+    UpdateInventoryUI = Signal.new(),
+    ShowPlayersUI = Signal.new(),
+    ShowGiftUI = Signal.new(),
+    UpdateGoldUI = Signal.new(),
+    IsAdmin = Signal.new(),
+    GiftUIClose = Signal.new(),
 }
 
 function UIController:KnitInit()

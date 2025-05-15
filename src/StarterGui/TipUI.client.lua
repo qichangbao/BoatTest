@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 
 local _screenGui = PlayerGui:FindFirstChild('TipUI_Gui')
 if _screenGui then
@@ -30,7 +31,7 @@ _tipTemplate.ZIndex = 1000
 local _textLabel = Instance.new("TextLabel")
 _textLabel.Size = UDim2.new(1, 0, 1, 0)
 _textLabel.TextColor3 = Color3.fromRGB(255,0,0)
-_textLabel.Font = Enum.Font.Arimo
+_textLabel.Font = UIConfig.Font
 _textLabel.TextSize = 20
 _textLabel.BackgroundTransparency = 1
 _textLabel.ZIndex = 1001

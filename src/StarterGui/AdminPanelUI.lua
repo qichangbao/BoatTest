@@ -2,6 +2,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local PlayerGui = game.Players.LocalPlayer:WaitForChild('PlayerGui')
+local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 
 local Theme = {
     Primary = Color3.fromRGB(0, 150, 255),
@@ -386,7 +387,7 @@ function AdminPanelUI:Show()
     closeBtn.Size = UDim2.new(0, 40, 0, 40)
     closeBtn.Text = '×'
     closeBtn.TextSize = 24
-    closeBtn.Font = Enum.Font.Arimo
+    closeBtn.Font = UIConfig.Font
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.AutoButtonColor = false
     closeBtn.BackgroundColor3 = Theme.ClosePrimary
