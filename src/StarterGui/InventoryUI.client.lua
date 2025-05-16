@@ -12,7 +12,7 @@ local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
-local ShareData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ShareData"))
+local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 local localPlayer = Players.LocalPlayer
 
 local _screenGui = Instance.new("ScreenGui")
@@ -21,23 +21,23 @@ _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
--- 新增模态背景
-local modalFrame = Instance.new("Frame")
-modalFrame.Size = UDim2.new(1, 0, 1, 0)
-modalFrame.BackgroundTransparency = 0.5
-modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-modalFrame.Parent = _screenGui
-
 -- 禁用背景点击
-local textButton = Instance.new("TextButton")
-textButton.Size = UDim2.new(1, 0, 1, 0)
-textButton.BackgroundTransparency = 1
-textButton.Text = ""
-textButton.Parent = modalFrame
+local _blocker = Instance.new('TextButton')
+_blocker.Size = UDim2.new(1, 0, 1, 0)
+_blocker.BackgroundTransparency = 1
+_blocker.Text = ""
+_blocker.Parent = _screenGui
+
+-- 新增模态背景
+local _modalFrame = Instance.new("Frame")
+_modalFrame.Size = UDim2.new(1, 0, 1, 0)
+_modalFrame.BackgroundTransparency = 0.5
+_modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+_modalFrame.Parent = _screenGui
 
 local _inventoryFrame = Instance.new("Frame")
 _inventoryFrame.Name = "InventoryFrame"
-_inventoryFrame.Size = UDim2.new(0.6, 0, 0.5, 0)
+_inventoryFrame.Size = UDim2.new(0, 600, 0, 300)
 _inventoryFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 _inventoryFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 _inventoryFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -67,20 +67,12 @@ _titleText.TextXAlignment = Enum.TextXAlignment.Center
 _titleText.Parent = _titleBar
 
 -- 关闭按钮
-local _closeButton = Instance.new('TextButton')
-_closeButton.Name = 'CloseButton'
-_closeButton.Size = UIConfig.CloseButtonSize
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2, 0.5, 0)
-_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_closeButton.Text = 'X'
-_closeButton.Font = UIConfig.Font
-_closeButton.TextSize = 20
-_closeButton.TextColor3 = Color3.new(1, 1, 1)
-_closeButton.BackgroundTransparency = 1
-_closeButton.Parent = _titleBar
-_closeButton.MouseButton1Click:Connect(function()
+local _closeButton = UIConfig.CreateCloseButton(function()
     _screenGui.Enabled = false
 end)
+_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+_closeButton.Parent = _titleBar
 
 -- 物品滚动区域
 local _scrollFrame = Instance.new("ScrollingFrame")
@@ -91,10 +83,17 @@ _scrollFrame.BackgroundTransparency = 1
 _scrollFrame.ScrollBarThickness = 8
 _scrollFrame.Parent = _inventoryFrame
 
+-- 网格布局
+local _gridLayout = Instance.new("UIGridLayout")
+_gridLayout.CellSize = UDim2.new(0.176, 0, 0.176, 0)
+_gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
+_gridLayout.FillDirectionMaxCells = 5
+_gridLayout.Parent = _scrollFrame
+
 -- 创建物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.2, 0, 0.2, 0)
+_itemTemplate.Size = UDim2.new(0.176, 0, 0.176, 0)
 _itemTemplate.BackgroundColor3 = Color3.fromRGB(255, 251, 251)
 _itemTemplate.BackgroundTransparency = 0.7
 _itemTemplate.Visible = false
@@ -144,13 +143,6 @@ _countText.TextSize = 16
 _countText.BackgroundTransparency = 1
 _countText.Parent = _itemTemplate
 
--- 网格布局
-local _gridLayout = Instance.new("UIGridLayout")
-_gridLayout.CellSize = UDim2.new(0.2, 0, 0.2, 0)
-_gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
-_gridLayout.FillDirectionMaxCells = 4
-_gridLayout.Parent = _scrollFrame
-
 --[[
 更新库存UI
 @param inventoryData 物品数据表，需包含id/icon/num/isSelected字段
@@ -165,7 +157,7 @@ local function UpdateInventoryUI()
     local boat = game.Workspace:FindFirstChild('PlayerBoat_'..localPlayer.UserId)
     if boat then
         local modelName = boat:GetAttribute('ModelName')
-        for _, itemData in pairs(ShareData.InventoryItems) do
+        for _, itemData in pairs(ClientData.InventoryItems) do
             if itemData.modelName == modelName and itemData.isUsed == 0 then
                 isShowAddButton = true
                 break
@@ -184,7 +176,7 @@ local function UpdateInventoryUI()
 
     local yOffset = 0
     -- 遍历物品数据创建新槽位
-    for itemId, itemData in pairs(ShareData.InventoryItems) do
+    for itemId, itemData in pairs(ClientData.InventoryItems) do
         -- 数据校验：确保必需字段存在
         if type(itemData) ~= 'table' or not itemData.num then
             warn("无效的物品数据:", itemId, itemData)

@@ -1,17 +1,33 @@
--- 新增赠送界面
+-- 赠送界面
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
-local ShareData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ShareData"))
+local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
+
+local _playerUserId = 0
 
 local _screenGui = Instance.new('ScreenGui')
-_screenGui.Name = 'GiftUI'
+_screenGui.Name = 'GiftUI_GUI'
 _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = Players.LocalPlayer:WaitForChild('PlayerGui')
+
+-- 禁用背景点击
+local _blocker = Instance.new("TextButton")
+_blocker.Size = UDim2.new(1, 0, 1, 0)
+_blocker.BackgroundTransparency = 1
+_blocker.Text = ""
+_blocker.Parent = _screenGui
+
+-- 新增模态背景
+local modalFrame = Instance.new("Frame")
+modalFrame.Size = UDim2.new(1, 0, 1, 0)
+modalFrame.BackgroundTransparency = 0.5
+modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+modalFrame.Parent = _screenGui
 
 -- 主界面框架
 local _frame = Instance.new('Frame')
@@ -21,6 +37,14 @@ _frame.AnchorPoint = Vector2.new(0.5, 0.5)
 _frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 _frame.BackgroundTransparency = 0.1
 _frame.Parent = _screenGui
+
+-- 物品选择列表
+local _scrollFrame = Instance.new('ScrollingFrame')
+_scrollFrame.Size = UDim2.new(0.9, 0, 0.7, 0)
+_scrollFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
+_scrollFrame.BackgroundTransparency = 1
+_scrollFrame.ScrollBarThickness = 8
+_scrollFrame.Parent = _frame
 
 -- 标题栏
 local _titleBar = Instance.new('Frame')
@@ -40,20 +64,14 @@ _titleLabel.BackgroundTransparency = 1
 _titleLabel.Parent = _titleBar
 
 -- 关闭按钮
-local _closeButton = Instance.new('TextButton')
-_closeButton.Name = 'CloseButton'
-_closeButton.Size = UDim2.new(0.1, 0, 1, 0)
-_closeButton.Position = UDim2.new(0.9, 0, 0, 0)
-_closeButton.Text = 'X'
-_closeButton.Font = UIConfig.Font
-_closeButton.TextSize = 24
-_closeButton.TextColor3 = Color3.new(1, 1, 1)
-_closeButton.BackgroundTransparency = 1
-_closeButton.Parent = _titleBar
-_closeButton.MouseButton1Click:Connect(function()
+local _closeButton = UIConfig.CreateCloseButton(function()
     _screenGui.Enabled = false
+    _playerUserId = 0
     Knit.GetController('UIController').GiftUIClose:Fire()
 end)
+_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+_closeButton.Parent = _titleBar
 
 -- 功能按钮
 local _confirmButton = Instance.new('TextButton')
@@ -67,16 +85,29 @@ _confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
 _confirmButton.Parent = _frame
 _confirmButton.MouseButton1Click:Connect(function()
     _screenGui.Enabled = false
+    if _playerUserId == 0 then
+        return
+    end
     Knit.GetController('UIController').GiftUIClose:Fire()
-end)
 
--- 物品选择列表
-local _scrollFrame = Instance.new('ScrollingFrame')
-_scrollFrame.Size = UDim2.new(0.9, 0, 0.7, 0)
-_scrollFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-_scrollFrame.BackgroundTransparency = 1
-_scrollFrame.ScrollBarThickness = 8
-_scrollFrame.Parent = _frame
+    local chooseItems = {}
+    for _, v in pairs(_scrollFrame:GetChildren()) do
+        if v:IsA('ImageButton') then
+            local checkBox = v:FindFirstChild('CheckBox')
+            if checkBox and checkBox.Image == "rbxassetid://6026568195" then
+                local modelName = checkBox:GetAttribute("ModelName")
+                local num = checkBox:GetAttribute("ItemNum")
+                table.insert(chooseItems, {itemName = v:FindFirstChild("NameText").Text, itemNum = num, modelName = modelName})
+            end
+        end
+    end
+
+    if #chooseItems > 0 then
+        Knit.GetService("GiftService"):RequestSendGift(_playerUserId, chooseItems):andThen(function(tipId)
+            Knit.GetController('UIController').ShowTip:Fire(tipId)
+        end):catch(warn)
+    end
+end)
 
 -- 网格布局
 local _gridLayout = Instance.new("UIGridLayout")
@@ -147,9 +178,17 @@ _countText.TextSize = 14
 _countText.BackgroundTransparency = 1
 _countText.Parent = _itemTemplate
 
-local function UpdateGiftUI()
+local function UpdateGiftUI(userId)
     _screenGui.Enabled = true
-    for itemId, itemData in pairs(ShareData.InventoryItems) do
+    _playerUserId = userId
+    -- 清空现有物品槽（保留模板）
+    for _, child in ipairs(_scrollFrame:GetChildren()) do
+        if child:IsA('ImageButton') and child ~= _itemTemplate then
+            child:Destroy()
+        end
+    end
+    
+    for itemId, itemData in pairs(ClientData.InventoryItems) do
         -- 数据校验：确保必需字段存在
         if type(itemData) ~= 'table' or not itemData.num then
             warn("无效的物品数据:", itemId, itemData)
@@ -175,17 +214,29 @@ local function UpdateGiftUI()
         newItem.Parent = _scrollFrame
     
         local checkBox = newItem:FindFirstChild("CheckBox")
+        checkBox:SetAttribute("ModelName", itemData.modelName)
         -- 点击切换选中状态
         newItem.MouseButton1Click:Connect(function()
             local isChecked = checkBox.Image == "rbxassetid://3570695787"
             checkBox.Image = isChecked and "rbxassetid://6026568195" or "rbxassetid://3570695787"
             newItem.BackgroundColor3 = isChecked and Color3.fromRGB(200, 230, 255) or Color3.fromRGB(255, 251, 251)
+            if isChecked then
+                if itemData.num == 1 then
+                    checkBox:SetAttribute("ItemNum", 1)
+                else
+                    Knit.GetController('UIController').ShowChooseNumUI:Fire(itemData.num, function(num)
+                        checkBox:SetAttribute("ItemNum", num)
+                    end)
+                end
+            else
+                checkBox:SetAttribute("ItemNum", 0)
+            end
         end)
     end
 end
 
 Knit:OnStart():andThen(function()
-    Knit.GetController('UIController').ShowGiftUI:Connect(function()
-        UpdateGiftUI()
+    Knit.GetController('UIController').ShowGiftUI:Connect(function(userId)
+        UpdateGiftUI(userId)
     end)
 end):catch(warn)

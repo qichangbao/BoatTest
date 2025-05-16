@@ -6,10 +6,17 @@ local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 
 local _screenGui = Instance.new('ScreenGui')
-_screenGui.Name = 'PlayersUI'
+_screenGui.Name = 'PlayersUI_GUI'
 _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
+
+-- 禁用背景点击
+local _blocker = Instance.new("TextButton")
+_blocker.Size = UDim2.new(1, 0, 1, 0)
+_blocker.BackgroundTransparency = 1
+_blocker.Text = ""
+_blocker.Parent = _screenGui
 
 -- 新增模态背景
 local modalFrame = Instance.new("Frame")
@@ -18,15 +25,8 @@ modalFrame.BackgroundTransparency = 0.5
 modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 modalFrame.Parent = _screenGui
 
--- 禁用背景点击
-local textButton = Instance.new("TextButton")
-textButton.Size = UDim2.new(1, 0, 1, 0)
-textButton.BackgroundTransparency = 1
-textButton.Text = ""
-textButton.Parent = modalFrame
-
 local _frame = Instance.new('Frame')
-_frame.Size = UDim2.new(0.3, 0, 0.7, 0)
+_frame.Size = UDim2.new(0, 400, 0, 300)
 _frame.Position = UDim2.new(0.5, 0, 0.5, 0)
 _frame.AnchorPoint = Vector2.new(0.5, 0.5)
 _frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -51,21 +51,12 @@ _titleLabel.BackgroundTransparency = 1
 _titleLabel.Parent = _titleBar
 
 -- 关闭按钮
-local _closeButton = Instance.new('TextButton')
-_closeButton.Name = 'CloseButton'
-_closeButton.Size = UIConfig.CloseButtonSize
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2, 0.5, 0)
-_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_closeButton.Text = 'X'
-_closeButton.Font = UIConfig.Font
-_closeButton.TextSize = 20
-_closeButton.TextColor3 = Color3.new(1, 1, 1)
-_closeButton.BackgroundTransparency = 1
-_closeButton.Parent = _titleBar
-
-_closeButton.MouseButton1Click:Connect(function()
+local _closeButton = UIConfig.CreateCloseButton(function()
     _screenGui.Enabled = false
 end)
+_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+_closeButton.Parent = _titleBar
 
 local _scrollFrame = Instance.new('ScrollingFrame')
 _scrollFrame.Size = UDim2.new(0.9, 0, 0.85, 0)
@@ -91,7 +82,8 @@ _giftButton.BackgroundTransparency = 0.5
 _giftButton.Parent = _childFrame
 
 _giftButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowGiftUI:Fire()
+    local userId = _childFrame:GetAttribute("PlayerId")
+    Knit.GetController('UIController').ShowGiftUI:Fire(userId)
     _scrollFrame.ScrollingEnabled = false
 end)
 
@@ -132,6 +124,7 @@ local function UpdatePlayerList()
                 entryPosition.Y + entrySize.Y/2
             )
             _childFrame.Visible = true
+            _childFrame:SetAttribute("PlayerId", player.UserId)
         end)
         yPos += 35
     end

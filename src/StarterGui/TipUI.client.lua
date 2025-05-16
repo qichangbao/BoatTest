@@ -99,5 +99,10 @@ local function showMessage(message)
 end
 
 Knit:OnStart():andThen(function()
+    local SystemService = Knit.GetService('SystemService')
+    SystemService.Tip:Connect(function(tipId, ...)
+        local tip = string.format(LanguageConfig:Get(tipId), ...)
+        showMessage(tip)
+    end)
     Knit.GetController('UIController').ShowTip:Connect(showMessage)
 end)

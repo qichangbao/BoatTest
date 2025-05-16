@@ -91,7 +91,8 @@ function PlayerAttributeService:KnitInit()
         end)
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()
-            self:ChangeGold(player, player:GetAttribute('Gold'))
+            local gold = player:GetAttribute('Gold')
+            self:ChangeGold(player, gold)
         end)
 
         local DBService = Knit.GetService('DBService')

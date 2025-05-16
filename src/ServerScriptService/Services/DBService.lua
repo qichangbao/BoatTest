@@ -125,7 +125,7 @@ function DBService:SetToAllStore(userId, key, value)
 	if key == "Gold" then
 		local player = Players:GetPlayerByUserId(userId)
 		if player then
-			player:SetAttribute("Gold", value)
+			player:SetAttribute("Gold", value or 0)
 		end
 	elseif key == "PlayerInventory" then
 		Knit.GetService("InventoryService"):GetInventoryFromDBService(userId, value)

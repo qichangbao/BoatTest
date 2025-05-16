@@ -16,6 +16,7 @@ local UIController = Knit.CreateController {
     UpdateGoldUI = Signal.new(),
     IsAdmin = Signal.new(),
     GiftUIClose = Signal.new(),
+    ShowChooseNumUI = Signal.new(),
 }
 
 function UIController:KnitInit()

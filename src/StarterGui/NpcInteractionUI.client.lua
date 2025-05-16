@@ -19,17 +19,29 @@ _Frame.Position = UDim2.new(0.5, 0, 0.5, 0)
 _Frame.Size = UDim2.new(0, 300, 0, 200)
 _Frame.Parent = _NpcUI
 
-local _CloseButton = Instance.new('TextButton')
-_CloseButton.Text = 'X'
-_CloseButton.Size = UIConfig.CloseButtonSize
-_CloseButton.Position = UDim2.new(1, -15, 0, -15)
+local _connection
+local function CloseUI()
+    _NpcUI.Enabled = false
+    -- 关闭时同步停止距离检测
+    if _connection then
+        _connection:Disconnect()
+    end
+end
+
+local _CloseButton = UIConfig.CreateCloseButton(function()
+    CloseUI()
+end)
+_CloseButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_CloseButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0, 0)
 _CloseButton.Parent = _Frame
+
 local _ConfirmButton = Instance.new('TextButton')
 _ConfirmButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _ConfirmButton.Size = UDim2.new(0.2, 0, 0.2, 0)
 _ConfirmButton.Position = UDim2.new(0.3, 0, 0.9, 0)
 _ConfirmButton.TextSize = 18
 _ConfirmButton.Parent = _Frame
+
 local _CancelButton = Instance.new('TextButton')
 _CancelButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _CancelButton.Size = UDim2.new(0.2, 0, 0.2, 0)
@@ -47,17 +59,6 @@ _TextLabel.TextYAlignment = Enum.TextYAlignment.Top
 _TextLabel.TextTruncate = Enum.TextTruncate.None
 _TextLabel.TextWrapped = true
 _TextLabel.Parent = _Frame
-local _connection
-local function CloseUI()
-    _NpcUI.Enabled = false
-    -- 关闭时同步停止距离检测
-    if _connection then
-        _connection:Disconnect()
-    end
-end
-_CloseButton.MouseButton1Click:Connect(function()
-    CloseUI()
-end)
 
 for _, landName in pairs(GameConfig.TerrainType.Land) do
     local land = workspace:WaitForChild(landName)

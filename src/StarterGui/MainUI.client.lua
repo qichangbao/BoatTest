@@ -14,7 +14,7 @@ local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChil
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
-local ShareData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ShareData"))
+local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'MainUI_Gui'
@@ -24,7 +24,7 @@ _screenGui.Parent = PlayerGui
 local _playersButton = Instance.new('TextButton')
 _playersButton.Name = '_playersButton'
 _playersButton.Size = UDim2.new(0.08, 0, 0.08, 0)
-_playersButton.Position = UDim2.new(0.02, 0, 0.02, 0)
+_playersButton.Position = UDim2.new(0.02, 0, 0.12, 0)
 _playersButton.Text = LanguageConfig:Get(10026)
 _playersButton.Font = UIConfig.Font
 _playersButton.TextSize = 18
@@ -224,11 +224,11 @@ Knit:OnStart():andThen(function()
     end)
     
     Knit.GetController('UIController').UpdateGoldUI:Connect(function()
-        _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. ShareData.Gold
+        _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. ClientData.Gold
     end)
     
     Knit.GetController('UIController').IsAdmin:Connect(function()
-        if ShareData.IsAdmin then
+        if ClientData.IsAdmin then
             -- 用户控制按钮
             local _adminButton = Instance.new('TextButton')
             _adminButton.Name = '_adminButton'

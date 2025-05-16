@@ -141,6 +141,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                 local keyInput = Instance.new('TextBox')
                 keyInput.Size = UDim2.new(0.8, 0, 0.2, 0)
                 keyInput.Position = UDim2.new(0.1, 0, 0.1, 0)
+                keyInput.Text = '输入Key'
                 keyInput.PlaceholderText = '输入Key'
                 keyInput.BackgroundColor3 = Theme.InputFieldBG
                 keyInput.Parent = popupFrame
@@ -148,13 +149,15 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                 local valueInput = Instance.new('TextBox')
                 valueInput.Size = UDim2.new(0.8, 0, 0.2, 0)
                 valueInput.Position = UDim2.new(0.1, 0, 0.4, 0)
+                valueInput.Text = '输入Value'
                 valueInput.PlaceholderText = '输入Value'
                 valueInput.BackgroundColor3 = Theme.InputFieldBG
                 valueInput.Parent = popupFrame
                 
                 local confirmBtn = Instance.new('TextButton')
                 confirmBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
-                confirmBtn.Position = UDim2.new(0.2, 0, 0.7, 0)
+                confirmBtn.Position = UDim2.new(0.7, 0, 0.8, 0)
+                confirmBtn.AnchorPoint = Vector2.new(0.5, 0.5)
                 confirmBtn.Text = '确认'
                 confirmBtn.BackgroundColor3 = Theme.Primary
                 confirmBtn.TextColor3 = Theme.TextBottonPrimary
@@ -162,7 +165,8 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                 
                 local closeBtn = Instance.new('TextButton')
                 closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
-                closeBtn.Position = UDim2.new(0.5, 0, 0.7, 0)
+                closeBtn.Position = UDim2.new(0.3, 0, 0.8, 0)
+                closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
                 closeBtn.Text = '关闭'
                 closeBtn.BackgroundColor3 = Theme.ClosePrimary
                 closeBtn.TextColor3 = Theme.TextBottonPrimary
@@ -215,7 +219,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
             label.Position = UDim2.new(0, 0, 0, 0)
             
             local valueBox = Instance.new('TextBox')
-            valueBox.Size = UDim2.new(1, 0, 0, 30)
+            valueBox.Size = UDim2.new(0.4, 0, 0, 30)
             valueBox.Position = UDim2.new(0.4, 0, 0, 0)
             valueBox.Text = tostring(value)
             valueBox.PlaceholderText = valueBox.Text
@@ -361,12 +365,27 @@ end
 
 function AdminPanelUI:Show()
     self.screenGui = Instance.new('ScreenGui')
+    self.screenGui.IgnoreGuiInset = true
     self.screenGui.Parent = PlayerGui
+
+    -- 禁用背景点击
+    local _blocker = Instance.new("TextButton")
+    _blocker.Size = UDim2.new(1, 0, 1, 0)
+    _blocker.BackgroundTransparency = 1
+    _blocker.Text = ""
+    _blocker.Parent = self.screenGui
+    
+    -- 新增模态背景
+    local modalFrame = Instance.new("Frame")
+    modalFrame.Size = UDim2.new(1, 0, 1, 0)
+    modalFrame.BackgroundTransparency = 0.5
+    modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+    modalFrame.Parent = self.screenGui
 
     local frame = Instance.new('Frame')
     frame.Name = 'AdminFrame'
-    frame.Size = UDim2.new(0.8, 0, 0.9, 0)
-    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Size = UDim2.new(0.8, 0, 0.8, 0)
+    frame.AnchorPoint = Vector2.new(0.5, 0.45)
     frame.Position = UDim2.new(0.5, 0, 0.5, 0)
     frame.BackgroundTransparency = 1
     frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -381,28 +400,12 @@ function AdminPanelUI:Show()
     controlFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     controlFrame.Parent = frame
 
-    -- 添加关闭按钮
-    local closeBtn = Instance.new('TextButton')
-    closeBtn.Name = 'CloseButton'
-    closeBtn.Size = UDim2.new(0, 40, 0, 40)
-    closeBtn.Text = '×'
-    closeBtn.TextSize = 24
-    closeBtn.Font = UIConfig.Font
-    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeBtn.AutoButtonColor = false
-    closeBtn.BackgroundColor3 = Theme.ClosePrimary
-    closeBtn.TextColor3 = Theme.TextBottonPrimary
+    local closeBtn = UIConfig.CreateCloseButton(function()
+        self.screenGui:Destroy()
+    end)
     closeBtn.AnchorPoint = Vector2.new(0, 0.5)
     closeBtn.Position = UDim2.new(1, 40, 0.5, 0)
     closeBtn.Parent = controlFrame
-
-    local corner = Instance.new('UICorner')
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = closeBtn
-
-    closeBtn.MouseButton1Click:Connect(function()
-        self.screenGui:Destroy()
-    end)
 
     -- 调整滚动框架位置和尺寸
     self.scrollFrame = Instance.new('ScrollingFrame')

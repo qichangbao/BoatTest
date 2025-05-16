@@ -19,11 +19,33 @@ function InventoryService:InitPlayerInventory(player, inventoryStore)
 
     if inventoryStore then
         for itemName, itemData in pairs(inventoryStore) do
-            itemData.isUsed = 0
-            self.playersInventory[userId][itemName] = itemData
+            local data = table.clone(itemData)
+            data.isUsed = 0
+            self.playersInventory[userId][itemName] = data
         end
     end
     self.Client.InitInventory:Fire(player, self.playersInventory[userId])
+end
+
+function InventoryService:ResetPlayerInventory(player, inventory)
+    self.playersInventory[player.UserId] = inventory
+    Knit.GetService('DBService'):Set(player.UserId, "PlayerInventory", inventory)
+    self.Client.InitInventory:Fire(player, self.playersInventory[player.UserId])
+end
+
+function InventoryService:AddSingleItem(userId, itemName, modelName, num)
+    local data = {itemName = itemName, modelName = modelName, num = num, isUsed = 0}
+    self.playersInventory[userId][itemName] = {itemName = itemName, modelName = modelName, num = num, isUsed = 0}
+    return data
+end
+
+function InventoryService:GetInitData(userId)
+    local data = {}
+    for i, v in pairs(self.playersInventory[userId]) do
+        data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
+    end
+
+    return data
 end
 
 function InventoryService:AddItemToInventory(player, itemName, modelName)
@@ -31,18 +53,8 @@ function InventoryService:AddItemToInventory(player, itemName, modelName)
     if not self.playersInventory[userId] then
         self.playersInventory[userId] = {}
     end
-    
-    self.playersInventory[userId][itemName] = {
-        itemName = itemName,
-        modelName = modelName,
-        num = (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1,
-        isUsed = 0
-    }
-    
-    local data = {}
-    for i, v in pairs(self.playersInventory[userId]) do
-        data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
-    end
+    self:AddSingleItem(userId, itemName, modelName, (self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].num or 0) + 1)
+    local data = self:GetInitData(userId)
     Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
     self.Client.AddItem:Fire(player, self.playersInventory[userId][itemName])
     
@@ -55,17 +67,14 @@ function InventoryService:RemoveItemFromInventory(player, modelName, itemName)
         self.playersInventory[userId] = {}
     end
 
-    if self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].modelName == modelName 
+    if self.playersInventory[userId][itemName] and self.playersInventory[userId][itemName].modelName == modelName
     and self.playersInventory[userId][itemName].isUsed == 0 then
         self.playersInventory[userId][itemName].num = math.max(0, self.playersInventory[userId][itemName].num - 1)
         if self.playersInventory[userId][itemName].num == 0 then
             self.playersInventory[userId][itemName] = nil
         end
         
-        local data = {}
-        for i, v in pairs(self.playersInventory[userId]) do
-            data[i] = {itemName = v.itemName, modelName = v.modelName, num = v.num}
-        end
+        local data = self:GetInitData(userId)
         Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
         self.Client.RemoveItem:Fire(player, modelName, itemName)
         return true
@@ -144,12 +153,6 @@ end
 
 function InventoryService.Client:GetInventory(player)
     return self.Server:GetPlayerInventory(player)
-end
-
-function InventoryService:GetGiftableItems(player)
-    return self:Inventory(player):filter(function(item)
-        return item.Data.giftable
-    end)
 end
 
 function InventoryService:KnitInit()

@@ -29,13 +29,11 @@ function MessageBoxUI:Init()
     self.mainFrame.Parent = gui
 
     -- 关闭按钮
-    self.closeButton = Instance.new('TextButton')
-    self.closeButton.Name = 'CloseButton'
-    self.closeButton.Size = UIConfig.CloseButtonSize
-    self.closeButton.Position = UDim2.new(0.9, 0, 0, 0)
-    self.closeButton.Text = 'X'
-    self.closeButton.Font = UIConfig.Font
-    self.closeButton.TextSize = 20
+    self.closeButton = UIConfig.CreateCloseButton(function()
+        self.mainFrame.Visible = false
+    end)
+    self.closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    self.closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
     self.closeButton.Parent = self.mainFrame
 
     -- 标题
@@ -106,13 +104,6 @@ function MessageBoxUI:Show(config)
     self.cancelButton.MouseButton1Click:Connect(function()
         if config.OnCancel then
             config.OnCancel()
-        end
-        self.mainFrame.Visible = false
-    end)
-
-    self.closeButton.MouseButton1Click:Connect(function()
-        if config.OnClose then
-            config.OnClose()
         end
         self.mainFrame.Visible = false
     end)
