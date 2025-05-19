@@ -1,8 +1,17 @@
 print('TerrainGenerationService loaded')
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+
+-- 初始化岛屿
+for _, landData in pairs(GameConfig.TerrainType.IsLand) do
+    local isLand = ServerStorage:WaitForChild(landData.ModelName):Clone()
+    isLand.Name = landData.Name
+    isLand:PivotTo(CFrame.new(landData.Position))
+    isLand.Parent = workspace
+end
 
 local TerrainGenerationService = Knit.CreateService({
     Name = 'TerrainGenerationService',

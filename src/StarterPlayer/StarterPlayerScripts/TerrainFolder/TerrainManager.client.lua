@@ -105,8 +105,10 @@ local function UpdateChunks(position)
     end)
 end
 
-game:GetService("RunService").RenderStepped:Connect(function()
-    if Players.LocalPlayer.Character then
-        UpdateChunks(Players.LocalPlayer.Character:GetPivot().Position)
-    end
-end)
+Knit:OnStart():andThen(function()
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if Players.LocalPlayer.Character then
+            UpdateChunks(Players.LocalPlayer.Character:GetPivot().Position)
+        end
+    end)
+end):catch(warn)

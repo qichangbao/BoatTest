@@ -17,6 +17,8 @@ local UIController = Knit.CreateController {
     IsAdmin = Signal.new(),
     GiftUIClose = Signal.new(),
     ShowChooseNumUI = Signal.new(),
+    ShowNpcDialogUI = Signal.new(),
+    CloseNpcDialogUI = Signal.new(),
 }
 
 function UIController:KnitInit()

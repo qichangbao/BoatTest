@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+local MessagingService = game:GetService("MessagingService")
 
 local AdminUserIds = {
 	4803414780,
@@ -70,6 +71,7 @@ end
 function PlayerAttributeService:KnitInit()
     print('PlayerAttributeService initialized')
 
+    local connection = nil
     local function playerAdded(player)
         print("PlayerAdded    ", player.Name)
         player.CharacterAdded:Connect(function(character)
@@ -88,6 +90,9 @@ function PlayerAttributeService:KnitInit()
                     part.CollisionGroup = "PlayerCollisionGroup"
                 end
             end
+
+            task.wait(3)
+            MessagingService:PublishAsync("ReviceGold", {Data = 1000})
         end)
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()
@@ -99,7 +104,8 @@ function PlayerAttributeService:KnitInit()
         DBService:PlayerAdded(player)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
-        local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
+        local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("Land")
+        local spawnLocation = area:WaitForChild("SpawnLocation")
         player.RespawnLocation = spawnLocation
 
         local gold = DBService:Get(player.UserId, "Gold")
@@ -107,11 +113,19 @@ function PlayerAttributeService:KnitInit()
     
         local playerInventory = DBService:Get(player.UserId, "PlayerInventory") or {}
         Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
+        
+        connection = MessagingService:SubscribeAsync("ReviceGold", function(message)
+            print("Received message for", player.Name, message.Data)
+        end)
     end
 
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
         Knit.GetService('DBService'):PlayerRemoving(player)
+        if connection then
+            connection:Disconnect()
+            connection = nil
+        end
     end
 
 	for _, player in Players:GetPlayers() do

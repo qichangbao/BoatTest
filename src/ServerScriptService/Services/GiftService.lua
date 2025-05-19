@@ -18,6 +18,9 @@ function GiftService.Client:RequestSendGift(player, targetPlayerUserId, items)
     local InventoryService = Knit.GetService("InventoryService")
     local curInventory = InventoryService.playersInventory[player.UserId]
     local targetPlayer = Players:GetPlayerByUserId(targetPlayerUserId)
+    if not targetPlayer then
+        return 10032
+    end
     local targetInventory = InventoryService.playersInventory[targetPlayerUserId]
     for _, itemData in ipairs(items) do
         if InventoryService:CheckExists(player, itemData.itemName) then

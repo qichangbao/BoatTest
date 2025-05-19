@@ -152,6 +152,8 @@ function DBService:Set(userId, key, value)
 
 	profile.Data[key] = value
 	profile:Save()
+	print("数据已保存  ", userId, key, value)
+
 	return true
 end
 
@@ -184,4 +186,4 @@ function DBService:KnitStart()
     print('DBService started')
 end
 
-return DBService
+return DBServic

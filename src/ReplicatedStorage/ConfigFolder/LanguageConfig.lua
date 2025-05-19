@@ -31,6 +31,7 @@ LanguageConfig.Text = {
     [10029] = {zh_cn = "选择数量", en_us = "选择数量"},
     [10030] = {zh_cn = "不能赠送自己", en_us = "不能赠送自己"},
     [10031] = {zh_cn = "%s赠送给你一些物品", en_us = "%s赠送给你一些物品"},
+    [10032] = {zh_cn = "没找到玩家", en_us = "没找到玩家"},
 }
 
 local Players = game:GetService("Players")

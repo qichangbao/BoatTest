@@ -202,7 +202,7 @@ Knit:OnStart():andThen(function()
                     
                     -- 更新距离显示
                     local distance = (boatCFrame.Position - landPos).Magnitude
-                    child.Visible = distance <= 5000
+                    child.Visible = distance <= 2000
                     child.Text = string.format('%s\n%d', child.Name, math.floor(distance))
                 end
             end
@@ -243,6 +243,18 @@ Knit:OnStart():andThen(function()
         landLabel.TextColor3 = Color3.new(1,1,1)
         landLabel.Parent = viewportFrame
         landLabel:SetAttribute('Position', land.Position)
+    end
+
+    -- 初始化陆地数据
+    for _, landData in pairs(GameConfig.TerrainType.IsLand) do
+        local landLabel = Instance.new('TextLabel')
+        landLabel.Name = landData.Name
+        landLabel.TextSize = 16
+        landLabel.BackgroundTransparency = 1
+        landLabel.TextTransparency = 0.3
+        landLabel.TextColor3 = Color3.new(1,1,1)
+        landLabel.Parent = viewportFrame
+        landLabel:SetAttribute('Position', landData.Position)
     end
 
     local BoatMovementService = Knit.GetService("BoatMovementService")

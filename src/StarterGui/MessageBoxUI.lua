@@ -83,6 +83,21 @@ function MessageBoxUI:Init()
     uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
     uiListLayout.Padding = UDim.new(0.1, 0)
     uiListLayout.Parent = buttonContainer
+
+    self.confirmConnection = nil
+    self.cancelConnection = nil
+end
+
+function MessageBoxUI:Hide()
+    self.mainFrame.Visible = false
+    if self.confirmConnection then
+        self.confirmConnection:Disconnect()
+        self.confirmConnection = nil
+    end
+    if self.cancelConnection then
+        self.cancelConnection:Disconnect()
+        self.cancelConnection = nil
+    end
 end
 
 function MessageBoxUI:Show(config)
@@ -94,18 +109,18 @@ function MessageBoxUI:Show(config)
     self.confirmButton.Text = config.ConfirmText or LanguageConfig:Get(10002)
     self.cancelButton.Text = config.CancelText or LanguageConfig:Get(10003)
     -- 事件绑定
-    self.confirmButton.MouseButton1Click:Connect(function()
+    self.confirmConnection = self.confirmButton.MouseButton1Click:Connect(function()
         if config.OnConfirm then
             config.OnConfirm()
         end
-        self.mainFrame.Visible = false
+        self:Hide()
     end)
 
-    self.cancelButton.MouseButton1Click:Connect(function()
+    self.cancelConnection = self.cancelButton.MouseButton1Click:Connect(function()
         if config.OnCancel then
             config.OnCancel()
         end
-        self.mainFrame.Visible = false
+        self:Hide()
     end)
 end
 
