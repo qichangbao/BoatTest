@@ -1,4 +1,4 @@
-
+-- 消息队列和UI容器
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
@@ -7,18 +7,11 @@ local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):Wa
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 
-local _screenGui = PlayerGui:FindFirstChild('TipUI_Gui')
-if _screenGui then
-    return
-end
-_screenGui = Instance.new('ScreenGui')
-_screenGui.Name = 'TipUI_Gui'
-_screenGui.ResetOnSpawn = false
+local _screenGui = Instance.new('ScreenGui')
+_screenGui.Name = 'TipUI_GUI'
 _screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 _screenGui.DisplayOrder = 999
 _screenGui.Parent = PlayerGui
-
--- 消息队列和UI容器
 
 -- 飘窗UI模板
 local _tipTemplate = Instance.new("Frame")
@@ -104,5 +97,6 @@ Knit:OnStart():andThen(function()
         local tip = string.format(LanguageConfig:Get(tipId), ...)
         showMessage(tip)
     end)
+    Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowTip:Connect(showMessage)
 end)

@@ -43,8 +43,8 @@ _titleBar.Parent = _frame
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = '玩家列表'
-_titleLabel.Font = Enum.Font.GothamBold
+_titleLabel.Text = LanguageConfig:Get(10033)
+_titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
 _titleLabel.BackgroundTransparency = 1
@@ -54,7 +54,6 @@ _titleLabel.Parent = _titleBar
 local _closeButton = UIConfig.CreateCloseButton(function()
     _screenGui.Enabled = false
 end)
-_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
 _closeButton.Parent = _titleBar
 
@@ -131,6 +130,7 @@ local function UpdatePlayerList()
 end
 
 Knit:OnStart():andThen(function()
+    Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowPlayersUI:Connect(function()
         UpdatePlayerList()
     end)

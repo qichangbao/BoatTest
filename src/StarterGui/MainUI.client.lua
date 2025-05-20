@@ -17,7 +17,7 @@ local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
 local _screenGui = Instance.new('ScreenGui')
-_screenGui.Name = 'MainUI_Gui'
+_screenGui.Name = 'MainUI_GUI'
 _screenGui.Parent = PlayerGui
 
 -- 玩家按钮
@@ -173,7 +173,7 @@ local function updateCooldown()
 end
 
 -- 初始化冷却计时器
-RunService.Heartbeat:Connect(function(dt)
+local _renderSteppedConnection = RunService.RenderStepped:Connect(function(dt)
     if _remainingTime > 0 then
         _remainingTime = math.max(0, _remainingTime - dt)
         updateCooldown()
@@ -216,6 +216,14 @@ _backpackButton.MouseButton1Click:Connect(function()
     Knit.GetController('UIController').ShowInventoryUI:Fire()
 end)
 
+local function Destroy()
+    print("MainUI Destroy")
+    if _renderSteppedConnection then
+        _renderSteppedConnection:Disconnect()
+        _renderSteppedConnection = nil
+    end
+end
+
 Knit:OnStart():andThen(function()
     local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService.UpdateMainUI:Connect(function(data)
@@ -223,10 +231,10 @@ Knit:OnStart():andThen(function()
         _stopBoatButton.Visible = data.explore
     end)
     
+    Knit.GetController('UIController').AddUI:Fire(_screenGui, Destroy)
     Knit.GetController('UIController').UpdateGoldUI:Connect(function()
         _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. ClientData.Gold
     end)
-    
     Knit.GetController('UIController').IsAdmin:Connect(function()
         if ClientData.IsAdmin then
             -- 用户控制按钮

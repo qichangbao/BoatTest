@@ -20,12 +20,18 @@ end
 function Interface.InitBoatWaterPos(player, boat)
     local spawnLocation = player.RespawnLocation
     if spawnLocation and player.Character then
-        local boatInitPos = spawnLocation.Parent:WaitForChild('BoatInitPos')
-        local position = boatInitPos.Value
+        local land = spawnLocation.Parent
+        local pos = land:GetPivot().Position
+        local wharfOffsetPos = land:WaitForChild('WharfOffsetPos')
+        local wharfOrientation = land:WaitForChild('WharfOrientation')
+        local position = wharfOffsetPos.Value
+        local orientation = wharfOrientation.Value
     
-        local currentCFrame = boat:GetPivot()
-        local newPosition = Vector3.new(position.X, position.Y + boat.PrimaryPart.size.y, position.Z)
-        local newCFrame = CFrame.new(newPosition) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
+        local newPosition = Vector3.new(pos.X + position.X, position.Y + boat.PrimaryPart.size.y, pos.Z + position.Z)
+        local radiansX = math.rad(orientation.X)
+        local radiansY = math.rad(orientation.Y)
+        local radiansZ = math.rad(orientation.Z)
+        local newCFrame = CFrame.new(newPosition) * CFrame.fromOrientation(radiansX, radiansY, radiansZ)
         boat:PivotTo(newCFrame)
     
         -- 玩家自动入座

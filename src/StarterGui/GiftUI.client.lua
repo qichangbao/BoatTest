@@ -6,6 +6,7 @@ local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
+local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 
 local _playerUserId = 0
 
@@ -13,7 +14,7 @@ local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'GiftUI_GUI'
 _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
-_screenGui.Parent = Players.LocalPlayer:WaitForChild('PlayerGui')
+_screenGui.Parent = PlayerGui
 
 -- 禁用背景点击
 local _blocker = Instance.new("TextButton")
@@ -69,21 +70,11 @@ local _closeButton = UIConfig.CreateCloseButton(function()
     _playerUserId = 0
     Knit.GetController('UIController').GiftUIClose:Fire()
 end)
-_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
 _closeButton.Parent = _titleBar
 
--- 功能按钮
-local _confirmButton = Instance.new('TextButton')
-_confirmButton.Text = LanguageConfig:Get(10002)
-_confirmButton.Size = UDim2.new(0.25, 0, 0.1, 0)
-_confirmButton.Position = UDim2.new(0.7, 0, 0.85, 0)
-_confirmButton.Font = UIConfig.Font
-_confirmButton.TextSize = 18
-_confirmButton.TextColor3 = Color3.new(1, 1, 1)
-_confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
-_confirmButton.Parent = _frame
-_confirmButton.MouseButton1Click:Connect(function()
+-- 确认按钮
+local _confirmButton = UIConfig.CreateConfirmButton(function()
     _screenGui.Enabled = false
     if _playerUserId == 0 then
         return
@@ -108,6 +99,8 @@ _confirmButton.MouseButton1Click:Connect(function()
         end):catch(warn)
     end
 end)
+_confirmButton.Position = UDim2.new(0.5, 0, 0.85, 0)
+_confirmButton.Parent = _frame
 
 -- 网格布局
 local _gridLayout = Instance.new("UIGridLayout")
@@ -236,6 +229,7 @@ local function UpdateGiftUI(userId)
 end
 
 Knit:OnStart():andThen(function()
+    Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowGiftUI:Connect(function(userId)
         UpdateGiftUI(userId)
     end)

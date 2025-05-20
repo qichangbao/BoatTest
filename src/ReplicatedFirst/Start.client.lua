@@ -5,7 +5,7 @@ local StarterPlayer = game:GetService("StarterPlayer")
 math.randomseed(os.time())
 -- 初始化Knit框架
 local Knit = require(ReplicatedStorage:WaitForChild('Packages'):WaitForChild('Knit'):waitForChild('Knit'))
-Knit.AddControllers(StarterPlayer:WaitForChild('StarterPlayerScripts'):WaitForChild('Controllers'))
+Knit.AddControllers(StarterPlayer:WaitForChild('StarterPlayerScripts'):WaitForChild('ControllersFolder'))
 
 Knit.Start():andThen(function()
     print("Knit Client Started")

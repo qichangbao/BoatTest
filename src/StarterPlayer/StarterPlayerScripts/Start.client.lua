@@ -13,10 +13,6 @@ contextActionService:BindAction("BlockZoom",
 local loadingUI = require(game.StarterGui:WaitForChild("LoadingUI"))
 loadingUI.Show(3)
 
-require(game.StarterGui:WaitForChild("AdminPanelUI"))
-local messageBoxUI = require(game.StarterGui:WaitForChild("MessageBoxUI"))
-messageBoxUI:Init()
-
 local camera = game.Workspace.CurrentCamera
 local function onCharacterAdded(character)
     local humanoid = character:WaitForChild("Humanoid")

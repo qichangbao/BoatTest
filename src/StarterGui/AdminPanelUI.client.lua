@@ -18,9 +18,87 @@ local Theme = {
     BackgroundColor = Color3.fromRGB(40, 40, 40)
 }
 
-local AdminPanelUI = {}
+local _screenGui = Instance.new('ScreenGui')
+_screenGui.Name = 'AdminPanelUI_GUI'
+_screenGui.Enabled = false
+_screenGui.IgnoreGuiInset = true
+_screenGui.Parent = PlayerGui
 
-function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
+-- 禁用背景点击
+local _blocker = Instance.new("TextButton")
+_blocker.Size = UDim2.new(1, 0, 1, 0)
+_blocker.BackgroundTransparency = 1
+_blocker.Text = ""
+_blocker.Parent = _screenGui
+
+-- 新增模态背景
+local _modalFrame = Instance.new("Frame")
+_modalFrame.Size = UDim2.new(1, 0, 1, 0)
+_modalFrame.BackgroundTransparency = 0.5
+_modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+_modalFrame.Parent = _screenGui
+
+local _frame = Instance.new('Frame')
+_frame.Name = 'AdminFrame'
+_frame.Size = UDim2.new(0.8, 0, 0.8, 0)
+_frame.AnchorPoint = Vector2.new(0.5, 0.45)
+_frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+_frame.BackgroundTransparency = 1
+_frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_frame.Parent = _screenGui
+
+-- 创建顶部控制栏
+local _controlFrame = Instance.new('Frame')
+_controlFrame.Size = UDim2.new(0.7, 0, 0, 40)
+_controlFrame.AnchorPoint = Vector2.new(0.5, 1)
+_controlFrame.Position = UDim2.new(0.5, 0, 0, -10)
+_controlFrame.BackgroundTransparency = 1
+_controlFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+_controlFrame.Parent = _frame
+
+local _closeBtn = UIConfig.CreateCloseButton(function()
+    _screenGui.Enabled = false
+end)
+_closeBtn.Position = UDim2.new(1, 40, 0.5, 0)
+_closeBtn.Parent = _controlFrame
+
+-- 调整滚动框架位置和尺寸
+local _scrollFrame = Instance.new('ScrollingFrame')
+_scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+_scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
+_scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
+_scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
+_scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+_scrollFrame.ScrollBarThickness = 8
+_scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+_scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
+_scrollFrame.BackgroundTransparency = 0.2
+_scrollFrame.Parent = _frame
+
+local _userIdBox = Instance.new('TextBox')
+_userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
+_userIdBox.AnchorPoint = Vector2.new(1, 0.5)
+_userIdBox.Position = UDim2.new(0.5, -50, 0.5, 0)
+_userIdBox.Text = "输入用户ID"
+_userIdBox.PlaceholderText = _userIdBox.Text
+_userIdBox.TextColor3 = Theme.TextBoxPrimary
+_userIdBox.TextSize = 16
+_userIdBox.BackgroundColor3 = Theme.InputFieldBG
+_userIdBox.Parent = _controlFrame
+
+local _fetchBtn = Instance.new('TextButton')
+_fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
+_fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
+_fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)
+_fetchBtn.Text = "获取数据"
+_fetchBtn.TextSize = 16
+_fetchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+_fetchBtn.TextSize = 16
+_fetchBtn.BackgroundColor3 = Theme.Primary
+_fetchBtn.TextColor3 = Theme.TextBottonPrimary
+_fetchBtn.Parent = _controlFrame
+
+local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
     -- 清空现有显示内容
     for _, child in ipairs(parent:GetChildren()) do
         if child:IsA('Frame') and (child.Name == 'DataContainerTop' or child.Name == 'DataContainer') then
@@ -48,11 +126,11 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
     padding.PaddingLeft = UDim.new(0, depth * 15)
     padding.Parent = container
 
-    local function FindTopParent(frame)
-        while frame.Parent ~= nil and frame.Parent.Name ~= 'DataContainerTop' do
-            frame = frame.Parent
+    local function FindTopParent(_frame)
+        while _frame.Parent ~= nil and _frame.Parent.Name ~= 'DataContainerTop' do
+            _frame = _frame.Parent
         end
-        return frame
+        return _frame
     end
     
     for key, value in pairs(data) do
@@ -102,7 +180,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
             local subContainer
             toggleButton.MouseButton1Click:Connect(function()
                 if not subContainer then
-                    subContainer = self:UpdateDataDisplay(entryFrame, userIdInputText, value, depth + 1, currentPath)
+                    subContainer = UpdateDataDisplay(entryFrame, userIdInputText, value, depth + 1, currentPath)
                     subContainer.Position = UDim2.new(0, 0, 0, 30)
                     subContainer.Visible = false
                 end
@@ -136,7 +214,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                 popupFrame.AnchorPoint = Vector2.new(0.5, 0.5)
                 popupFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
                 popupFrame.BackgroundColor3 = Theme.BackgroundColor
-                popupFrame.Parent = self.screenGui
+                popupFrame.Parent = _screenGui
                 
                 local keyInput = Instance.new('TextBox')
                 keyInput.Size = UDim2.new(0.8, 0, 0.2, 0)
@@ -163,16 +241,16 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                 confirmBtn.TextColor3 = Theme.TextBottonPrimary
                 confirmBtn.Parent = popupFrame
                 
-                local closeBtn = Instance.new('TextButton')
-                closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
-                closeBtn.Position = UDim2.new(0.3, 0, 0.8, 0)
-                closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
-                closeBtn.Text = '关闭'
-                closeBtn.BackgroundColor3 = Theme.ClosePrimary
-                closeBtn.TextColor3 = Theme.TextBottonPrimary
-                closeBtn.Parent = popupFrame
+                local _closeBtn = Instance.new('TextButton')
+                _closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+                _closeBtn.Position = UDim2.new(0.3, 0, 0.8, 0)
+                _closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+                _closeBtn.Text = '关闭'
+                _closeBtn.BackgroundColor3 = Theme.ClosePrimary
+                _closeBtn.TextColor3 = Theme.TextBottonPrimary
+                _closeBtn.Parent = popupFrame
                 
-                closeBtn.MouseButton1Click:Connect(function()
+                _closeBtn.MouseButton1Click:Connect(function()
                     popupFrame:Destroy()
                 end)
                 
@@ -207,7 +285,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                             Knit.GetService("DBService"):AdminRequest("GetData",
                                 userIdInputText
                             ):andThen(function(newData)
-                                self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
+                                UpdateDataDisplay(_scrollFrame, userIdInputText, newData)
                             end)
                         end)
                     end
@@ -336,7 +414,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                         Knit.GetService("DBService"):AdminRequest("GetData",
                             userIdInputText
                         ):andThen(function(newData)
-                            self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
+                            UpdateDataDisplay(_scrollFrame, userIdInputText, newData)
                         end)
                     end)
                 end
@@ -352,7 +430,7 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
                     Knit.GetService("DBService"):AdminRequest("GetData",
                         userIdInputText
                     ):andThen(function(newData)
-                        self:UpdateDataDisplay(self.scrollFrame, userIdInputText, newData)
+                        UpdateDataDisplay(_scrollFrame, userIdInputText, newData)
                     end)
                 end)
             end
@@ -363,103 +441,22 @@ function AdminPanelUI:UpdateDataDisplay(parent, userIdInputText, data, depth, pa
     return container
 end
 
-function AdminPanelUI:Show()
-    self.screenGui = Instance.new('ScreenGui')
-    self.screenGui.IgnoreGuiInset = true
-    self.screenGui.Parent = PlayerGui
-
-    -- 禁用背景点击
-    local _blocker = Instance.new("TextButton")
-    _blocker.Size = UDim2.new(1, 0, 1, 0)
-    _blocker.BackgroundTransparency = 1
-    _blocker.Text = ""
-    _blocker.Parent = self.screenGui
-    
-    -- 新增模态背景
-    local modalFrame = Instance.new("Frame")
-    modalFrame.Size = UDim2.new(1, 0, 1, 0)
-    modalFrame.BackgroundTransparency = 0.5
-    modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-    modalFrame.Parent = self.screenGui
-
-    local frame = Instance.new('Frame')
-    frame.Name = 'AdminFrame'
-    frame.Size = UDim2.new(0.8, 0, 0.8, 0)
-    frame.AnchorPoint = Vector2.new(0.5, 0.45)
-    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    frame.BackgroundTransparency = 1
-    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    frame.Parent = self.screenGui
-
-    -- 创建顶部控制栏
-    local controlFrame = Instance.new('Frame')
-    controlFrame.Size = UDim2.new(0.7, 0, 0, 40)
-    controlFrame.AnchorPoint = Vector2.new(0.5, 1)
-    controlFrame.Position = UDim2.new(0.5, 0, 0, -10)
-    controlFrame.BackgroundTransparency = 1
-    controlFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    controlFrame.Parent = frame
-
-    local closeBtn = UIConfig.CreateCloseButton(function()
-        self.screenGui:Destroy()
-    end)
-    closeBtn.AnchorPoint = Vector2.new(0, 0.5)
-    closeBtn.Position = UDim2.new(1, 40, 0.5, 0)
-    closeBtn.Parent = controlFrame
-
-    -- 调整滚动框架位置和尺寸
-    self.scrollFrame = Instance.new('ScrollingFrame')
-    self.scrollFrame.Size = UDim2.new(1, 0, 1, 0)
-    self.scrollFrame.AnchorPoint = Vector2.new(0.5, 0)
-    self.scrollFrame.Position = UDim2.new(0.5, 0, 0, 0)
-    self.scrollFrame.CanvasSize = UDim2.new(1, 0, 0, 0)
-    self.scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    self.scrollFrame.ScrollBarThickness = 8
-    self.scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-    self.scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
-    self.scrollFrame.BackgroundTransparency = 0.2
-    self.scrollFrame.Parent = frame
-
-    local userIdBox = Instance.new('TextBox')
-    userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
-    userIdBox.AnchorPoint = Vector2.new(1, 0.5)
-    userIdBox.Position = UDim2.new(0.5, -50, 0.5, 0)
-    userIdBox.Text = "输入用户ID"
-    userIdBox.PlaceholderText = userIdBox.Text
-    userIdBox.TextColor3 = Theme.TextBoxPrimary
-    userIdBox.TextSize = 16
-    userIdBox.BackgroundColor3 = Theme.InputFieldBG
-    userIdBox.Parent = controlFrame
-
-    local fetchBtn = Instance.new('TextButton')
-    fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
-    fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
-    fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)
-    fetchBtn.Text = "获取数据"
-    fetchBtn.TextSize = 16
-    fetchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    fetchBtn.TextSize = 16
-    fetchBtn.BackgroundColor3 = Theme.Primary
-    fetchBtn.TextColor3 = Theme.TextBottonPrimary
-    fetchBtn.Parent = controlFrame
-    fetchBtn.MouseButton1Click:Connect(function()
-        -- 初始化远程事件监听
-        Knit.GetService("DBService"):AdminRequest("GetData", tonumber(userIdBox.Text)):andThen(function(data)
-            if type(data) == "table" then
-                self:UpdateDataDisplay(self.scrollFrame, tonumber(userIdBox.Text), data)
-                return
-            elseif type(data) == "string" then
-                Knit.GetController('UIController').ShowTip:Fire(data)
-                return
-            end
-        end)
-    end)
-end
-
-Knit:OnStart():andThen(function()
-    Knit.GetController('UIController').ShowAdminUI:Connect(function()
-        AdminPanelUI:Show()
+_fetchBtn.MouseButton1Click:Connect(function()
+    -- 初始化远程事件监听
+    Knit.GetService("DBService"):AdminRequest("GetData", tonumber(_userIdBox.Text)):andThen(function(data)
+        if type(data) == "table" then
+            UpdateDataDisplay(_scrollFrame, tonumber(_userIdBox.Text), data)
+            return
+        elseif type(data) == "string" then
+            Knit.GetController('UIController').ShowTip:Fire(data)
+            return
+        end
     end)
 end)
 
-return AdminPanelUI
+Knit:OnStart():andThen(function()
+    Knit.GetController('UIController').AddUI:Fire(_screenGui)
+    Knit.GetController('UIController').ShowAdminUI:Connect(function()
+        _screenGui.Enabled = true
+    end)
+end)

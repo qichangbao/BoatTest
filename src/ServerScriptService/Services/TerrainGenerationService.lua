@@ -7,6 +7,9 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 
 -- 初始化岛屿
 for _, landData in pairs(GameConfig.TerrainType.IsLand) do
+    if landData.Name == "Land" then
+        continue
+    end
     local isLand = ServerStorage:WaitForChild(landData.ModelName):Clone()
     isLand.Name = landData.Name
     isLand:PivotTo(CFrame.new(landData.Position))

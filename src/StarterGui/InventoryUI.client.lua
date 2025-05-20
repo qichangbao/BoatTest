@@ -16,7 +16,7 @@ local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("Starte
 local localPlayer = Players.LocalPlayer
 
 local _screenGui = Instance.new("ScreenGui")
-_screenGui.Name = "InventoryUI_Gui"
+_screenGui.Name = "InventoryUI_GUI"
 _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
@@ -70,7 +70,6 @@ _titleText.Parent = _titleBar
 local _closeButton = UIConfig.CreateCloseButton(function()
     _screenGui.Enabled = false
 end)
-_closeButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
 _closeButton.Parent = _titleBar
 
@@ -208,10 +207,10 @@ local function UpdateInventoryUI()
 end
 
 Knit:OnStart():andThen(function()
+    Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowInventoryUI:Connect(function()
         _screenGui.Enabled = true
     end)
-
     Knit.GetController('UIController').UpdateInventoryUI:Connect(function()
         UpdateInventoryUI()
     end)
