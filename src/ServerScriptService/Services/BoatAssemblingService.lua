@@ -3,7 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService('ServerStorage')
 local CollectionService = game:GetService("CollectionService")
-local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
@@ -401,7 +401,7 @@ function BoatAssemblingService:DestroyBoat(player)
     end)
 end
 
-function BoatAssemblingService.Client:StopBoat(player)
+function BoatAssemblingService:StopBoat(player)
     Interface.InitPlayerPos(player)
     local playerBoat = workspace:FindFirstChild('PlayerBoat_' .. player.UserId)
     if not playerBoat then
@@ -411,7 +411,10 @@ function BoatAssemblingService.Client:StopBoat(player)
 
     playerBoat:Destroy()
     print("船已销毁")
-    return
+end
+
+function BoatAssemblingService.Client:StopBoat(player)
+    self.Server:StopBoat(player)
 end
 
 function BoatAssemblingService:KnitInit()

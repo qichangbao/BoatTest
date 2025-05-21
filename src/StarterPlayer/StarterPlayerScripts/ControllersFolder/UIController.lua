@@ -1,7 +1,7 @@
 print('UIController.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Signal = require(ReplicatedStorage.Packages.Knit.Signal)
 
 local UIController = Knit.CreateController {

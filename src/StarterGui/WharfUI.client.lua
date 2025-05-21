@@ -1,9 +1,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterPlayer = game:GetService("StarterPlayer")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+
+local _occupyTime = 3
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'WharfUI_GUI'
@@ -70,11 +73,12 @@ _contentLabel.Parent = _frame
 
 -- 占领按钮
 local _occupyButton = Instance.new('TextButton')
+_occupyButton.Visible = false
 _occupyButton.AnchorPoint = Vector2.new(0.5, 0)
-_occupyButton.Position = UDim2.new(0.5, 0, 0.65, 0)
-_occupyButton.Size = UDim2.new(0.7, 0, 0.1, 0)
+_occupyButton.Position = UDim2.new(0.7, 0, 0.6, 0)
+_occupyButton.Size = UDim2.new(0.4, 0, 0.3, 0)
 _occupyButton.Text = LanguageConfig:Get(10036)
-_occupyButton.TextSize = 18
+_occupyButton.TextSize = 30
 _occupyButton.Font = UIConfig.Font
 _occupyButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
 _occupyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -92,7 +96,7 @@ _occupyButton.MouseButton1Click:Connect(function()
     countdownText.Name = "Countdown"
     countdownText.Size = UDim2.new(0.6, 0, 0.6, 0)
     countdownText.Position = UDim2.new(0.2, 0, 0.2, 0)
-    countdownText.Text = "10"
+    countdownText.Text = tostring(_occupyTime)
     countdownText.TextColor3 = Color3.fromRGB(255, 255, 255)
     countdownText.BackgroundTransparency = 1
     countdownText.Font = UIConfig.Font
@@ -104,12 +108,15 @@ _occupyButton.MouseButton1Click:Connect(function()
         if timeLeft == 0 then
             -- 倒计时结束，执行相关操作
             circleContainer:Destroy()
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10038), _titleLabel.Text))
+            Knit.GetService("LandService"):Occupy(_titleLabel.Text):andThen(function(tipId)
+                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), _titleLabel.Text))
+            end)
+            return
         end
     end
     
-    for i = 10, 0, -1 do
-        task.delay(10 - i, function()
+    for i = _occupyTime, 0, -1 do
+        task.delay(_occupyTime - i, function()
             updateCountdown(i)
         end)
     end
@@ -117,16 +124,36 @@ end)
 
 -- 交费按钮
 local _payButton = Instance.new('TextButton')
+_payButton.Visible = false
 _payButton.AnchorPoint = Vector2.new(0.5, 0)
-_payButton.Position = UDim2.new(0.5, 0, 0.8, 0)
-_payButton.Size = UDim2.new(0.7, 0, 0.1, 0)
+_payButton.Position = UDim2.new(0.3, 0, 0.6, 0)
+_payButton.Size = UDim2.new(0.4, 0, 0.3, 0)
 _payButton.Text = LanguageConfig:Get(10037)
-_payButton.TextSize = 18
+_payButton.TextSize = 30
 _payButton.Font = UIConfig.Font
-_payButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)
+_payButton.BackgroundColor3 = Color3.fromRGB(243, 193, 57)
 _payButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _payButton.Parent = _frame
 _payButton.MouseButton1Click:Connect(function()
+    Knit.GetService("LandService"):Pay(_titleLabel.Text):andThen(function(tipId, price)
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), price))
+    end)
+end)
+
+-- 上岛按钮
+local _intoIsLandButton = Instance.new('TextButton')
+_intoIsLandButton.Visible = false
+_intoIsLandButton.AnchorPoint = Vector2.new(0.5, 0)
+_intoIsLandButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+_intoIsLandButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+_intoIsLandButton.Text = LanguageConfig:Get(10040)
+_intoIsLandButton.TextSize = 30
+_intoIsLandButton.Font = UIConfig.Font
+_intoIsLandButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)
+_intoIsLandButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_intoIsLandButton.Parent = _frame
+_intoIsLandButton.MouseButton1Click:Connect(function()
+    Knit.GetService("LandService"):IntoIsLand(_titleLabel.Text)
 end)
 
 -- 连接Knit服务
@@ -135,5 +162,24 @@ Knit:OnStart():andThen(function()
     Knit.GetController('UIController').ShowWharfUI:Connect(function(landName)
         _titleLabel.Text = landName
         _screenGui.Enabled = true
+        _occupyButton.Visible = false
+        _payButton.Visible = false
+        _intoIsLandButton.Visible = false
+
+        local clientData = require(StarterPlayer.StarterPlayerScripts:WaitForChild("ClientData"))
+        if clientData.IsLandOwners[landName] then
+            if clientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
+                _intoIsLandButton.Visible = true
+                _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+            else
+                _occupyButton.Visible = true
+                _payButton.Visible = true
+                _occupyButton.Position = UDim2.new(0.75, 0, 0.6, 0)
+                _payButton.Position = UDim2.new(0.25, 0, 0.6, 0)
+            end
+        else
+            _occupyButton.Visible = true
+            _occupyButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+        end
     end)
 end):catch(warn)

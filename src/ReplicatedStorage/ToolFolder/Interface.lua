@@ -5,7 +5,21 @@ local Interface = {}
 
 -- 初始化玩家位置
 function Interface.InitPlayerPos(player)
-    local spawnLocation = player.RespawnLocation
+    local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
+    local area = nil
+    if curAreaTemplate then
+        area = workspace:FindFirstChild(curAreaTemplate)
+    end
+
+    local spawnLocation = nil
+    if area then
+        spawnLocation = area:WaitForChild("SpawnLocation")
+    end
+
+    if not spawnLocation then
+        spawnLocation = player.RespawnLocation
+    end
+
     if spawnLocation and player.Character then
         local humanoid = player.Character:FindFirstChild('Humanoid')
         if humanoid then
@@ -18,6 +32,7 @@ end
 
 -- 初始化船的位置
 function Interface.InitBoatWaterPos(player, boat)
+    player:SetAttribute("CurAreaTemplate", nil)
     local spawnLocation = player.RespawnLocation
     if spawnLocation and player.Character then
         local land = spawnLocation.Parent

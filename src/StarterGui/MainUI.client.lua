@@ -54,17 +54,8 @@ _startBoatButton.MouseButton1Click:Connect(function()
         boat:Destroy()
     end
 
-    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
-    BoatAssemblingService:AssembleBoat():andThen(function(tipId)
+    Knit.GetService('BoatAssemblingService'):AssembleBoat():andThen(function(tipId)
         Knit.GetController('UIController').ShowTip:Fire(tipId)
-
-        local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
-        if inventoryUI then
-            local inventoryFrame = inventoryUI:FindFirstChild('InventoryFrame')
-            if inventoryFrame then
-                inventoryFrame.Visible = false
-            end
-        end
     end)
 end)
 
@@ -82,18 +73,11 @@ _stopBoatButton.Visible = false
 _stopBoatButton.Parent = _screenGui
 -- 止航按钮点击事件
 _stopBoatButton.MouseButton1Click:Connect(function()
-    --stopEventBE:Fire()
-    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
-    BoatAssemblingService:StopBoat():andThen(function()
-        local inventoryUI = Players.LocalPlayer:WaitForChild('PlayerGui'):FindFirstChild('InventoryUI')
-        if inventoryUI then
-            local inventoryFrame = inventoryUI:FindFirstChild('InventoryFrame')
-            if inventoryFrame then
-                inventoryFrame.Visible = true
-            end
-        end
-        --require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).InitPlayerPos(Players.LocalPlayer)
-    end)
+    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+    if boat then
+        boat:Destroy()
+    end
+    Knit.GetService('BoatAssemblingService'):StopBoat()
 end)
 
 -- 创建添加部件按钮

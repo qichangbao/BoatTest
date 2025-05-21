@@ -7,8 +7,14 @@ local ClientData = {}
 ClientData.Gold = 0  -- 玩家金币
 ClientData.InventoryItems = {}   -- 玩家背包物品
 ClientData.IsAdmin = false  -- 是否为管理员
+ClientData.IsLandOwners = {}  -- 所有土地的拥有者
 
 Knit:OnStart():andThen(function()
+    local SystemService = Knit.GetService('SystemService')
+    SystemService.IsLandBelong:Connect(function(data)
+        ClientData.IsLandOwners = data
+    end)
+
     local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
     PlayerAttributeService.ChangeGold:Connect(function(gold)
         ClientData.Gold = gold

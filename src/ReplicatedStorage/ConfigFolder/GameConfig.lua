@@ -10,9 +10,9 @@ local GameConfig = {
             LoadDistance = 2,
         },
         IsLand = {
-            [1] = {Name = "Land", Position = Vector3.new(0, 90, 0), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180),},
-            [2] = {Name = "IsLand1", Position = Vector3.new(300, 90, 300), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180),},
-            [3] = {Name = "IsLand2", Position = Vector3.new(600, 90, 600), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180),},
+            [1] = {Name = "Land", Position = Vector3.new(0, 90, 0), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180), Price = 0},
+            [2] = {Name = "IsLand1", Position = Vector3.new(300, 90, 300), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180), Price = 100},
+            [3] = {Name = "IsLand2", Position = Vector3.new(600, 90, 600), ModelName = "IsLand1", WharfOffsetPos = Vector3.new(75, 20, 180), Price = 100},
         },
     },
 }

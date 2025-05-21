@@ -1,16 +1,24 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("ProfileService"):WaitForChild("ProfileService"))
-local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
-local dataTemplate = {
+local _dataTemplate = {
 	Gold = 50,
 	PlayerInventory = {},
 	SpawnLocation = "Land",
+	IsLandOwners = {},
 }
+
+local ProfileStore = ProfileService.GetProfileStore(
+	"PlayerProfile",
+	_dataTemplate
+)
 
 local DBService = Knit.CreateService({
     Name = 'DBService',
+	Profiles = {},
+	SystemId = 1000000001,
     Client = {
     },
 })
@@ -36,7 +44,7 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 	if action == "GetData" then
 		local data = {}
 		local statu = 0
-		for i, v in pairs(dataTemplate) do
+		for i, v in pairs(_dataTemplate) do
 			data[i], statu = self:GetToAllStore(userId, i)
 		end
 		return data, statu
@@ -48,16 +56,9 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 	end
 end
 
-local ProfileStore = ProfileService.GetProfileStore(
-	"PlayerProfile",
-	dataTemplate
-)
-
-local Profiles = {}
-
 function DBService:PlayerAdded(player)
 	local userId = player.UserId
-	if Profiles[userId] then
+	if self.Profiles[userId] then
 		return
 	end
 
@@ -68,7 +69,7 @@ function DBService:PlayerAdded(player)
 		profile:Reconcile()
 
 		profile:ListenToRelease(function()
-			Profiles[userId] = nil
+			self.Profiles[userId] = nil
 
 			player:Kick()
 		end)
@@ -76,7 +77,7 @@ function DBService:PlayerAdded(player)
 		if not player:IsDescendantOf(Players) then
 			profile:Release()
 		else
-			Profiles[userId] = profile
+			self.Profiles[userId] = profile
 		end
 	else
 		player:Kick()
@@ -86,13 +87,13 @@ function DBService:PlayerAdded(player)
 end
 
 function DBService:PlayerRemoving(player)
-	if Profiles[player.UserId] then
-		Profiles[player.UserId]:Release()
+	if self.Profiles[player.UserId] then
+		self.Profiles[player.UserId]:Release()
 	end
 end
 
 function DBService:InitDataFromUserId(userId)
-	if Profiles[userId] then
+	if self.Profiles[userId] then
 		return 1
 	end
 
@@ -103,16 +104,16 @@ function DBService:InitDataFromUserId(userId)
 		profile:Reconcile()
 
 		profile:ListenToRelease(function()
-			Profiles[userId] = nil
+			self.Profiles[userId] = nil
 		end)
 
-		Profiles[userId] = profile
+		self.Profiles[userId] = profile
 	end
 	return 0
 end
 
-local function getProfile(userId)
-	return Profiles[userId]
+function DBService:GetProfile(userId)
+	return self.Profiles[userId]
 end
 
 -- getter/setter methods
@@ -136,7 +137,7 @@ function DBService:SetToAllStore(userId, key, value)
 end
 
 function DBService:Get(userId, key)
-	local profile = getProfile(userId)
+	local profile = self:GetProfile(userId)
 	if not profile then
 		return
 	end
@@ -145,7 +146,7 @@ function DBService:Get(userId, key)
 end
 
 function DBService:Set(userId, key, value)
-	local profile = getProfile(userId)
+	local profile = self:GetProfile(userId)
 	if not profile then
 		return false
 	end
@@ -186,4 +187,4 @@ function DBService:KnitStart()
     print('DBService started')
 end
 
-return DBServic
+return DBService

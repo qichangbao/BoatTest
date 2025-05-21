@@ -1,5 +1,5 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
 local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface'))

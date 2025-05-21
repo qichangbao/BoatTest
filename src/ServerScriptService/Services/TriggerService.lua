@@ -1,6 +1,6 @@
 print('TriggerService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
 local TriggerService = Knit.CreateService({
     Name = 'TriggerService',
