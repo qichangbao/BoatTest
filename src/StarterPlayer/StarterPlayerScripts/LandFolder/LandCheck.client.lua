@@ -19,9 +19,9 @@ local function CheckPos()
     -- 初始化陆地数据
     for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
         local wharfPos = Vector3.new(
-            landData.Position.X + landData.WharfOffsetPos.X,
+            landData.Position.X + landData.WharfInOffsetPos.X,
             0,
-            landData.Position.Z + landData.WharfOffsetPos.Z)
+            landData.Position.Z + landData.WharfInOffsetPos.Z)
         local offset = Vector3.new(wharfPos.X - boatCFrame.Position.X, 0, wharfPos.Z - boatCFrame.Position.Z)
         local distance = offset.Magnitude
         if distance <= RADIUS then

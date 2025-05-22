@@ -24,28 +24,10 @@ _screenGui.Enabled = false
 _screenGui.IgnoreGuiInset = true
 _screenGui.Parent = PlayerGui
 
--- 禁用背景点击
-local _blocker = Instance.new("TextButton")
-_blocker.Size = UDim2.new(1, 0, 1, 0)
-_blocker.BackgroundTransparency = 1
-_blocker.Text = ""
-_blocker.Parent = _screenGui
+UIConfig.CreateBlock(_screenGui)
 
--- 新增模态背景
-local _modalFrame = Instance.new("Frame")
-_modalFrame.Size = UDim2.new(1, 0, 1, 0)
-_modalFrame.BackgroundTransparency = 0.5
-_modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-_modalFrame.Parent = _screenGui
-
-local _frame = Instance.new('Frame')
-_frame.Name = 'AdminFrame'
+local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.8, 0, 0.8, 0)
-_frame.AnchorPoint = Vector2.new(0.5, 0.45)
-_frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-_frame.BackgroundTransparency = 1
-_frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-_frame.Parent = _screenGui
 
 -- 创建顶部控制栏
 local _controlFrame = Instance.new('Frame')
@@ -56,11 +38,10 @@ _controlFrame.BackgroundTransparency = 1
 _controlFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 _controlFrame.Parent = _frame
 
-local _closeBtn = UIConfig.CreateCloseButton(function()
+local _closeBtn = UIConfig.CreateCloseButton(_controlFrame, function()
     _screenGui.Enabled = false
 end)
 _closeBtn.Position = UDim2.new(1, 40, 0.5, 0)
-_closeBtn.Parent = _controlFrame
 
 -- 调整滚动框架位置和尺寸
 local _scrollFrame = Instance.new('ScrollingFrame')
@@ -74,29 +55,6 @@ _scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 _scrollFrame.BackgroundColor3 = Theme.ScrollFrameBG
 _scrollFrame.BackgroundTransparency = 0.2
 _scrollFrame.Parent = _frame
-
-local _userIdBox = Instance.new('TextBox')
-_userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
-_userIdBox.AnchorPoint = Vector2.new(1, 0.5)
-_userIdBox.Position = UDim2.new(0.5, -50, 0.5, 0)
-_userIdBox.Text = "输入用户ID"
-_userIdBox.PlaceholderText = _userIdBox.Text
-_userIdBox.TextColor3 = Theme.TextBoxPrimary
-_userIdBox.TextSize = 16
-_userIdBox.BackgroundColor3 = Theme.InputFieldBG
-_userIdBox.Parent = _controlFrame
-
-local _fetchBtn = Instance.new('TextButton')
-_fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
-_fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
-_fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)
-_fetchBtn.Text = "获取数据"
-_fetchBtn.TextSize = 16
-_fetchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-_fetchBtn.TextSize = 16
-_fetchBtn.BackgroundColor3 = Theme.Primary
-_fetchBtn.TextColor3 = Theme.TextBottonPrimary
-_fetchBtn.Parent = _controlFrame
 
 local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPath)
     -- 清空现有显示内容
@@ -436,13 +394,35 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             end
         end)
     end
-    
+
     container.Parent = parent
     return container
 end
 
+local _userIdBox = Instance.new('TextBox')
+_userIdBox.Size = UDim2.new(0.3, 0, 1, 0)
+_userIdBox.AnchorPoint = Vector2.new(1, 0.5)
+_userIdBox.Position = UDim2.new(0.5, -50, 0.5, 0)
+_userIdBox.Text = "输入用户ID"
+_userIdBox.PlaceholderText = _userIdBox.Text
+_userIdBox.TextColor3 = Theme.TextBoxPrimary
+_userIdBox.TextSize = 16
+_userIdBox.BackgroundColor3 = Theme.InputFieldBG
+_userIdBox.Parent = _controlFrame
+
+local _fetchBtn = Instance.new('TextButton')
+_fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
+_fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
+_fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)
+_fetchBtn.Text = "获取数据"
+_fetchBtn.TextSize = 16
+_fetchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+_fetchBtn.TextSize = 16
+_fetchBtn.BackgroundColor3 = Theme.Primary
+_fetchBtn.TextColor3 = Theme.TextBottonPrimary
+_fetchBtn.Parent = _controlFrame
+
 _fetchBtn.MouseButton1Click:Connect(function()
-    -- 初始化远程事件监听
     Knit.GetService("DBService"):AdminRequest("GetData", tonumber(_userIdBox.Text)):andThen(function(data)
         if type(data) == "table" then
             UpdateDataDisplay(_scrollFrame, tonumber(_userIdBox.Text), data)
@@ -458,5 +438,11 @@ Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowAdminUI:Connect(function()
         _screenGui.Enabled = true
+        -- 清空现有显示内容
+        for _, child in ipairs(_scrollFrame:GetChildren()) do
+            if child:IsA('Frame') and (child.Name == 'DataContainerTop' or child.Name == 'DataContainer') then
+                child:Destroy()
+            end
+        end
     end)
 end)

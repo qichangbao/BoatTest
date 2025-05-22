@@ -1,3 +1,4 @@
+print('ClientData loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Players = game:GetService('Players')
@@ -11,11 +12,18 @@ ClientData.IsLandOwners = {}  -- 所有土地的拥有者
 
 Knit:OnStart():andThen(function()
     local SystemService = Knit.GetService('SystemService')
+    SystemService:GetIsLandOwner():andThen(function(data)
+        ClientData.IsLandOwners = data
+    end)
     SystemService.IsLandBelong:Connect(function(data)
         ClientData.IsLandOwners = data
     end)
 
     local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
+    PlayerAttributeService:GetGold():andThen(function(gold)
+        ClientData.Gold = gold
+        Knit.GetController('UIController').UpdateGoldUI:Fire()
+    end)
     PlayerAttributeService.ChangeGold:Connect(function(gold)
         ClientData.Gold = gold
         Knit.GetController('UIController').UpdateGoldUI:Fire()
@@ -29,9 +37,16 @@ Knit:OnStart():andThen(function()
     end)
 
     local InventoryService = Knit.GetService('InventoryService')
+    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
+        ClientData.InventoryItems = {}
+        for _, itemData in pairs(inventoryData) do
+            table.insert(ClientData.InventoryItems, itemData)
+        end
+        Knit.GetController('UIController').UpdateInventoryUI:Fire()
+    end)
     InventoryService.AddItem:Connect(function(itemData)
         local isExist = false
-        for _, item in pairs(ClientData.InventoryItems) do
+        for _, item in ipairs(ClientData.InventoryItems) do
             if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
                 item.num = itemData.num
                 isExist = true
@@ -40,16 +55,20 @@ Knit:OnStart():andThen(function()
         end
     
         if not isExist then
-            ClientData.InventoryItems[itemData.itemName] = itemData
+            table.insert(ClientData.InventoryItems, itemData)
         end
         Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10011), itemData.itemName))
         Knit.GetController('UIController').UpdateInventoryUI:Fire()
     end)
     InventoryService.RemoveItem:Connect(function(modelName, itemName)
         local isExist = false
-        for name, item in pairs(ClientData.InventoryItems) do
+        for _, item in ipairs(ClientData.InventoryItems) do
             if item.itemName == itemName and item.modelName == modelName then
-                ClientData.InventoryItems[name] = nil
+                if item.num > 1 then
+                    item.num = item.num - 1
+                else
+                    table.remove(ClientData.InventoryItems, item)
+                end
                 isExist = true
                 break
             end
@@ -61,11 +80,10 @@ Knit:OnStart():andThen(function()
         Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10012), itemName))
     end)
     InventoryService.InitInventory:Connect(function(inventoryData)
-        ClientData.InventoryItems = inventoryData
-        Knit.GetController('UIController').UpdateInventoryUI:Fire()
-    end)
-    InventoryService:GetInventory(Players.LocalPlayer):andThen(function(inventoryData)
-        ClientData.InventoryItems = inventoryData
+        ClientData.InventoryItems = {}
+        for _, itemData in pairs(inventoryData) do
+            table.insert(ClientData.InventoryItems, itemData)
+        end
         Knit.GetController('UIController').UpdateInventoryUI:Fire()
     end)
 

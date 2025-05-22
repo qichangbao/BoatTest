@@ -3,6 +3,15 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 
 local Interface = {}
 
+function Interface.FindIsLand(landName)
+    for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
+        if landData.Name == landName then
+            return landData
+        end
+    end
+    return nil
+end
+
 -- 初始化玩家位置
 function Interface.InitPlayerPos(player)
     local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
@@ -32,21 +41,35 @@ end
 
 -- 初始化船的位置
 function Interface.InitBoatWaterPos(player, boat)
+    local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
+    local area = nil
+    if curAreaTemplate then
+        area = workspace:FindFirstChild(curAreaTemplate)
+    end
+
+    local spawnLocation = nil
+    if area then
+        spawnLocation = area:WaitForChild("SpawnLocation")
+    end
+
+    if not spawnLocation then
+        spawnLocation = player.RespawnLocation
+    end
     player:SetAttribute("CurAreaTemplate", nil)
-    local spawnLocation = player.RespawnLocation
     if spawnLocation and player.Character then
         local land = spawnLocation.Parent
-        local pos = land:GetPivot().Position
-        local wharfOffsetPos = land:WaitForChild('WharfOffsetPos')
-        local wharfOrientation = land:WaitForChild('WharfOrientation')
-        local position = wharfOffsetPos.Value
-        local orientation = wharfOrientation.Value
-    
-        local newPosition = Vector3.new(pos.X + position.X, position.Y + boat.PrimaryPart.size.y, pos.Z + position.Z)
-        local radiansX = math.rad(orientation.X)
-        local radiansY = math.rad(orientation.Y)
-        local radiansZ = math.rad(orientation.Z)
-        local newCFrame = CFrame.new(newPosition) * CFrame.fromOrientation(radiansX, radiansY, radiansZ)
+        local landData = Interface.FindIsLand(land.Name)
+        if not landData then
+            landData = Interface.FindIsLand("Land")
+        end
+
+        -- 获取原始CFrame的旋转部分
+        local rotation = landData.WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
+        local newCFrame = CFrame.new(
+            landData.Position.X + landData.WharfOutOffsetPos.Position.X,
+            landData.WharfOutOffsetPos.Position.Y,
+            landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
+            ) * rotation
         boat:PivotTo(newCFrame)
     
         -- 玩家自动入座

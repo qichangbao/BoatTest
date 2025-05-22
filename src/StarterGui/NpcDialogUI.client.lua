@@ -13,14 +13,23 @@ _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
-local _frame = Instance.new('Frame')
-_frame.AnchorPoint = Vector2.new(0.5, 0.5)
-_frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-_frame.Size = UDim2.new(0.4, 0, 0.3, 0)  -- 相对屏幕比例
-_frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_frame.BackgroundTransparency = 0.1
-_frame.BorderSizePixel = 0
-_frame.Parent = _screenGui
+UIConfig.CreateBlock(_screenGui)
+local _frame = UIConfig.CreateFrame(_screenGui)
+_frame.Size = UDim2.new(0.4, 0, 0.3, 0)
+
+-- title显示
+local _titleLabel = Instance.new('TextLabel')
+_titleLabel.AnchorPoint = Vector2.new(0.5, 0)
+_titleLabel.Position = UDim2.new(0.5, 0, 0.1, 0)
+_titleLabel.Size = UDim2.new(0.9, 0, 0.5, 0)
+_titleLabel.TextSize = 20
+_titleLabel.Font = UIConfig.Font
+_titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+_titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+_titleLabel.TextYAlignment = Enum.TextYAlignment.Top
+_titleLabel.TextWrapped = true
+_titleLabel.BackgroundTransparency = 1
+_titleLabel.Parent = _frame
 
 local _confirmCallFunc = nil
 local _cancelCallFunc = nil
@@ -30,30 +39,27 @@ local function Hide()
     _cancelCallFunc = nil
 end
 
-local _closeButton = UIConfig.CreateCloseButton(function()
+local _closeButton = UIConfig.CreateCloseButton(_frame, function()
     Hide()
 end)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0, 0)
-_closeButton.Parent = _frame
 
-local _confirmButton = UIConfig.CreateConfirmButton(function()
+local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
     if _confirmCallFunc then
         _confirmCallFunc()
     end
     Hide()
 end)
-_confirmButton.Position = UDim2.new(0.7, 0, 0.85, 0)
-_confirmButton.Parent = _frame
+_confirmButton.Position = UDim2.new(0.7, 0, 0.8, 0)
 
 -- 取消按钮
-local _cancelButton = UIConfig.CreateCancelButton(function()
+local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
     if _cancelCallFunc then
         _cancelCallFunc()
     end
     Hide()
 end)
-_cancelButton.Position = UDim2.new(0.3, 0, 0.85, 0)
-_cancelButton.Parent = _frame
+_cancelButton.Position = UDim2.new(0.3, 0, 0.8, 0)
 
 local _textLabel = Instance.new('TextLabel')
 _textLabel.AnchorPoint = Vector2.new(0.5, 0)
@@ -63,15 +69,27 @@ _textLabel.TextSize = 20
 _textLabel.Font = UIConfig.Font
 _textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 _textLabel.TextXAlignment = Enum.TextXAlignment.Center
-_textLabel.TextYAlignment = Enum.TextYAlignment.Top
+_textLabel.TextYAlignment = Enum.TextYAlignment.Center
 _textLabel.TextTruncate = Enum.TextTruncate.None
 _textLabel.TextWrapped = true
 _textLabel.BackgroundTransparency = 1
 _textLabel.Parent = _frame
 
-local function Show(NpcType, data)
-    local config = NPCConfig[NpcType]
+local function Show(NPCName, NpcType, index, data)
+    local config = NPCConfig[NpcType][index]
     _screenGui.Enabled = true
+    _titleLabel.Text = NPCName
+    _textLabel.Text = config.DialogText
+    if config.Buttons.Confirm and config.Buttons.Confirm.Visible then
+        _confirmButton.Visible = true
+    else
+        _confirmButton.Visible = false
+    end
+    if config.Buttons.Cancel and config.Buttons.Cancel.Visible then
+        _cancelButton.Visible = true
+    else
+        _cancelButton.Visible = false
+    end
     if config.Buttons.Confirm and config.Buttons.Confirm.Text then
         _confirmButton.Text = config.Buttons.Confirm.Text
     else
@@ -82,7 +100,15 @@ local function Show(NpcType, data)
     else
         _cancelButton.Text = LanguageConfig:Get(10003)
     end
-    _textLabel.Text = config.DialogText
+
+    if _confirmButton.Visible and _cancelButton.Visible then
+        _confirmButton.Position = UDim2.new(0.7, 0, 0.8, 0)
+        _cancelButton.Position = UDim2.new(0.3, 0, 0.8, 0)
+    elseif _confirmButton.Visible then
+        _confirmButton.Position = UDim2.new(0.5, 0, 0.8, 0)
+    elseif _cancelButton.Visible then
+        _cancelButton.Position = UDim2.new(0.5, 0, 0.8, 0)
+    end
     
     _confirmCallFunc = data.ConfirmCallFunc
     _cancelCallFunc = data.CancelCallFunc
@@ -90,8 +116,8 @@ end
 
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
-    Knit.GetController('UIController').ShowNpcDialogUI:Connect(function(NpcType, data)
-        Show(NpcType, data)
+    Knit.GetController('UIController').ShowNpcDialogUI:Connect(function(NPCName, NpcType, index, data)
+        Show(NPCName, NpcType, index, data)
     end)
     Knit.GetController('UIController').CloseNpcDialogUI:Connect(function()
         Hide()

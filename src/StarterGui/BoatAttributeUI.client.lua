@@ -167,9 +167,9 @@ for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
     landLabel.Parent = viewportFrame
     landLabel:SetAttribute('Position',
         Vector3.new(
-            landData.Position.X + landData.WharfOffsetPos.X,
+            landData.Position.X + landData.WharfInOffsetPos.X,
             landData.Position.Y,
-            landData.Position.Z + landData.WharfOffsetPos.Z)
+            landData.Position.Z + landData.WharfInOffsetPos.Z)
         )
 end
 

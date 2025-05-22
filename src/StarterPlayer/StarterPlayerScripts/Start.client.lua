@@ -1,14 +1,16 @@
 print("StarterPlayerScripts start.lua loaded...")
 
--- 禁用滚轮缩放
-local contextActionService = game:GetService('ContextActionService')
-contextActionService:BindAction("BlockZoom",
-    function()
-        return Enum.ContextActionResult.Sink
-    end,
-    false,
-    Enum.UserInputType.MouseWheel
-)
+require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
+
+-- -- 禁用滚轮缩放
+-- local contextActionService = game:GetService('ContextActionService')
+-- contextActionService:BindAction("BlockZoom",
+--     function()
+--         return Enum.ContextActionResult.Sink
+--     end,
+--     false,
+--     Enum.UserInputType.MouseWheel
+-- )
 
 local loadingUI = require(game.StarterGui:WaitForChild("LoadingUI"))
 loadingUI.Show(3)

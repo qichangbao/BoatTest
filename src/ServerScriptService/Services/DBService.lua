@@ -4,6 +4,7 @@ local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitFo
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
 local _dataTemplate = {
+	IsOnLine = false,
 	Gold = 50,
 	PlayerInventory = {},
 	SpawnLocation = "Land",
@@ -154,6 +155,13 @@ function DBService:Set(userId, key, value)
 	profile.Data[key] = value
 	profile:Save()
 	print("数据已保存  ", userId, key, value)
+
+	if key == "Gold" then
+		local player = Players:GetPlayerByUserId(userId)
+		if player then
+			player:FindFirstChild("leaderstats"):FindFirstChild("Gold").Value = value
+		end
+	end
 
 	return true
 end

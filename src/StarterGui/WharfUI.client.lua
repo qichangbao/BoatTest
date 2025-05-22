@@ -5,6 +5,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface'))
 
 local _occupyTime = 3
 
@@ -14,36 +15,15 @@ _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
--- 禁用背景点击
-local _blocker = Instance.new("TextButton")
-_blocker.Size = UDim2.new(1, 0, 1, 0)
-_blocker.BackgroundTransparency = 1
-_blocker.Text = ""
-_blocker.Parent = _screenGui
-
--- 新增模态背景
-local modalFrame = Instance.new("Frame")
-modalFrame.Size = UDim2.new(1, 0, 1, 0)
-modalFrame.BackgroundTransparency = 0.5
-modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-modalFrame.Parent = _screenGui
-
--- 主框架
-local _frame = Instance.new('Frame')
-_frame.AnchorPoint = Vector2.new(0.5, 0.5)
-_frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+UIConfig.CreateBlock(_screenGui)
+local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.35, 0, 0.4, 0)
-_frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_frame.BackgroundTransparency = 0.1
-_frame.BorderSizePixel = 0
-_frame.Parent = _screenGui
 
 -- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(function()
+local _closeButton = UIConfig.CreateCloseButton(_frame, function()
     _screenGui.Enabled = false
 end)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0, 0)
-_closeButton.Parent = _frame
 
 -- title显示
 local _titleLabel = Instance.new('TextLabel')
@@ -75,8 +55,8 @@ _contentLabel.Parent = _frame
 local _occupyButton = Instance.new('TextButton')
 _occupyButton.Visible = false
 _occupyButton.AnchorPoint = Vector2.new(0.5, 0)
-_occupyButton.Position = UDim2.new(0.7, 0, 0.6, 0)
-_occupyButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+_occupyButton.Position = UDim2.new(0.7, 0, 0.7, 0)
+_occupyButton.Size = UDim2.new(0.3, 0, 0.2, 0)
 _occupyButton.Text = LanguageConfig:Get(10036)
 _occupyButton.TextSize = 30
 _occupyButton.Font = UIConfig.Font
@@ -107,6 +87,7 @@ _occupyButton.MouseButton1Click:Connect(function()
         countdownText.Text = tostring(timeLeft)
         if timeLeft == 0 then
             -- 倒计时结束，执行相关操作
+            _screenGui.Enabled = false
             circleContainer:Destroy()
             Knit.GetService("LandService"):Occupy(_titleLabel.Text):andThen(function(tipId)
                 Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), _titleLabel.Text))
@@ -126,8 +107,8 @@ end)
 local _payButton = Instance.new('TextButton')
 _payButton.Visible = false
 _payButton.AnchorPoint = Vector2.new(0.5, 0)
-_payButton.Position = UDim2.new(0.3, 0, 0.6, 0)
-_payButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+_payButton.Position = UDim2.new(0.3, 0, 0.7, 0)
+_payButton.Size = UDim2.new(0.3, 0, 0.2, 0)
 _payButton.Text = LanguageConfig:Get(10037)
 _payButton.TextSize = 30
 _payButton.Font = UIConfig.Font
@@ -135,8 +116,13 @@ _payButton.BackgroundColor3 = Color3.fromRGB(243, 193, 57)
 _payButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _payButton.Parent = _frame
 _payButton.MouseButton1Click:Connect(function()
+    _screenGui.Enabled = false
     Knit.GetService("LandService"):Pay(_titleLabel.Text):andThen(function(tipId, price)
-        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), price))
+        if not price then
+            Knit.GetController('UIController').ShowTip:Fire(tipId)
+        else
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), price))
+        end
     end)
 end)
 
@@ -144,8 +130,8 @@ end)
 local _intoIsLandButton = Instance.new('TextButton')
 _intoIsLandButton.Visible = false
 _intoIsLandButton.AnchorPoint = Vector2.new(0.5, 0)
-_intoIsLandButton.Position = UDim2.new(0.5, 0, 0.6, 0)
-_intoIsLandButton.Size = UDim2.new(0.4, 0, 0.3, 0)
+_intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+_intoIsLandButton.Size = UDim2.new(0.3, 0, 0.2, 0)
 _intoIsLandButton.Text = LanguageConfig:Get(10040)
 _intoIsLandButton.TextSize = 30
 _intoIsLandButton.Font = UIConfig.Font
@@ -153,6 +139,7 @@ _intoIsLandButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)
 _intoIsLandButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _intoIsLandButton.Parent = _frame
 _intoIsLandButton.MouseButton1Click:Connect(function()
+    _screenGui.Enabled = false
     Knit.GetService("LandService"):IntoIsLand(_titleLabel.Text)
 end)
 
@@ -160,26 +147,39 @@ end)
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowWharfUI:Connect(function(landName)
-        _titleLabel.Text = landName
+        local landData = Interface.FindIsLand(landName)
+        if not landData then
+            return
+        end
+
         _screenGui.Enabled = true
+        _titleLabel.Text = landName
         _occupyButton.Visible = false
         _payButton.Visible = false
         _intoIsLandButton.Visible = false
+
+        if landData.Price == 0 then
+            _intoIsLandButton.Visible = true
+            _occupyButton.Visible = false
+            _payButton.Visible = false
+            _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+            return
+        end
 
         local clientData = require(StarterPlayer.StarterPlayerScripts:WaitForChild("ClientData"))
         if clientData.IsLandOwners[landName] then
             if clientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
                 _intoIsLandButton.Visible = true
-                _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+                _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
             else
                 _occupyButton.Visible = true
+                _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
                 _payButton.Visible = true
-                _occupyButton.Position = UDim2.new(0.75, 0, 0.6, 0)
-                _payButton.Position = UDim2.new(0.25, 0, 0.6, 0)
+                _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
             end
         else
             _occupyButton.Visible = true
-            _occupyButton.Position = UDim2.new(0.5, 0, 0.6, 0)
+            _occupyButton.Position = UDim2.new(0.5, 0, 0.7, 0)
         end
     end)
 end):catch(warn)

@@ -1,5 +1,6 @@
 local SystemConstant = {}
-SystemConstant.ReviceGold = "ReviceGold"
+
+SystemConstant.IsLandPayTag = "IsLandPayTag"
 SystemConstant.IsLandOwnerTag = "IsLandOwnerTag"
 
 return SystemConstant

@@ -16,6 +16,7 @@ local PlayerAttributeService = Knit.CreateService({
     },
 })
 
+-- 客户端登陆时调用，获取是否管理员
 function PlayerAttributeService.Client:IsAdmin(player)
 	for i, v in ipairs(AdminUserIds) do
 		if v == player.UserId then
@@ -60,6 +61,12 @@ function PlayerAttributeService:ChangeGold(player, gold)
     self.Client.ChangeGold:Fire(player, math.max(gold, 0))
 end
 
+-- 客户端登陆时调用，获取玩家金币
+function PlayerAttributeService.Client:GetGold(player)
+    return player:GetAttribute("Gold")
+end
+
+-- 客户端调用，设置出生点
 function PlayerAttributeService.Client:SetSpawnLocation(player, areaName)
     local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
     player.RespawnLocation = spawnLocation
@@ -89,14 +96,10 @@ function PlayerAttributeService:KnitInit()
                 end
             end
         end)
-    
-        player:GetAttributeChangedSignal('Gold'):Connect(function()
-            local gold = player:GetAttribute('Gold')
-            self:ChangeGold(player, gold)
-        end)
 
         local DBService = Knit.GetService('DBService')
         DBService:PlayerAdded(player)
+        DBService:Set(player.UserId, "IsOnLine", true)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
         local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("Land")
@@ -105,6 +108,11 @@ function PlayerAttributeService:KnitInit()
 
         local gold = DBService:Get(player.UserId, "Gold")
         player:SetAttribute("Gold", gold)
+        self.Client.ChangeGold:Fire(player, math.max(gold, 0))
+    
+        player:GetAttributeChangedSignal('Gold'):Connect(function()
+            self:ChangeGold(player, player:GetAttribute('Gold'))
+        end)
     
         local playerInventory = DBService:Get(player.UserId, "PlayerInventory") or {}
         Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
@@ -112,7 +120,9 @@ function PlayerAttributeService:KnitInit()
 
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
-        Knit.GetService('DBService'):PlayerRemoving(player)
+        local DBService = Knit.GetService('DBService')
+        DBService:Set(player.UserId, "IsOnLine", false)
+        DBService:PlayerRemoving(player)
     end
 
 	for _, player in Players:GetPlayers() do

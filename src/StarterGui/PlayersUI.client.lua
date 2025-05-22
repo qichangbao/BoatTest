@@ -11,27 +11,9 @@ _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
--- 禁用背景点击
-local _blocker = Instance.new("TextButton")
-_blocker.Size = UDim2.new(1, 0, 1, 0)
-_blocker.BackgroundTransparency = 1
-_blocker.Text = ""
-_blocker.Parent = _screenGui
-
--- 新增模态背景
-local modalFrame = Instance.new("Frame")
-modalFrame.Size = UDim2.new(1, 0, 1, 0)
-modalFrame.BackgroundTransparency = 0.5
-modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-modalFrame.Parent = _screenGui
-
-local _frame = Instance.new('Frame')
-_frame.Size = UDim2.new(0, 400, 0, 300)
-_frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-_frame.AnchorPoint = Vector2.new(0.5, 0.5)
-_frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_frame.BackgroundTransparency = 0.1
-_frame.Parent = _screenGui
+UIConfig.CreateBlock(_screenGui)
+local _frame = UIConfig.CreateFrame(_screenGui)
+_frame.Size = UDim2.new(0.4, 0, 0.6, 0)
 
 -- 标题栏
 local _titleBar = Instance.new('Frame')
@@ -51,11 +33,10 @@ _titleLabel.BackgroundTransparency = 1
 _titleLabel.Parent = _titleBar
 
 -- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(function()
+local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
     _screenGui.Enabled = false
 end)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
-_closeButton.Parent = _titleBar
 
 local _scrollFrame = Instance.new('ScrollingFrame')
 _scrollFrame.Size = UDim2.new(0.9, 0, 0.85, 0)

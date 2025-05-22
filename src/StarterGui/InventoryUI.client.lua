@@ -21,28 +21,10 @@ _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
--- 禁用背景点击
-local _blocker = Instance.new('TextButton')
-_blocker.Size = UDim2.new(1, 0, 1, 0)
-_blocker.BackgroundTransparency = 1
-_blocker.Text = ""
-_blocker.Parent = _screenGui
+UIConfig.CreateBlock(_screenGui)
 
--- 新增模态背景
-local _modalFrame = Instance.new("Frame")
-_modalFrame.Size = UDim2.new(1, 0, 1, 0)
-_modalFrame.BackgroundTransparency = 0.5
-_modalFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-_modalFrame.Parent = _screenGui
-
-local _inventoryFrame = Instance.new("Frame")
-_inventoryFrame.Name = "InventoryFrame"
-_inventoryFrame.Size = UDim2.new(0, 600, 0, 300)
-_inventoryFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-_inventoryFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-_inventoryFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-_inventoryFrame.BackgroundTransparency = 0.3
-_inventoryFrame.Parent = _screenGui
+local _frame = UIConfig.CreateFrame(_screenGui)
+_frame.Size = UDim2.new(0.7, 0, 0.6, 0)
 
 -- 标题栏
 local _titleBar = Instance.new("Frame")
@@ -51,7 +33,7 @@ _titleBar.Size = UDim2.new(1, 0, 0.1, 0)
 _titleBar.Position = UDim2.new(0.5, 0, 0, 0)
 _titleBar.AnchorPoint = Vector2.new(0.5, 1)
 _titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
-_titleBar.Parent = _inventoryFrame
+_titleBar.Parent = _frame
 
 local _titleText = Instance.new("TextLabel")
 _titleText.Name = "TitleText"
@@ -67,20 +49,18 @@ _titleText.TextXAlignment = Enum.TextXAlignment.Center
 _titleText.Parent = _titleBar
 
 -- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(function()
+local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
     _screenGui.Enabled = false
 end)
 _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
-_closeButton.Parent = _titleBar
 
 -- 物品滚动区域
 local _scrollFrame = Instance.new("ScrollingFrame")
-_scrollFrame.Name = "ScrollFrame"
 _scrollFrame.Size = UDim2.new(0.95, 0, 0.95, 0)
 _scrollFrame.Position = UDim2.new(0.025, 0, 0.025, 0)
 _scrollFrame.BackgroundTransparency = 1
 _scrollFrame.ScrollBarThickness = 8
-_scrollFrame.Parent = _inventoryFrame
+_scrollFrame.Parent = _frame
 
 -- 网格布局
 local _gridLayout = Instance.new("UIGridLayout")
@@ -202,8 +182,6 @@ local function UpdateInventoryUI()
 
         yOffset += _itemTemplate.Size.Y.Offset
     end
-
-    --_inventoryFrame.CanvasSize = UDim2.new(0, 0, 0, yOffset) -- 可滚动区域高度
 end
 
 Knit:OnStart():andThen(function()
