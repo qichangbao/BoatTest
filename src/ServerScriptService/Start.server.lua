@@ -38,4 +38,9 @@ local function setupBoatCollisionGroup(boatModel)
 end
 setupBoatCollisionGroup(ServerStorage:WaitForChild("船"))
 
+print("服务器ID：", game.JobId)
+print("服务器ID：", game.GameId)
+print("服务器ID：", game.PlaceId)
+print("服务器ID：", game.Environment)
+print("服务器名称：", game.Name)
 print("服务器脚本初始化完成")

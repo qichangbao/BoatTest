@@ -22,10 +22,12 @@ Knit:OnStart():andThen(function()
     local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
     PlayerAttributeService:GetGold():andThen(function(gold)
         ClientData.Gold = gold
+        print('ClientData.Gold1:', ClientData.Gold)
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
     PlayerAttributeService.ChangeGold:Connect(function(gold)
         ClientData.Gold = gold
+        print('ClientData.Gold2:', ClientData.Gold)
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
 

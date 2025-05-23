@@ -130,6 +130,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
         
         if type(value) == 'table' then
             local toggleButton = Instance.new('TextButton')
+            toggleButton.Name = "toggleButton"
             toggleButton.Size = UDim2.new(0, 30, 0, 30)
             toggleButton.Position = UDim2.new(0, 0, 0, 0)
             toggleButton.Text = '▶'
@@ -157,6 +158,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
 
             -- 添加增加按钮
             local addBtn = Instance.new('TextButton')
+            addBtn.Name = "addBtn"
             addBtn.Size = UDim2.new(0.1, 0, 0, 30)
             addBtn.AnchorPoint = Vector2.new(1, 0)
             addBtn.Position = UDim2.new(0.9, 0, 0, 0)
@@ -191,6 +193,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                 valueInput.Parent = popupFrame
                 
                 local confirmBtn = Instance.new('TextButton')
+                confirmBtn.Name = "confirmBtn"
                 confirmBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
                 confirmBtn.Position = UDim2.new(0.7, 0, 0.8, 0)
                 confirmBtn.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -199,16 +202,17 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                 confirmBtn.TextColor3 = Theme.TextBottonPrimary
                 confirmBtn.Parent = popupFrame
                 
-                local _closeBtn = Instance.new('TextButton')
-                _closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
-                _closeBtn.Position = UDim2.new(0.3, 0, 0.8, 0)
-                _closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
-                _closeBtn.Text = '关闭'
-                _closeBtn.BackgroundColor3 = Theme.ClosePrimary
-                _closeBtn.TextColor3 = Theme.TextBottonPrimary
-                _closeBtn.Parent = popupFrame
+                local closeBtn = Instance.new('TextButton')
+                closeBtn.Name = "closeBtn"
+                closeBtn.Size = UDim2.new(0.3, 0, 0.2, 0)
+                closeBtn.Position = UDim2.new(0.3, 0, 0.8, 0)
+                closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+                closeBtn.Text = '关闭'
+                closeBtn.BackgroundColor3 = Theme.ClosePrimary
+                closeBtn.TextColor3 = Theme.TextBottonPrimary
+                closeBtn.Parent = popupFrame
                 
-                _closeBtn.MouseButton1Click:Connect(function()
+                closeBtn.MouseButton1Click:Connect(function()
                     popupFrame:Destroy()
                 end)
                 
@@ -268,6 +272,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             
             -- 添加保存按钮
             local saveBtn = Instance.new('TextButton')
+            saveBtn.Name = "saveBtn"
             saveBtn.Size = UDim2.new(0.1, 0, 0, 30)
             saveBtn.AnchorPoint = Vector2.new(1, 0)
             saveBtn.Position = UDim2.new(0.9, 0, 0, 0)
@@ -324,6 +329,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             
         -- 添加删除按钮
         local deleteBtn = Instance.new('TextButton')
+        deleteBtn.Name = "deleteBtn"
         deleteBtn.Size = UDim2.new(0.1, 0, 0, 30)
         deleteBtn.AnchorPoint = Vector2.new(1, 0)
         deleteBtn.Position = UDim2.new(1, 0, 0, 0)
@@ -411,6 +417,7 @@ _userIdBox.BackgroundColor3 = Theme.InputFieldBG
 _userIdBox.Parent = _controlFrame
 
 local _fetchBtn = Instance.new('TextButton')
+_fetchBtn.Name = "_fetchBtn"
 _fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
 _fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
 _fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)

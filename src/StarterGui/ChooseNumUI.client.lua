@@ -48,6 +48,7 @@ _closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20
 
 -- 加减按钮
 local _minusButton = Instance.new('TextButton')
+_minusButton.Name = "_minusButton"
 _minusButton.Size = UDim2.new(0, 50, 0, 50)
 _minusButton.Position = UDim2.new(0.2, 0, 0.4, 0)
 _minusButton.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -58,6 +59,7 @@ _minusButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 _minusButton.Parent = _frame
 
 local _plusButton = Instance.new('TextButton')
+_plusButton.Name = "_plusButton"
 _plusButton.Size = UDim2.new(0, 50, 0, 50)
 _plusButton.Position = UDim2.new(0.8, 0, 0.4, 0)
 _plusButton.AnchorPoint = Vector2.new(0.5, 0.5)

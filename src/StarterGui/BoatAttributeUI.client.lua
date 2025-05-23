@@ -157,7 +157,7 @@ for _, dir in pairs(directions) do
 end
 
 -- 初始化陆地数据
-for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
+for _, landData in ipairs(GameConfig.IsLand) do
     local landLabel = Instance.new('TextLabel')
     landLabel.Name = landData.Name
     landLabel.TextSize = 16

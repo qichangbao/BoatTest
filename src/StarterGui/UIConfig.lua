@@ -7,6 +7,14 @@ local UIConfig = {}
 UIConfig.Font = Enum.Font.Arimo
 UIConfig.CloseButtonSize = UDim2.new(0, 50, 0, 50)
 
+UIConfig.CreateCorner = function(parent)
+    local corner = Instance.new('UICorner')
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = parent
+    
+    return corner
+end
+
 UIConfig.CreateBlock = function(parent)
     -- 禁用背景点击
     local blocker = Instance.new("TextButton")
@@ -39,7 +47,7 @@ end
 UIConfig.CreateCloseButton = function(parent, callfunc)
     -- 添加关闭按钮
     local closeBtn = Instance.new('TextButton')
-    closeBtn.Name = 'CloseButton'
+    closeBtn.Name = 'closeBtn'
     closeBtn.Size = UDim2.new(0, 40, 0, 40)
     closeBtn.AnchorPoint = Vector2.new(0.5, 0.5)
     closeBtn.Text = '×'
@@ -49,9 +57,7 @@ UIConfig.CreateCloseButton = function(parent, callfunc)
     closeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     closeBtn.Parent = parent
 
-    local corner = Instance.new('UICorner')
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = closeBtn
+    UIConfig.CreateCorner(closeBtn)
 
     closeBtn.MouseButton1Click:Connect(callfunc)
 
@@ -59,37 +65,37 @@ UIConfig.CreateCloseButton = function(parent, callfunc)
 end
 
 UIConfig.CreateConfirmButton = function(parent, callfunc)
-    local _confirmButton = Instance.new('TextButton')
-    _confirmButton.Name = 'ConfirmButton'
-    _confirmButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-    _confirmButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    _confirmButton.Text = LanguageConfig:Get(10002)
-    _confirmButton.Font = UIConfig.Font
-    _confirmButton.TextSize = 18
-    _confirmButton.TextColor3 = Color3.new(1, 1, 1)
-    _confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
-    _confirmButton.Parent = parent
+    local confirmButton = Instance.new('TextButton')
+    confirmButton.Name = 'confirmButton'
+    confirmButton.Size = UDim2.new(0.3, 0, 0.2, 0)
+    confirmButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    confirmButton.Text = LanguageConfig:Get(10002)
+    confirmButton.Font = UIConfig.Font
+    confirmButton.TextSize = 18
+    confirmButton.TextColor3 = Color3.new(1, 1, 1)
+    confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+    confirmButton.Parent = parent
 
-    _confirmButton.MouseButton1Click:Connect(callfunc)
+    confirmButton.MouseButton1Click:Connect(callfunc)
 
-    return _confirmButton
+    return confirmButton
 end
 
 UIConfig.CreateCancelButton = function(parent, callfunc)
-    local _cancelButton = Instance.new('TextButton')
-    _cancelButton.Name = 'CancelButton'
-    _cancelButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-    _cancelButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    _cancelButton.Text = LanguageConfig:Get(10003)
-    _cancelButton.Font = UIConfig.Font
-    _cancelButton.TextSize = 18
-    _cancelButton.TextColor3 = Color3.new(1, 1, 1)
-    _cancelButton.BackgroundColor3 = Color3.fromRGB(244, 67, 54)
-    _cancelButton.Parent = parent
+    local cancelButton = Instance.new('TextButton')
+    cancelButton.Name = 'cancelButton'
+    cancelButton.Size = UDim2.new(0.3, 0, 0.2, 0)
+    cancelButton.AnchorPoint = Vector2.new(0.5, 0.5)
+    cancelButton.Text = LanguageConfig:Get(10003)
+    cancelButton.Font = UIConfig.Font
+    cancelButton.TextSize = 18
+    cancelButton.TextColor3 = Color3.new(1, 1, 1)
+    cancelButton.BackgroundColor3 = Color3.fromRGB(244, 67, 54)
+    cancelButton.Parent = parent
 
-    _cancelButton.MouseButton1Click:Connect(callfunc)
+    cancelButton.MouseButton1Click:Connect(callfunc)
 
-    return _cancelButton
+    return cancelButton
 end
 
 return UIConfig

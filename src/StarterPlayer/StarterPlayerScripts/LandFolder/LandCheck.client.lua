@@ -10,19 +10,19 @@ local _isTriggered = {}
 
 local function CheckPos()
     local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
-    if not boat or not boat.PrimaryPart then
+    if not boat then
         _isTriggered = {}
         return
     end
     
-    local boatCFrame = boat.PrimaryPart.CFrame or CFrame.new()
+    local boatPosition = boat:GetPivot().Position
     -- 初始化陆地数据
-    for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
+    for _, landData in ipairs(GameConfig.IsLand) do
         local wharfPos = Vector3.new(
             landData.Position.X + landData.WharfInOffsetPos.X,
             0,
             landData.Position.Z + landData.WharfInOffsetPos.Z)
-        local offset = Vector3.new(wharfPos.X - boatCFrame.Position.X, 0, wharfPos.Z - boatCFrame.Position.Z)
+        local offset = Vector3.new(wharfPos.X - boatPosition.X, 0, wharfPos.Z - boatPosition.Z)
         local distance = offset.Magnitude
         if distance <= RADIUS then
             if _isTriggered[landData.Name] == true then
@@ -32,6 +32,9 @@ local function CheckPos()
             _isTriggered[landData.Name] = true
             break
         else
+            if _isTriggered[landData.Name] then
+                Knit.GetController("UIController").HideWharfUI:Fire()
+            end
             _isTriggered[landData.Name] = nil
         end
     end

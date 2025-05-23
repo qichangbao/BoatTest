@@ -52,7 +52,7 @@ _childFrame.Visible = false
 _childFrame.Parent = _screenGui
 
 local _giftButton = Instance.new('TextButton')
-_giftButton.Name = 'giftButton'
+_giftButton.Name = '_giftButton'
 _giftButton.Size = UDim2.new(1, 0, 1, 0)
 _giftButton.Text = LanguageConfig:Get(10027)
 _giftButton.Font = UIConfig.Font
@@ -60,6 +60,7 @@ _giftButton.TextSize = 18
 _giftButton.TextColor3 = Color3.new(1, 1, 1)
 _giftButton.BackgroundTransparency = 0.5
 _giftButton.Parent = _childFrame
+UIConfig.CreateCorner(_giftButton)
 
 _giftButton.MouseButton1Click:Connect(function()
     local userId = _childFrame:GetAttribute("PlayerId")
@@ -69,6 +70,7 @@ end)
 
 -- 玩家条目模板
 local _playerTemplate = Instance.new('TextButton')
+_playerTemplate.Name = '_playerTemplate'
 _playerTemplate.Size = UDim2.new(0.9, 0, 0, 40)
 _playerTemplate.Text = "PlayerName (ID:123)"
 _playerTemplate.Font = UIConfig.Font

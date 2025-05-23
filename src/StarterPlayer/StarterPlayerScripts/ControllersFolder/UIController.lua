@@ -23,6 +23,7 @@ local UIController = Knit.CreateController {
     ShowNpcDialogUI = Signal.new(),
     CloseNpcDialogUI = Signal.new(),
     ShowWharfUI = Signal.new(),
+    HideWharfUI = Signal.new(),
 }
 
 function UIController:KnitInit()

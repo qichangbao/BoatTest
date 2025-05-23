@@ -3,15 +3,6 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 
 local Interface = {}
 
-function Interface.FindIsLand(landName)
-    for _, landData in ipairs(GameConfig.TerrainType.IsLand) do
-        if landData.Name == landName then
-            return landData
-        end
-    end
-    return nil
-end
-
 -- 初始化玩家位置
 function Interface.InitPlayerPos(player)
     local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
@@ -34,7 +25,6 @@ function Interface.InitPlayerPos(player)
         if humanoid then
             humanoid.Sit = false
         end
-        task.wait(0.1)
         player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
     end
 end
@@ -58,9 +48,9 @@ function Interface.InitBoatWaterPos(player, boat)
     player:SetAttribute("CurAreaTemplate", nil)
     if spawnLocation and player.Character then
         local land = spawnLocation.Parent
-        local landData = Interface.FindIsLand(land.Name)
+        local landData = GameConfig.findIsLand(land.Name)
         if not landData then
-            landData = Interface.FindIsLand("Land")
+            landData = GameConfig.findIsLand("Land")
         end
 
         -- 获取原始CFrame的旋转部分
@@ -85,7 +75,7 @@ end
 
 -- 判断是否在陆地上
 function Interface.IsInLand(boat)
-    local landConfig = GameConfig.TerrainType.Land
+    local landConfig = GameConfig.Land
     local pos = boat.PrimaryPart.Position
     for _, landName in pairs(landConfig) do
         local land = workspace:WaitForChild(landName):WaitForChild("Floor")

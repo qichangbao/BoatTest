@@ -4,11 +4,9 @@ local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitFo
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
 local _dataTemplate = {
-	IsOnLine = false,
 	Gold = 50,
 	PlayerInventory = {},
 	SpawnLocation = "Land",
-	IsLandOwners = {},
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
@@ -19,7 +17,6 @@ local ProfileStore = ProfileService.GetProfileStore(
 local DBService = Knit.CreateService({
     Name = 'DBService',
 	Profiles = {},
-	SystemId = 1000000001,
     Client = {
     },
 })

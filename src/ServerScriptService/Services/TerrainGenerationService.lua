@@ -6,7 +6,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 
 -- 初始化岛屿
-for _, landData in pairs(GameConfig.TerrainType.IsLand) do
+for _, landData in pairs(GameConfig.IsLand) do
     if landData.Name == "Land" then
         continue
     end
@@ -21,9 +21,9 @@ local TerrainGenerationService = Knit.CreateService({
     Client = {
         RequestChunks = Knit.CreateSignal(),
     },
-    ChunkSize = GameConfig.TerrainType.Water.ChunkSize,
-    Depth = GameConfig.TerrainType.Water.Depth,
-    LoadDistance = GameConfig.TerrainType.Water.LoadDistance,
+    ChunkSize = GameConfig.Water.ChunkSize,
+    Depth = GameConfig.Water.Depth,
+    LoadDistance = GameConfig.Water.LoadDistance,
     ActiveChunks = {},
     PlayerChunks = {},
 })

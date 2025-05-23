@@ -402,15 +402,16 @@ function BoatAssemblingService:DestroyBoat(player)
 end
 
 function BoatAssemblingService:StopBoat(player)
-    Interface.InitPlayerPos(player)
     local playerBoat = workspace:FindFirstChild('PlayerBoat_' .. player.UserId)
     if not playerBoat then
+        Interface.InitPlayerPos(player)
         print("船不存在")
         return
     end
 
     playerBoat:Destroy()
     print("船已销毁")
+    Interface.InitPlayerPos(player)
 end
 
 function BoatAssemblingService.Client:StopBoat(player)

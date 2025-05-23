@@ -14,9 +14,9 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 
 local _lastPlayerChunk = nil
-local _chunkSize = GameConfig.TerrainType.Water.ChunkSize
-local _depth = GameConfig.TerrainType.Water.Depth
-local _loadDistance = GameConfig.TerrainType.Water.LoadDistance
+local _chunkSize = GameConfig.Water.ChunkSize
+local _depth = GameConfig.Water.Depth
+local _loadDistance = GameConfig.Water.LoadDistance
 local _floors = {}
 local _activeChunks = {}
 local Floors = workspace:FindFirstChild("Floors")

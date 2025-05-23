@@ -99,7 +99,6 @@ function PlayerAttributeService:KnitInit()
 
         local DBService = Knit.GetService('DBService')
         DBService:PlayerAdded(player)
-        DBService:Set(player.UserId, "IsOnLine", true)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
         local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("Land")
@@ -121,7 +120,6 @@ function PlayerAttributeService:KnitInit()
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
         local DBService = Knit.GetService('DBService')
-        DBService:Set(player.UserId, "IsOnLine", false)
         DBService:PlayerRemoving(player)
     end
 

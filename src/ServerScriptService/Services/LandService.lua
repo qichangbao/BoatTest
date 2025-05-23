@@ -1,7 +1,7 @@
 print('LandService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
-local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 
 local LandService = Knit.CreateService {
     Name = "LandService",
@@ -18,22 +18,22 @@ end
 
 -- 客户端调用，付费登岛
 function LandService.Client:Pay(player, landName)
-    local landData = Interface.FindIsLand(landName)
-    if not landData then
+    local land = GameConfig.findIsLand(landName)
+    if not land then
         return 10042, landName
     end
 
     local gold = tonumber(player:GetAttribute("Gold"))
-    local Price = tonumber(Interface.FindIsLand(landName).Price)
-    if gold < Price then
+    local price = tonumber(land.Price or 0)
+    if gold < price then
         return 10044
     end
 
-    player:SetAttribute("Gold", gold - Price)
+    player:SetAttribute("Gold", gold - price)
     self:IntoIsLand(player, landName)
-    Knit.GetService("SystemService"):AddGoldFromIsLandPay(landName, Price)
+    Knit.GetService("SystemService"):AddGoldFromIsLandPay(landName, price)
 
-    return 10041, tostring(landData.Price)
+    return 10041, tostring(price)
 end
 
 -- 客户端调用，登岛
