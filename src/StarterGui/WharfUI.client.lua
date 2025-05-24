@@ -1,12 +1,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local RunService = game:GetService("RunService")
+local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
 local _occupyTime = 10
 
@@ -238,13 +238,12 @@ Knit:OnStart():andThen(function()
             return
         end
 
-        local clientData = require(StarterPlayer.StarterPlayerScripts:WaitForChild("ClientData"))
-        if clientData.IsLandOwners[landName] then
-            if clientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
+        if ClientData.IsLandOwners[landName] then
+            if ClientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
                 _intoIsLandButton.Visible = true
                 _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
             else
-                _contentLabel.Text = string.format(LanguageConfig:Get(10046), clientData.IsLandOwners[landName].playerName)
+                _contentLabel.Text = string.format(LanguageConfig:Get(10046), ClientData.IsLandOwners[landName].playerName)
                 _occupyButton.Visible = true
                 _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
                 _payButton.Visible = true

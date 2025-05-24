@@ -45,6 +45,7 @@ LanguageConfig.Text = {
     [10044] = {zh_cn = "黄金不够", en_us = "黄金不够"},
     [10045] = {zh_cn = "你收到玩家%s为登陆%s而付的%s黄金", en_us = "你收到玩家%s为登陆%s而付的%s黄金"},
     [10046] = {zh_cn = "此岛已被%s占领，请选择你的操作", en_us = "此岛已被%s占领，请选择你的操作"},
+    [10047] = {zh_cn = "%s岛主:%s", en_us = "%s岛主:%s"},
 }
 
 local Players = game:GetService("Players")

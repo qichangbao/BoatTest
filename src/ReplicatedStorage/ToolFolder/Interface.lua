@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig'))
 
 local Interface = {}
@@ -25,6 +26,7 @@ function Interface.InitPlayerPos(player)
         if humanoid then
             humanoid.Sit = false
         end
+        task.wait(0.2)
         player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
     end
 end
@@ -59,7 +61,7 @@ function Interface.InitBoatWaterPos(player, boat)
             landData.Position.X + landData.WharfOutOffsetPos.Position.X,
             landData.WharfOutOffsetPos.Position.Y,
             landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
-            ) * rotation
+        ) * rotation
         boat:PivotTo(newCFrame)
     
         -- 玩家自动入座
@@ -87,6 +89,19 @@ function Interface.IsInLand(boat)
     end
 
     return false
+end
+
+function Interface.CreateIsLandOwnerModel(userId)
+    local success, model = pcall(function()
+        return Players:CreateHumanoidModelFromUserId(userId)
+    end)
+    
+    if success then
+        return model
+    else
+        warn('无法创建玩家模型: ' .. tostring(model))
+        return nil
+    end
 end
 
 return Interface

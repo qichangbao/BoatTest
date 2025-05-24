@@ -75,6 +75,7 @@ UIConfig.CreateConfirmButton = function(parent, callfunc)
     confirmButton.TextColor3 = Color3.new(1, 1, 1)
     confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
     confirmButton.Parent = parent
+    UIConfig.CreateCorner(confirmButton)
 
     confirmButton.MouseButton1Click:Connect(callfunc)
 
@@ -92,6 +93,7 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     cancelButton.TextColor3 = Color3.new(1, 1, 1)
     cancelButton.BackgroundColor3 = Color3.fromRGB(244, 67, 54)
     cancelButton.Parent = parent
+    UIConfig.CreateCorner(cancelButton)
 
     cancelButton.MouseButton1Click:Connect(callfunc)
 

@@ -15,7 +15,7 @@ local SystemService = Knit.CreateService {
     Name = "SystemService",
     Client = {
         Tip = Knit.CreateSignal(),
-        IsLandBelong = Knit.CreateSignal(),
+        IsLandOwnerChanged = Knit.CreateSignal(),
     },
 }
 
@@ -28,9 +28,8 @@ function SystemService:SendTip(player, tipId, ...)
     self.Client.Tip:Fire(player, tipId, ...)
 end
 
-function SystemService:SendIsLandOwner(player)
-    local data = table.clone(_IsLandOwners)
-    self.Client.IsLandBelong:Fire(player, data)
+function SystemService:SendIsLandOwnerChanged(player, data)
+    self.Client.IsLandOwnerChanged:Fire(player, data)
 end
 
 -- 客户端登陆时调用，获取跨服岛主数据
@@ -98,10 +97,18 @@ function SystemService:AddGoldFromIsLandPay(landName, price)
 end
 
 function SystemService:OperateDataStroe(player, callFunc)
-    local PlayerProfile = game.DataStoreService:GetDataStore("PlayerProfile")
-    PlayerProfile:UpdateAsync("Player_".. player.UserId, function(Profile)
-        return callFunc(Profile)
+    local success, PlayerProfile = pcall(function()
+        return game.DataStoreService:GetDataStore("PlayerProfile")
     end)
+    
+    if success then
+        PlayerProfile:UpdateAsync("Player_".. player.UserId, function(Profile)
+            return callFunc(Profile)
+        end)
+    else
+        warn('无法连接数据库: PlayerProfile')
+        return nil
+    end
 end
 
 function SystemService:KnitInit()
@@ -129,7 +136,7 @@ function SystemService:KnitInit()
         print("Received message for IsLandOwnerTag",  message)
         _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
         self:SendToAllPlayer(function(player)
-            self:SendIsLandOwner(player)
+            self:SendIsLandOwnerChanged(player, {landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
         end)
         self:SendToAllPlayer(function(player)
             self:SendTip(player, 10039, message.Data.playerName, message.Data.landName)

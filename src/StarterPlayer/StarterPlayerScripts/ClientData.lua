@@ -14,20 +14,26 @@ Knit:OnStart():andThen(function()
     local SystemService = Knit.GetService('SystemService')
     SystemService:GetIsLandOwner():andThen(function(data)
         ClientData.IsLandOwners = data
+        Knit.GetController('UIController').IsLandOwner:Fire()
     end)
-    SystemService.IsLandBelong:Connect(function(data)
-        ClientData.IsLandOwners = data
+    SystemService.IsLandOwnerChanged:Connect(function(data)
+        ClientData.IsLandOwners[data.landName] = {userId = data.userId, playerName = data.playerName}
+        Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
     end)
 
     local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
     PlayerAttributeService:GetGold():andThen(function(gold)
+        if not gold then
+            return
+        end
         ClientData.Gold = gold
-        print('ClientData.Gold1:', ClientData.Gold)
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
     PlayerAttributeService.ChangeGold:Connect(function(gold)
+        if not gold then
+            return
+        end
         ClientData.Gold = gold
-        print('ClientData.Gold2:', ClientData.Gold)
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
 

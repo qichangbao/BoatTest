@@ -48,17 +48,18 @@ local _childFrame = Instance.new('Frame')
 _childFrame.Size = UDim2.new(0, 60, 0, 40)
 _childFrame.AnchorPoint = Vector2.new(0, 0.5)
 _childFrame.BackgroundColor3 = Color3.fromRGB(33, 150, 243)  -- 蓝色
+_childFrame.BackgroundTransparency = 1
 _childFrame.Visible = false
 _childFrame.Parent = _screenGui
 
 local _giftButton = Instance.new('TextButton')
 _giftButton.Name = '_giftButton'
 _giftButton.Size = UDim2.new(1, 0, 1, 0)
+_giftButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)  -- 蓝色
 _giftButton.Text = LanguageConfig:Get(10027)
 _giftButton.Font = UIConfig.Font
 _giftButton.TextSize = 18
 _giftButton.TextColor3 = Color3.new(1, 1, 1)
-_giftButton.BackgroundTransparency = 0.5
 _giftButton.Parent = _childFrame
 UIConfig.CreateCorner(_giftButton)
 

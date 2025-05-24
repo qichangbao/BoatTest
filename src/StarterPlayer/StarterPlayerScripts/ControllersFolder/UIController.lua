@@ -24,6 +24,8 @@ local UIController = Knit.CreateController {
     CloseNpcDialogUI = Signal.new(),
     ShowWharfUI = Signal.new(),
     HideWharfUI = Signal.new(),
+    IsLandOwner = Signal.new(),
+    IsLandOwnerChanged = Signal.new(),
 }
 
 function UIController:KnitInit()
