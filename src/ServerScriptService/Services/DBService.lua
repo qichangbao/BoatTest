@@ -131,7 +131,10 @@ function DBService:SetToAllStore(userId, key, value)
 	end
 	-- 初始化用户数据，确保用户数据存在，并且可以设置value
 	self:InitDataFromUserId(userId)
-	return self:Set(userId, key, value)
+	if key ~= "Gold" then
+		return self:Set(userId, key, value)
+	end
+	return true
 end
 
 function DBService:Get(userId, key)

@@ -59,13 +59,23 @@ local function CreateIsLandOwnerModel(landName, playerName)
             model:Destroy()
             return
         end
-        model.Parent = land
-        model.Name = string.format(LanguageConfig:Get(10047), landName, playerName)
         local humanoidRootPart = model:FindFirstChild("HumanoidRootPart")
         if humanoidRootPart then
             humanoidRootPart.Anchored = true
-            humanoidRootPart.CanCollide = false
-            humanoidRootPart.CanTouch = false
+        end
+
+        model.Name = string.format(LanguageConfig:Get(10047), landName, playerName)
+        model:ScaleTo(8)
+        model.Parent = land
+        for _, child in ipairs(model:GetDescendants()) do
+            if child:IsA('BasePart') then
+                child.CanCollide = true
+                child.CanTouch = false
+
+                child.Material = Enum.Material.Slate
+                child.Color = Color3.fromRGB(150, 150, 150)
+                child.Reflectance = 0.2
+            end
         end
         
         -- 获取原始CFrame的旋转部分

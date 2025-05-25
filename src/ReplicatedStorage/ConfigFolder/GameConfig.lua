@@ -14,7 +14,7 @@ local GameConfig = {
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
             WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 5.5, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
+            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 27, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
             Price = 0,
         },
         [2] = {
@@ -23,7 +23,7 @@ local GameConfig = {
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
             WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 5.5, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
+            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 27, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
             Price = 100,
         },
         [3] = {
@@ -32,7 +32,7 @@ local GameConfig = {
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
             WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 5.5, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
+            OwnerModelOffsetPos = CFrame.new(Vector3.new(75, 27, 120)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
             Price = 100,
         },
     },
