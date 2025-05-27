@@ -184,11 +184,11 @@ function BoatAssemblingService:CreateVehicleSeat(boat)
             local humanoid = occupant.Parent:FindFirstChildOfClass('Humanoid')
             if humanoid and humanoid.Parent:IsA('Model') then
                 local player = game.Players:GetPlayerFromCharacter(humanoid.Parent)
-                if player and player.UserId ~= tonumber(string.match(boat.Name, 'PlayerBoat_(%d+)')) then
+                if player and player.UserId ~= tonumber(string.sub(boat.Name, 12)) then
                     driverSeat.Disabled = false
                     task.wait(0.1)
                     driverSeat.Disabled = true
-                    driverSeat.Occupant = nil
+                    humanoid.Jump = true
                     return
                 end
             end

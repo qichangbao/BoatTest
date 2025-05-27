@@ -18,7 +18,7 @@ end
 
 -- 客户端调用，付费登岛
 function LandService.Client:Pay(player, landName)
-    local land = GameConfig.findIsLand(landName)
+    local land = GameConfig.FindIsLand(landName)
     if not land then
         return 10042, landName
     end
@@ -31,7 +31,7 @@ function LandService.Client:Pay(player, landName)
 
     player:SetAttribute("Gold", gold - price)
     self:IntoIsLand(player, landName)
-    Knit.GetService("SystemService"):AddGoldFromIsLandPay(landName, price)
+    Knit.GetService("SystemService"):AddGoldFromIsLandPay(player.Name, landName, price)
 
     return 10041, tostring(price)
 end

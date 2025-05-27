@@ -1,4 +1,5 @@
 print("ServerScriptService start.lua loaded")
+local MessagingService = game:GetService("MessagingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService("ServerStorage")
@@ -27,6 +28,7 @@ PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionG
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'MonsterCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'LandCollisionGroup', false)
+PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'BoatStabilizerCollisionGroup', false)
 -- 在装配船只时初始化碰撞组
 local function setupBoatCollisionGroup(boatModel)
     -- 给所有部件设置碰撞组

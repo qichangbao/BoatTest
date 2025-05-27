@@ -28,7 +28,7 @@ local _playersButton = Instance.new('TextButton')
 _playersButton.Name = '_playersButton'
 _playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _playersButton.Size = _buttonSize
-_playersButton.Position = UDim2.new(0, 80, 0, 60)
+_playersButton.Position = UDim2.new(0, 80, 0, 100)
 _playersButton.Text = LanguageConfig:Get(10026)
 _playersButton.Font = UIConfig.Font
 _playersButton.TextSize = _buttonTextSize
@@ -226,6 +226,7 @@ local function Destroy()
 end
 
 Knit:OnStart():andThen(function()
+    print("MainUI1111111111111111111")
     local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
     BoatAssemblingService.UpdateMainUI:Connect(function(data)
         _startBoatButton.Visible = not data.explore
@@ -234,6 +235,7 @@ Knit:OnStart():andThen(function()
     
     Knit.GetController('UIController').AddUI:Fire(_screenGui, Destroy)
     Knit.GetController('UIController').UpdateGoldUI:Connect(function()
+        print("MainUI22222222222222222222")
         if not ClientData.Gold then
             warn("ClientData.Gold is nil")
             return

@@ -48,7 +48,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
         return
     end
 
-    local landData = GameConfig.findIsLand(landName)
+    local landData = GameConfig.FindIsLand(landName)
     if not landData then
         return
     end

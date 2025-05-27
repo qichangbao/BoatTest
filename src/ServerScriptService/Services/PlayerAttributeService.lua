@@ -83,6 +83,7 @@ function PlayerAttributeService:KnitInit()
             if not player.RespawnLocation then
                 task.wait(1.5)
             end
+            print("RespawnLocation    ", player.RespawnLocation)
             Interface.InitPlayerPos(player)
             local boat = Interface.GetBoatByPlayerUserId(player.UserId)
             if boat then
@@ -115,6 +116,8 @@ function PlayerAttributeService:KnitInit()
     
         local playerInventory = DBService:Get(player.UserId, "PlayerInventory") or {}
         Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
+
+        Knit.GetService('SystemService'):PlayerAdded(player)
     end
 
     local function playerRemoving(player)

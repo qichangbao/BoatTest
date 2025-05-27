@@ -6,10 +6,12 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local SystemStore = DataStoreService:GetDataStore("SystemStore")
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local MemoryStoreService = game:GetService("MemoryStoreService")
+local ActiveServers = MemoryStoreService:GetSortedMap("ActiveServers")
 
-local AllPlayersDataTag = "AllPlayersDataTag"
 local IsLandOwnerTag = "IsLandOwnerTag"
 local IsLandPayTag = "IsLandPayTag"
+local IsLandPayEndedTag = "IsLandPayEndedTag"
 
 local SystemService = Knit.CreateService {
     Name = "SystemService",
@@ -19,10 +21,9 @@ local SystemService = Knit.CreateService {
     },
 }
 
-local _CurPlayersData = {}
-local _OtherServePlayersData = {}
 local _IsLandOwners = {}
-local _isPlayerChanged = false
+local _isMainServer = false
+local _IsLandPayInfos = {}
 
 function SystemService:SendTip(player, tipId, ...)
     self.Client.Tip:Fire(player, tipId, ...)
@@ -58,10 +59,29 @@ function SystemService:UpdateIsLandOwner(player, landName)
     )
 
     _IsLandOwners[landName] = {userId = player.UserId, playerName = player.Name}
-    SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+
+    -- 如果是主服务器，则更新岛主数据库
+    if _isMainServer then
+        local success = pcall(function()
+            SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+        end)
+        if not success then
+            warn('无法连接数据库: SystemStore')
+        end
+    end
 end
 
-function SystemService:AddGoldFromIsLandPay(landName, price)
+local function AddPayInfoToMainServer()
+    -- 如果是主服务器，则更新玩家交费数据库
+    local success = pcall(function()
+        SystemStore:SetAsync("IsLandPayInfo", _IsLandPayInfos)
+    end)
+    if not success then
+        warn('无法连接数据库: SystemStore')
+    end
+end
+
+function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
     local data = _IsLandOwners[landName]
     if not data then
         return
@@ -76,59 +96,96 @@ function SystemService:AddGoldFromIsLandPay(landName, price)
         return
     end
 
-    local playerData = _OtherServePlayersData[data.userId]
-    -- 如果其他服玩家不在线，则更新玩家数据库金币，如果玩家在线，则通过跨服消息让玩家自己更新金币
-    if not playerData then
-        self:OperateDataStroe(player, function(Profile)
-            Profile.Data["Gold"] += price
-            return Profile
-        end)
-    else
-        -- 跨服发送土地付费消息
-        MessagingService:PublishAsync(IsLandPayTag,
-            {
-                jobId = playerData.jobId,
-                landName = landName,
-                userId = data.userId,
-                playerName = data.playerName,
-            }
-        )
+    if not _IsLandPayInfos[data.userId] then
+        _IsLandPayInfos[data.userId] = {}
+    end
+    table.insert(_IsLandPayInfos[data.userId], {payPlayerName = payPlayerName, landName = landName, price = price})
+    -- 跨服发送土地付费消息
+    MessagingService:PublishAsync(IsLandPayTag, {jobId = game.jobId, userId = data.userId, data = _IsLandPayInfos[data.userId]})
+    if _isMainServer then
+        AddPayInfoToMainServer()
     end
 end
 
-function SystemService:OperateDataStroe(player, callFunc)
-    local success, PlayerProfile = pcall(function()
-        return game.DataStoreService:GetDataStore("PlayerProfile")
-    end)
+-- 获取服务器ID的兼容性写法
+local function getServerId()
+    -- 优先使用JobId
+    local jobId = tostring(game.JobId)
+    if jobId and jobId ~= "" then
+        return jobId
+    end
     
-    if success then
-        PlayerProfile:UpdateAsync("Player_".. player.UserId, function(Profile)
-            return callFunc(Profile)
-        end)
-    else
-        warn('无法连接数据库: PlayerProfile')
-        return nil
+    -- Studio环境下使用临时生成的UUID
+    return "STUDIO"
+end
+
+local _serverId = getServerId()
+print("服务器ID:", _serverId)
+
+local _serverStartTime = os.time()
+-- 启动注册协程
+task.spawn(function()
+    pcall(function()
+        return ActiveServers:SetAsync(_serverId, _serverStartTime, 60)
+    end)
+    task.wait(30)
+end)
+
+local function CheckMainServer()
+    local servers = ActiveServers:GetRangeAsync(Enum.SortDirection.Descending, 1)
+    if #servers > 0 then
+        if servers[1].key == _serverId then
+            _isMainServer = true
+
+            local ownersInfo = nil
+            -- 主服务器从数据库获取所有岛主数据
+            local success = pcall(function()
+                ownersInfo = SystemStore:GetAsync("IsLandOwners")
+            end)
+            if success then
+                _IsLandOwners = ownersInfo
+            else
+                warn('无法连接数据库: SystemStore')
+            end
+            print("IsLandOwners", _IsLandOwners)
+
+            local payInfos = nil
+            -- 主服务器从数据库获取土地付费数据
+            success = pcall(function()
+                payInfos = SystemStore:GetAsync("IsLandPayInfo")
+            end)
+            if success then
+                _IsLandPayInfos = payInfos or {}
+            else
+                warn('无法连接数据库: SystemStore')
+            end
+            print("IsLandPayInfos", _IsLandPayInfos)
+        end
+    end
+end
+
+-- 玩家登陆时调用，获取服务器缓存的跨服玩家交费数据
+function SystemService:PlayerAdded(player)
+    if _IsLandPayInfos[player.UserId] then
+        local gold = player:GetAttribute("Gold")
+        for _, info in ipairs(_IsLandPayInfos[player.UserId]) do
+            gold += info.price
+            self:SendTip(player, 10045, info.payPlayerName, info.landName, info.price)
+        end
+        player:SetAttribute("Gold", gold)
+        _IsLandPayInfos[player.UserId] = nil
+
+        MessagingService:PublishAsync(IsLandPayEndedTag, player.UserId)
     end
 end
 
 function SystemService:KnitInit()
     print('SystemService initialized')
     
-    -- 跨服接收玩家数据同步消息
-    MessagingService:SubscribeAsync(AllPlayersDataTag, function(message)
-        local systemData = message.Data
-        if systemData["服务器ID:"] == game.JobId then
-            return
-        end
-
-        local offlinePlayers = systemData.offlinePlayers
-        for _, userId in pairs(offlinePlayers) do
-            _OtherServePlayersData[userId] = nil
-        end
-        local playersData = systemData.playersData
-        for userId, data in pairs(playersData) do
-            _OtherServePlayersData[userId] = data
-        end
+    -- 开启协程定时检查主服务器，防止主服务器崩溃
+    task.spawn(function()
+        CheckMainServer()
+        task.wait(30)
     end)
     
     -- 跨服接收土地更新领主消息
@@ -137,94 +194,53 @@ function SystemService:KnitInit()
         _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
         self:SendToAllPlayer(function(player)
             self:SendIsLandOwnerChanged(player, {landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
+            if player.UserId ~= message.Data.userId then
+                self:SendTip(player, 10039, message.Data.playerName, message.Data.landName)
+            end
         end)
-        self:SendToAllPlayer(function(player)
-            self:SendTip(player, 10039, message.Data.playerName, message.Data.landName)
-        end, message.Data.userId)
     end)
-
     -- 跨服接收土地付费消息
     MessagingService:SubscribeAsync(IsLandPayTag, function(message)
-        local data = message.Data
-        if data.jobId ~= game.JobId then
-            return
-        end
+        local userId = message.Data.userId
+        local data = message.Data.data
 
-        local land = GameConfig.findIsLand(message.Data.landName)
-        if not land then
-            return
-        end
+        local player = Players:GetPlayerByUserId(userId)
+        if player then
+            local gold = player:GetAttribute("Gold")
+            for _, info in ipairs(data) do
+                gold += info.price
+                self:SendTip(player, 10045, data.payPlayerName, info.landName, info.price)
+            end
+            player:SetAttribute("Gold", gold)
 
-        local player = Players:GetPlayerByUserId(message.Data.userId)
-        if not player then
-            DataStoreService:GetDataStore("Player_" .. data.userId):UpdateAsync("Gold", function(gold)
-                return gold + land.Price
-            end)
+            MessagingService:PublishAsync(IsLandPayEndedTag, userId)
             return
+        else
+            local jobId = message.Data.jobId
+            if jobId == game.jobId then
+                return
+            end
+
+            if not _IsLandPayInfos[data.userId] then
+                _IsLandPayInfos[data.userId] = {}
+            end
+            table.insert(_IsLandPayInfos[data.userId], {payPlayerName = data.payPlayerName, landName = data.landName, price = data.price})
+            if _isMainServer then
+                AddPayInfoToMainServer()
+                return
+            end
         end
-        local gold = player:GetAttribute("Gold")
-        player:SetAttribute("Gold", gold + land.Price)
-        self:SendTip(player, 10045, message.Data.playerName, message.Data.landName, land.Price)
     end)
-
-    _IsLandOwners = SystemStore:GetAsync("IsLandOwners") or {}
-    print("IsLandOwners", _IsLandOwners)
-    
-    local function playerAdded(player)
-        _isPlayerChanged = true
-    end
-
-    local function playerRemoving(player)
-        _isPlayerChanged = true
-    end
-
-	for _, player in Players:GetPlayers() do
-		task.spawn(playerAdded, player)
-	end
-
-    Players.PlayerAdded:Connect(function(player)
-        playerAdded(player)
-    end)
-
-    Players.PlayerRemoving:Connect(function(player)
-        playerRemoving(player)
+    -- 跨服接收玩家交费完成消息
+    MessagingService:SubscribeAsync(IsLandPayEndedTag, function(message)
+        local userId = message.Data
+        _IsLandPayInfos[userId] = nil
+        print("玩家收费完成", userId)
     end)
 end
 
 function SystemService:KnitStart()
     print('SystemService started')
-    
-    -- 定时同步全服玩家数据
-    while true do
-        task.wait(30) -- 每30秒同步一次
-        if not _isPlayerChanged then
-            continue
-        end
-
-        _isPlayerChanged = false
-        local systemData = {}
-        systemData["服务器ID:"] = game.JobId
-        systemData.playersData = {}
-        systemData.offlinePlayers = {}
-        for _, player in pairs(Players:GetPlayers()) do
-            if not _CurPlayersData[player.UserId] then
-                table.insert(systemData.offlinePlayers, player.UserId)
-            end
-            systemData.playersData[player.UserId] = {
-                name = player.Name,
-                online = true,
-                jobId = game.JobId,
-            }
-        end
-
-        _CurPlayersData = {}
-        for _, player in pairs(Players:GetPlayers()) do
-            _CurPlayersData[player.UserId] = true
-        end
-        
-        -- 发布跨服消息
-        MessagingService:PublishAsync(AllPlayersDataTag, systemData)
-    end
 end
 
 return SystemService

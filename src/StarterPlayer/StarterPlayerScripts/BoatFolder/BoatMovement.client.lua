@@ -3,7 +3,6 @@ local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local UserInputService = game:GetService('UserInputService')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
-local BoatMovementService = Knit.GetService('BoatMovementService')
 
 local _moveDirection = Vector3.new()
 local _moveAngular = Vector3.new()
@@ -25,6 +24,7 @@ end
 UserInputService.InputBegan:Connect(function(input)
     if not CanInput() then return end
     
+    local BoatMovementService = Knit.GetService('BoatMovementService')
     if input.KeyCode == Enum.KeyCode.W then
         if _activeKeys.W then return end
         _activeKeys.W = true
@@ -51,6 +51,7 @@ end)
 UserInputService.InputEnded:Connect(function(input)
     if not CanInput() then return end
     
+    local BoatMovementService = Knit.GetService('BoatMovementService')
     if input.KeyCode == Enum.KeyCode.W then
         _activeKeys.W = false
         _moveDirection = Vector3.new(0, 0, 0)
@@ -70,9 +71,12 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-BoatMovementService.isOnBoat:Connect(function(isOnBoat)
-    _activeKeys = {}
-    _moveDirection = Vector3.new()
-    _moveAngular = Vector3.new()
-    print('玩家是否在船上：', isOnBoat)
-end)
+Knit:OnStart():andThen(function()
+    local BoatMovementService = Knit.GetService('BoatMovementService')
+    BoatMovementService.isOnBoat:Connect(function(isOnBoat)
+        _activeKeys = {}
+        _moveDirection = Vector3.new()
+        _moveAngular = Vector3.new()
+        print('玩家是否在船上：', isOnBoat)
+    end)
+end):catch(warn)

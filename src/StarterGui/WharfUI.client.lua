@@ -216,7 +216,7 @@ end)
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowWharfUI:Connect(function(landName)
-        local landData = GameConfig.findIsLand(landName)
+        local landData = GameConfig.FindIsLand(landName)
         if not landData then
             return
         end

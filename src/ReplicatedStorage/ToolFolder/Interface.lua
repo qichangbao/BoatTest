@@ -27,7 +27,7 @@ function Interface.InitPlayerPos(player)
             humanoid.Sit = false
         end
         task.wait(0.2)
-        player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(0, 6, 0))
+        player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(math.random(5, 10), 6, math.random(5, 10)))
     end
 end
 
@@ -50,9 +50,9 @@ function Interface.InitBoatWaterPos(player, boat)
     player:SetAttribute("CurAreaTemplate", nil)
     if spawnLocation and player.Character then
         local land = spawnLocation.Parent
-        local landData = GameConfig.findIsLand(land.Name)
+        local landData = GameConfig.FindIsLand(land.Name)
         if not landData then
-            landData = GameConfig.findIsLand("Land")
+            landData = GameConfig.FindIsLand("Land")
         end
 
         -- 获取原始CFrame的旋转部分

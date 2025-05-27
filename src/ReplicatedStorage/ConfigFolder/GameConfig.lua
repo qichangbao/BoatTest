@@ -38,7 +38,7 @@ local GameConfig = {
     },
 }
 
-GameConfig.findIsLand = function(name)
+GameConfig.FindIsLand = function(name)
     for _, v in ipairs(GameConfig.IsLand) do
         if v.Name == name then
             return v
