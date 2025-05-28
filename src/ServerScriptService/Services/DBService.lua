@@ -2,6 +2,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("ProfileService"):WaitForChild("ProfileService"))
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
+local DataStoreService = game:GetService("DataStoreService")
+local SystemStore = DataStoreService:GetDataStore("SystemStore")
 
 local _dataTemplate = {
 	Gold = 50,
@@ -23,11 +25,33 @@ local DBService = Knit.CreateService({
 
 function DBService.Client:AdminRequest(player, action, userId, ...)
 	local PlayerAttributeService = Knit.GetService("PlayerAttributeService")
-    if PlayerAttributeService.Client:IsAdmin(player) then
+    if PlayerAttributeService:IsAdmin(player) then
         return self.Server:ProcessAdminRequest(player, action, userId, ...)
     end
 
 	return "不是管理员，无法执行该操作"
+end
+
+function DBService:GetPlayerSystemData(userId)
+	local successful, data = pcall(function()
+		return SystemStore:GetAsync("PlayerSystem_".. userId)
+	end)
+	if not successful then
+		warn('无法连接数据库: SystemStore')
+		return nil
+	end
+
+	return data
+end
+
+-- 客户端调用，获取玩家登陆时保存在数据库的数据，尽量只用于管理员在客户端操作数据库时调用
+function DBService.Client:GetPlayerSystemData(player, targetUserId)
+	if not targetUserId or type(targetUserId) ~= "number" then
+		print("无效的用户ID")
+		return nil
+	end
+
+	return self.Server:GetPlayerSystemData(targetUserId)
 end
 
 function DBService:ProcessAdminRequest(player, action, userId, ...)
@@ -54,11 +78,46 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 	end
 end
 
+function DBService:SetPayInfos(userId, payInfos)
+	local profileKey = "PayInfos_"..userId
+	pcall(function()
+		return SystemStore:SetAsync(profileKey, payInfos)
+	end)
+end
+
+function DBService:GetPayInfos(userId)
+	local profileKey = "PayInfos_"..userId
+	local successful, payInfos = pcall(function()
+		return SystemStore:GetAsync(profileKey)
+	end)
+	if not successful then
+		warn("无法连接数据库: SystemStore")
+		return nil
+	end
+	return payInfos
+end
+
+function DBService:UpdatePayInfos(userId, callback)
+	local profileKey = "PayInfos_"..userId
+	SystemStore:UpdateAsync(profileKey, function(oldData)
+		return callback(oldData or {})
+	end)
+end
+
 function DBService:PlayerAdded(player)
 	local userId = player.UserId
 	if self.Profiles[userId] then
 		return
 	end
+
+	local loginData = {}
+	loginData.Login = true
+	loginData.LoginTime = os.time()
+	loginData.JobId = game.JobId
+	loginData.GameId = game.GameId
+	pcall(function()
+		return SystemStore:SetAsync("PlayerSystem_"..userId, loginData)
+	end)
 
 	local profileKey = "Player_"..userId
 	local profile = ProfileStore:LoadProfileAsync(profileKey)
@@ -85,8 +144,15 @@ function DBService:PlayerAdded(player)
 end
 
 function DBService:PlayerRemoving(player)
-	if self.Profiles[player.UserId] then
-		self.Profiles[player.UserId]:Release()
+	local userId = player.UserId
+	local profileKey = "PlayerSystem_"..userId
+	SystemStore:UpdateAsync(profileKey, function(oldData)
+		oldData.Login = false
+		return oldData
+	end)
+
+	if self.Profiles[userId] then
+		self.Profiles[userId]:Release()
 	end
 end
 
@@ -124,7 +190,10 @@ function DBService:SetToAllStore(userId, key, value)
 	if key == "Gold" then
 		local player = Players:GetPlayerByUserId(userId)
 		if player then
+			print("设置玩家金币", value)
 			player:SetAttribute("Gold", value or 0)
+		else
+			self:Set(userId, key, value)
 		end
 	elseif key == "PlayerInventory" then
 		Knit.GetService("InventoryService"):GetInventoryFromDBService(userId, value)

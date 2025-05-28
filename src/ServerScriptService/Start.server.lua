@@ -24,7 +24,7 @@ PhysicsService:RegisterCollisionGroup('PlayerCollisionGroup')
 PhysicsService:RegisterCollisionGroup('MonsterCollisionGroup')
 PhysicsService:RegisterCollisionGroup('LandCollisionGroup')
 -- 设置碰撞关系
-PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
+--PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'MonsterCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'LandCollisionGroup', false)

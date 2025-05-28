@@ -54,7 +54,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
     end
     local model = Interface.CreateIsLandOwnerModel(data.userId)
     if model then
-        local land = workspace:FindFirstChild(landName)
+        local land = workspace:WaitForChild(landName)
         if not land then
             model:Destroy()
             return
@@ -64,7 +64,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
             humanoidRootPart.Anchored = true
         end
 
-        model.Name = string.format(LanguageConfig:Get(10047), landName, playerName)
+        model.Name = string.format(LanguageConfig:Get(10047), playerName)
         model:ScaleTo(8)
         model.Parent = land
         for _, child in ipairs(model:GetDescendants()) do
@@ -89,6 +89,31 @@ local function CreateIsLandOwnerModel(landName, playerName)
     end
 end
 
+local function CreateIslandBillboard()
+    for _, v in ipairs(GameConfig.IsLand) do
+        local isLand = workspace:WaitForChild(v.Name)
+        if not isLand then
+            continue
+        end
+        local billboard = Instance.new("BillboardGui")
+        billboard.Size = UDim2.new(0, 200, 0, 50)
+        billboard.StudsOffset = Vector3.new(0, 50, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Adornee = isLand
+        billboard.MaxDistance = 400
+        
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.Text = v.Name
+        textLabel.Font = Enum.Font.Arimo
+        textLabel.TextSize = 60
+        textLabel.BackgroundTransparency = 1
+        textLabel.Parent = billboard
+        
+        billboard.Parent = isLand
+    end
+end
+
 Knit:OnStart():andThen(function()
     local UIController = Knit.GetController('UIController')
     UIController.IsLandOwner:Connect(function()
@@ -100,5 +125,6 @@ Knit:OnStart():andThen(function()
         task.spawn(CreateIsLandOwnerModel, landName, playerName)
     end)
 
+    task.spawn(CreateIslandBillboard)
     game:GetService('RunService').RenderStepped:Connect(CheckPos)
 end):catch(warn)

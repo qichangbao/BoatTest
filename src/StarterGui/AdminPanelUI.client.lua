@@ -429,7 +429,35 @@ _fetchBtn.BackgroundColor3 = Theme.Primary
 _fetchBtn.TextColor3 = Theme.TextBottonPrimary
 _fetchBtn.Parent = _controlFrame
 
+local _playerSystemlabel = Instance.new('TextLabel')
+_playerSystemlabel.Size = UDim2.new(0.8, 0, 0, 30)
+_playerSystemlabel.TextTruncate = Enum.TextTruncate.AtEnd
+_playerSystemlabel.TextColor3 = Theme.TextPrimary
+_playerSystemlabel.AnchorPoint = Vector2.new(0.5, 0.5)
+_playerSystemlabel.Position = UDim2.new(0.5, 0, 1, -20)
+_playerSystemlabel.Text = ""
+_playerSystemlabel.TextXAlignment = Enum.TextXAlignment.Center
+_playerSystemlabel.Parent = _screenGui
+_playerSystemlabel.TextSize = 16
+
 _fetchBtn.MouseButton1Click:Connect(function()
+    Knit.GetService("DBService"):GetPlayerSystemData(tonumber(_userIdBox.Text)):andThen(function(playerSystemData)
+        if playerSystemData then
+            local str = ""
+            if playerSystemData.Login then
+                str = str .. "在线"
+            else
+                str = str .. "离线"
+            end
+    
+            str = str.. " 上次登录时间: " .. os.date("%Y-%m-%d %H:%M:%S", playerSystemData.LoginTime)
+            str = str.. " 服务器: " .. playerSystemData.JobId .. " " .. playerSystemData.GameId
+            _playerSystemlabel.Text = str
+        else
+            _playerSystemlabel.Text = "未找到用户数据"
+        end
+    end)
+
     Knit.GetService("DBService"):AdminRequest("GetData", tonumber(_userIdBox.Text)):andThen(function(data)
         if type(data) == "table" then
             UpdateDataDisplay(_scrollFrame, tonumber(_userIdBox.Text), data)

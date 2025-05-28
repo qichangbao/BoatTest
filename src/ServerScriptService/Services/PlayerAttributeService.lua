@@ -12,13 +12,12 @@ local PlayerAttributeService = Knit.CreateService({
     Name = 'PlayerAttributeService',
     Client = {
         ChangeAttribute = Knit.CreateSignal(),
-        ChangeGold = Knit.CreateSignal(),
     },
 })
 
--- 客户端登陆时调用，获取是否管理员
-function PlayerAttributeService.Client:IsAdmin(player)
-	for i, v in ipairs(AdminUserIds) do
+-- 获取是否管理员
+function PlayerAttributeService:IsAdmin(player)
+	for _, v in ipairs(AdminUserIds) do
 		if v == player.UserId then
 			return true
 		end
@@ -56,22 +55,21 @@ function PlayerAttributeService:ChangePlayerSpeed(player, speed, maxSpeed)
     self.Client.ChangeAttribute:Fire(player, 'Speed', math.max(speed, 0), maxSpeed)
 end
 
-function PlayerAttributeService:ChangeGold(player, gold)
-    Knit.GetService('DBService'):Set(player.UserId, "Gold", math.max(gold, 0))
-    self.Client.ChangeGold:Fire(player, math.max(gold, 0))
-end
-
--- 客户端登陆时调用，获取玩家金币
-function PlayerAttributeService.Client:GetGold(player)
-    return player:GetAttribute("Gold")
-end
-
 -- 客户端调用，设置出生点
 function PlayerAttributeService.Client:SetSpawnLocation(player, areaName)
     local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
     player.RespawnLocation = spawnLocation
     local DBService = Knit.GetService('DBService')
     DBService:Set(player.UserId, "SpawnLocation", areaName)
+end
+
+-- 客户端登陆时调用，获取玩家数据
+function PlayerAttributeService.Client:GetLoginData(player)
+    local data = {}
+    data.PlayerInventory = Knit.GetService('InventoryService'):GetPlayerInventory(player)
+    data.isAdmin = self.Server:IsAdmin(player)
+    data.IsLandOwners = Knit.GetService('SystemService'):GetIsLandOwner(player)
+    return data
 end
 
 function PlayerAttributeService:KnitInit()
@@ -106,18 +104,27 @@ function PlayerAttributeService:KnitInit()
         local spawnLocation = area:WaitForChild("SpawnLocation")
         player.RespawnLocation = spawnLocation
 
+        -- 玩家登录时，查找是否有其他玩家支付的登岛费用，将其添加到玩家金币中
         local gold = DBService:Get(player.UserId, "Gold")
-        player:SetAttribute("Gold", gold)
-        self.Client.ChangeGold:Fire(player, math.max(gold, 0))
+        local curGold = gold
+        DBService:UpdatePayInfos(player.UserId, function(payInfos)
+            for _, data in ipairs(payInfos) do
+                curGold += data.price
+            end
+            return {}
+        end)
+        player:SetAttribute("Gold", curGold)
+        if gold ~= curGold then
+            DBService:Set(player.UserId, "Gold", curGold)
+            Knit.GetService("SystemService"):SendTip(player, 10048, tostring(curGold - gold))
+        end
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()
-            self:ChangeGold(player, player:GetAttribute('Gold'))
+            DBService:Set(player.UserId, "Gold", player:GetAttribute("Gold"))
         end)
     
         local playerInventory = DBService:Get(player.UserId, "PlayerInventory") or {}
         Knit.GetService('InventoryService'):InitPlayerInventory(player, playerInventory)
-
-        Knit.GetService('SystemService'):PlayerAdded(player)
     end
 
     local function playerRemoving(player)

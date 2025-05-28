@@ -8,7 +8,16 @@
     },
 
     "ReplicatedStorage": {
-        "$path": "src/ReplicatedStorage"
+        "$className": "ReplicatedStorage",
+        "ConfigFolder": {
+            "$path": "src/ReplicatedStorage/ConfigFolder"
+        },
+        "Packages": {
+            "$path": "src/ReplicatedStorage/Packages"
+        },
+        "ToolFolder": {
+            "$path": "src/ReplicatedStorage/ToolFolder"
+        }
     },
 
     "ServerScriptService": {

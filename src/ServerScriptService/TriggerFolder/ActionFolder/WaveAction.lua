@@ -21,7 +21,6 @@ function WaveAction:Execute()
     local TriggerService = Knit.GetService('TriggerService')
     TriggerService.Client.CreateWave:FireAll({
         Position = self.config.Position,
-        Size = self.config.Size,
         TargetPosition = self.config.TargetPosition,
         Lifetime = self.config.Lifetime,
         ChangeHp = self.config.ChangeHp,
@@ -30,16 +29,6 @@ end
 
 function WaveAction:Destroy()
     ActionBase.Destroy(self)
-
-    if self.tween then
-        self.tween:Cancel()
-    end
-    if self.wavePart then
-        self.wavePart:Destroy()
-    end
-    if self.particles then
-        self.particles:Destroy()
-    end
 end
 
 return WaveAction

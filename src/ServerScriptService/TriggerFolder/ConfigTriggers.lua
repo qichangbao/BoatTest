@@ -23,6 +23,22 @@ return {
             ResetConditionDelayTime = {30, 50}, -- 重置条件的延迟时间
         }
     },
+    -- 单独的位置触发器
+    {
+        ConditionType = "Position", -- 条件类型：基于位置的触发器
+        MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
+        Position = Vector3.new(600, 0, 450), -- 触发位置
+        Radius = 50, -- 触发区域的半径，与Position共同定义触发区域
+        Cooldown = 20, -- 触发冷却时间（秒），在此时间内不会再次触发
+        RandomChance = 50, -- 随机触发的概率，10%的概率触发
+        Action = {
+            ActionType = "Wave",
+            Lifetime = 5,
+            Position = Vector3.new(600, 0, 450),
+            TargetPosition = Vector3.new(600, 0, 350),
+            ChangeHp = -30,
+        },
+    },
     
     -- -- 单独的玩家动作触发器
     -- {
