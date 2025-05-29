@@ -8,7 +8,7 @@ local SystemStore = DataStoreService:GetDataStore("SystemStore")
 local _dataTemplate = {
 	Gold = 50,
 	PlayerInventory = {},
-	SpawnLocation = "Land",
+	SpawnLocation = "奥林匹斯",
 }
 
 local ProfileStore = ProfileService.GetProfileStore(

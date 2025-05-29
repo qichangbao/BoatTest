@@ -21,6 +21,7 @@ function TriggerManager.new()
     return self
 end
 
+local _needHeartbeatConditions = {}
 -- 加载条件
 function TriggerManager:Init()
     -- 遍历所有触发器配置
@@ -30,6 +31,7 @@ function TriggerManager:Init()
         -- 根据触发器类型创建相应的触发器实例
         if triggerConfig.ConditionType == "Position" then
             condition = PositionCondition.new(triggerConfig)
+            table.insert(_needHeartbeatConditions, condition)
         elseif triggerConfig.ConditionType == "PlayerAction" then
             condition = PlayerActionCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "Composite" then
@@ -38,7 +40,6 @@ function TriggerManager:Init()
             warn("未知的触发器类型:", triggerConfig.ConditionType)
             continue
         end
-        
         -- 启动触发器监控
         condition:StartMonitoring()
 
@@ -68,6 +69,16 @@ function TriggerManager:Init()
             end
         end)
     end
+
+    game:GetService("RunService").Heartbeat:Connect(function()
+        for _, condition in ipairs(_needHeartbeatConditions) do
+            if condition.config.ConditionType == "Position" then
+                for _, v in pairs(game.Players:GetPlayers()) do
+                    condition:MonitorPlayer(v)
+                end
+            end
+        end
+    end)
 end
 
 -- 加载动作

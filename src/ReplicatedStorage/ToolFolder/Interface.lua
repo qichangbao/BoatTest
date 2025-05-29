@@ -52,7 +52,7 @@ function Interface.InitBoatWaterPos(player, boat)
         local land = spawnLocation.Parent
         local landData = GameConfig.FindIsLand(land.Name)
         if not landData then
-            landData = GameConfig.FindIsLand("Land")
+            landData = GameConfig.FindIsLand("奥林匹斯")
         end
 
         -- 获取原始CFrame的旋转部分
@@ -77,10 +77,10 @@ end
 
 -- 判断是否在陆地上
 function Interface.IsInLand(boat)
-    local landConfig = GameConfig.Land
+    local landConfig = GameConfig.IsLand
     local pos = boat.PrimaryPart.Position
-    for _, landName in pairs(landConfig) do
-        local land = workspace:WaitForChild(landName):WaitForChild("Floor")
+    for _, landData in ipairs(landConfig) do
+        local land = workspace:WaitForChild(landData.Name):WaitForChild("Floor")
         local min = land.Position - land.Size / 2
         local max = land.Position + land.Size / 2
         if pos.X >= min.X and pos.X <= max.X and pos.Z >= min.Z and pos.Z <= max.Z then

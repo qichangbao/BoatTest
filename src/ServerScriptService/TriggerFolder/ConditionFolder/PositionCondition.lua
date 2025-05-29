@@ -16,12 +16,6 @@ end
 
 function PositionCondition:StartMonitoring()
     ConditionBase.StartMonitoring(self)
-
-    game:GetService("RunService").Heartbeat:Connect(function()
-        for _, v in pairs(game.Players:GetPlayers()) do
-            self:MonitorPlayer(v)
-        end
-    end)
 end
 
 function PositionCondition:MonitorPlayer(player)
@@ -40,7 +34,7 @@ function PositionCondition:MonitorPlayer(player)
         return
     end
 
-    local distance = (rootPart.Position - self.position).Magnitude
+    local distance = (Vector3.new(rootPart.Position.X - self.position.X, 0, rootPart.Position.Z - self.position.Z)).Magnitude
     if distance <= self.radius then
         self:Fire({
             Player = player,

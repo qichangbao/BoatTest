@@ -38,6 +38,53 @@ _playersButton.Parent = _screenGui
 -- 玩家按钮点击事件
 _playersButton.MouseButton1Click:Connect(function()
     Knit.GetController('UIController').ShowPlayersUI:Fire()
+
+    -- local TweenService = game:GetService("TweenService")
+    -- local chest = workspace.Chest
+    -- local chestTop = chest:FindFirstChild("ChestTop")
+    
+    -- if not chestTop then
+    --     warn("找不到箱盖模型，请确保箱子中有名为 'ChestTop' 的模型")
+    --     return
+    -- end
+    
+    -- -- 确保chestTop有PrimaryPart
+    -- if not chestTop.PrimaryPart then
+    --     warn("ChestTop模型没有设置PrimaryPart，请在Studio中设置")
+    --     return
+    -- end
+    
+    -- -- 获取当前位置和目标位置
+    -- local currentCFrame = chestTop:GetPivot()
+    -- local targetCFrame = currentCFrame * CFrame.Angles(0, 0, math.rad(-90))
+    
+    -- -- 创建动画
+    -- local tweenInfo = TweenInfo.new(
+    --     1.5, -- 持续时间
+    --     Enum.EasingStyle.Quad,
+    --     Enum.EasingDirection.Out
+    -- )
+    
+    -- -- 创建一个NumberValue用于动画进度
+    -- local animationProgress = Instance.new("NumberValue")
+    -- animationProgress.Value = 0
+    
+    -- -- 创建Tween
+    -- local tween = TweenService:Create(animationProgress, tweenInfo, {Value = 1})
+    
+    -- -- 监听动画进度
+    -- animationProgress.Changed:Connect(function(alpha)
+    --     local lerpedCFrame = currentCFrame:Lerp(targetCFrame, alpha)
+    --     chestTop:PivotTo(lerpedCFrame)
+    -- end)
+    
+    -- -- 播放动画
+    -- tween:Play()
+    
+    -- -- 清理
+    -- tween.Completed:Connect(function()
+    --     animationProgress:Destroy()
+    -- end)
 end)
 
 UIConfig.CreateCorner(_playersButton)

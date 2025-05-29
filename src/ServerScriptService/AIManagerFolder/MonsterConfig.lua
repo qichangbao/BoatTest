@@ -5,6 +5,7 @@ local MonsterConfig = {
         WalkSpeed = 16,
         VisionRange = 100,
         AttackRange = 40,
+        Damage = 10,
         PatrolRadius = 80,
         MaxDisForSpawn = 300,
         RespawnTime = 30,

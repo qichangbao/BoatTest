@@ -41,7 +41,7 @@ end
 
 function ConditionBase:Fire(data)
     self.lastConditionTime = tick()
-    if self.randomChance < 100 then
+    if self.randomChance <= 100 then
         local randomValue = math.random(1, 100)
         if randomValue <= self.randomChance then
             print("条件触发")

@@ -7,7 +7,7 @@ local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForCh
 local Players = game:GetService('Players')
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
-local RADIUS = 20
+local RADIUS = 40
 local _isTriggered = {}
 
 local function CheckPos()
@@ -97,10 +97,10 @@ local function CreateIslandBillboard()
         end
         local billboard = Instance.new("BillboardGui")
         billboard.Size = UDim2.new(0, 200, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 50, 0)
+        billboard.StudsOffset = Vector3.new(0, 100, 0)
         billboard.AlwaysOnTop = true
         billboard.Adornee = isLand
-        billboard.MaxDistance = 400
+        billboard.MaxDistance = 600
         
         local textLabel = Instance.new("TextLabel")
         textLabel.Size = UDim2.new(1, 0, 1, 0)

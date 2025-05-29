@@ -77,6 +77,30 @@ Knit:OnStart():andThen(function()
         _activeKeys = {}
         _moveDirection = Vector3.new()
         _moveAngular = Vector3.new()
+        if isOnBoat then
+            -- 设置摄像头朝向玩家面向的方向
+            local camera = game.Workspace.CurrentCamera
+            local player = Players.LocalPlayer
+            if player.Character and player.Character:FindFirstChild('HumanoidRootPart') then
+                local humanoidRootPart = player.Character.HumanoidRootPart
+                -- 获取玩家当前朝向
+                local lookDirection = humanoidRootPart.CFrame.LookVector
+                -- 设置摄像头位置在玩家后方稍高的位置
+                local cameraOffset = Vector3.new(0, 5, 10) -- 后方10单位，上方5单位
+                local cameraPosition = humanoidRootPart.Position - lookDirection * cameraOffset.Z + Vector3.new(0, cameraOffset.Y, 0)
+                -- 设置摄像头朝向玩家前方
+                local targetPosition = humanoidRootPart.Position + lookDirection * 20
+                camera.CFrame = CFrame.lookAt(cameraPosition, targetPosition)
+                camera.CameraType = Enum.CameraType.Custom
+            end
+        else
+            -- 恢复默认摄像头
+            local camera = game.Workspace.CurrentCamera
+            camera.CameraType = Enum.CameraType.Custom
+            if Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild('Humanoid') then
+                camera.CameraSubject = Players.LocalPlayer.Character.Humanoid
+            end
+        end
         print('玩家是否在船上：', isOnBoat)
     end)
 end):catch(warn)

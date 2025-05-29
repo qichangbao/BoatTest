@@ -80,13 +80,14 @@ function AttackState:Enter()
         --     animateScript.Attack:Fire()
         -- end
         
+        local damage = self.AIManager.NPC:GetAttribute("Damage")
         if modelType == "Boat" then
             local boatHealth = target:GetAttribute("Health")
-            target:SetAttribute("Health", boatHealth - 10)
+            target:SetAttribute("Health", boatHealth - damage)
         elseif modelType == "Player" then
             local humanoid = target:FindFirstChild("Humanoid")
             if humanoid and humanoid.Health > 0 then
-                humanoid:TakeDamage(10)
+                humanoid:TakeDamage(damage)
             end
         end
         -- local hitbox = self.AIManager.NPC:FindFirstChild("Hitbox")

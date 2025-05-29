@@ -18,13 +18,11 @@ local TriggerManager = require(ServerScriptService:WaitForChild("TriggerFolder")
 TriggerManager.new()
 
 PhysicsService:RegisterCollisionGroup('BoatCollisionGroup')
-PhysicsService:RegisterCollisionGroup('WaveCollisionGroup')
 PhysicsService:RegisterCollisionGroup('BoatStabilizerCollisionGroup')
 PhysicsService:RegisterCollisionGroup('PlayerCollisionGroup')
 PhysicsService:RegisterCollisionGroup('MonsterCollisionGroup')
 PhysicsService:RegisterCollisionGroup('LandCollisionGroup')
 -- 设置碰撞关系
---PhysicsService:CollisionGroupSetCollidable('BoatCollisionGroup', 'WaveCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'PlayerCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'MonsterCollisionGroup', false)
 PhysicsService:CollisionGroupSetCollidable('BoatStabilizerCollisionGroup', 'LandCollisionGroup', false)

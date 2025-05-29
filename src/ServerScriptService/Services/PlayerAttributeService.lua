@@ -78,11 +78,6 @@ function PlayerAttributeService:KnitInit()
     local function playerAdded(player)
         print("PlayerAdded    ", player.Name)
         player.CharacterAdded:Connect(function(character)
-            if not player.RespawnLocation then
-                task.wait(1.5)
-            end
-            print("RespawnLocation    ", player.RespawnLocation)
-            Interface.InitPlayerPos(player)
             local boat = Interface.GetBoatByPlayerUserId(player.UserId)
             if boat then
                 boat:Destroy()
@@ -100,9 +95,10 @@ function PlayerAttributeService:KnitInit()
         DBService:PlayerAdded(player)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
-        local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("Land")
+        local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("奥林匹斯")
         local spawnLocation = area:WaitForChild("SpawnLocation")
         player.RespawnLocation = spawnLocation
+        Interface.InitPlayerPos(player)
 
         -- 玩家登录时，查找是否有其他玩家支付的登岛费用，将其添加到玩家金币中
         local gold = DBService:Get(player.UserId, "Gold")

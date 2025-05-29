@@ -7,6 +7,8 @@ local DataStoreService = game:GetService("DataStoreService")
 local SystemStore = DataStoreService:GetDataStore("SystemStore")
 local MemoryStoreService = game:GetService("MemoryStoreService")
 local ActiveServers = MemoryStoreService:GetSortedMap("ActiveServers")
+local RunService = game:GetService("RunService")
+local isStudio = RunService:IsStudio()
 
 local IsLandOwnerTag = "IsLandOwnerTag"
 local IsLandPayTag = "IsLandPayTag"
@@ -105,6 +107,10 @@ print("服务器ID:", _serverId)
 local _serverStartTime = os.time()
 -- 启动注册协程
 task.spawn(function()
+    if isStudio then
+        return
+    end
+
     pcall(function()
         return ActiveServers:SetAsync(_serverId, _serverStartTime, 60)
     end)
@@ -112,6 +118,21 @@ task.spawn(function()
 end)
 
 local function CheckMainServer()
+    if isStudio then
+        -- Studio环境下直接设为主服务器
+        _isMainServer = true
+        local success, ownersInfo = pcall(function()
+            return SystemStore:GetAsync("IsLandOwners")
+        end)
+        if success then
+            _IsLandOwners = ownersInfo or {}
+        else
+            warn('无法连接数据库: SystemStore')
+        end
+        print("IsLandOwners", _IsLandOwners)
+        return
+    end
+
     local servers = ActiveServers:GetRangeAsync(Enum.SortDirection.Descending, 1)
     if #servers > 0 then
         if servers[1].key == _serverId then
@@ -129,6 +150,26 @@ local function CheckMainServer()
             print("IsLandOwners", _IsLandOwners)
         end
     end
+end
+
+-- 安全的DataStore操作函数
+local function safeDataStoreOperation(operation, ...)
+    if isStudio then
+        warn("Studio环境：DataStore操作可能受限")
+    end
+    
+    local success, result = pcall(operation, ...)
+    if not success then
+        if string.find(result, "HTTP 403") or string.find(result, "Forbidden") then
+            warn("DataStore访问被拒绝：请检查Studio设置或游戏发布状态")
+            return false, "Access denied"
+        else
+            warn("DataStore操作失败：", result)
+            return false, result
+        end
+    end
+    
+    return success, result
 end
 
 function SystemService:KnitInit()
@@ -153,8 +194,8 @@ function SystemService:KnitInit()
 
         -- 如果是主服务器，则更新岛主数据库
         if _isMainServer then
-            local success = pcall(function()
-                SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+            local success = safeDataStoreOperation(function()
+                return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
             if not success then
                 warn('无法连接数据库: SystemStore')

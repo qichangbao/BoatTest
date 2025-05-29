@@ -7,7 +7,7 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 
 -- 初始化岛屿
 for _, landData in pairs(GameConfig.IsLand) do
-    if landData.Name == "Land" then
+    if landData.Name == "奥林匹斯" then
         continue
     end
     local isLand = ServerStorage:WaitForChild(landData.ModelName):Clone()

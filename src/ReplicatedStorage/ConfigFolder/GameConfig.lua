@@ -1,5 +1,4 @@
 local GameConfig = {
-    Land = {"Land"},
     Water = {
         Material = Enum.Material.Water,
         ChunkSize = 200,
@@ -9,7 +8,7 @@ local GameConfig = {
     },
     IsLand = {
         [1] = {
-            Name = "Land",
+            Name = "奥林匹斯",
             Position = Vector3.new(0, 90, 0),
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
@@ -18,7 +17,7 @@ local GameConfig = {
             Price = 0,
         },
         [2] = {
-            Name = "IsLand1",
+            Name = "阿卡迪亚",
             Position = Vector3.new(400, 90, 400),
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
@@ -27,7 +26,7 @@ local GameConfig = {
             Price = 100,
         },
         [3] = {
-            Name = "IsLand2",
+            Name = "埃尔多拉多",
             Position = Vector3.new(800, 90, 800),
             ModelName = "IsLand1",
             WharfInOffsetPos = Vector3.new(75, 20, 180),
