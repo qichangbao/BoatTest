@@ -7,9 +7,9 @@ local UIConfig = {}
 UIConfig.Font = Enum.Font.Arimo
 UIConfig.CloseButtonSize = UDim2.new(0, 50, 0, 50)
 
-UIConfig.CreateCorner = function(parent)
+UIConfig.CreateCorner = function(parent, radius)
     local corner = Instance.new('UICorner')
-    corner.CornerRadius = UDim.new(1, 0)
+    corner.CornerRadius = radius or UDim.new(1, 0)
     corner.Parent = parent
     
     return corner
@@ -69,7 +69,7 @@ UIConfig.CreateConfirmButton = function(parent, callfunc)
     confirmButton.Name = 'confirmButton'
     confirmButton.Size = UDim2.new(0.3, 0, 0.2, 0)
     confirmButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    confirmButton.Text = LanguageConfig:Get(10002)
+    confirmButton.Text = LanguageConfig.Get(10002)
     confirmButton.Font = UIConfig.Font
     confirmButton.TextSize = 18
     confirmButton.TextColor3 = Color3.new(1, 1, 1)
@@ -87,7 +87,7 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     cancelButton.Name = 'cancelButton'
     cancelButton.Size = UDim2.new(0.3, 0, 0.2, 0)
     cancelButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    cancelButton.Text = LanguageConfig:Get(10003)
+    cancelButton.Text = LanguageConfig.Get(10003)
     cancelButton.Font = UIConfig.Font
     cancelButton.TextSize = 18
     cancelButton.TextColor3 = Color3.new(1, 1, 1)

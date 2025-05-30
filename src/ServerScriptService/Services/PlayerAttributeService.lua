@@ -112,7 +112,7 @@ function PlayerAttributeService:KnitInit()
         player:SetAttribute("Gold", curGold)
         if gold ~= curGold then
             DBService:Set(player.UserId, "Gold", curGold)
-            Knit.GetService("SystemService"):SendTip(player, 10048, tostring(curGold - gold))
+            Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 10048, tostring(curGold - gold))
         end
     
         player:GetAttributeChangedSignal('Gold'):Connect(function()

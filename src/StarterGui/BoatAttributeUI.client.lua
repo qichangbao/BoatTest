@@ -110,9 +110,11 @@ _speedFill.BorderSizePixel = 0
 _speedFill.Parent = _speedBar
 
 -- 文字标签
-local function createLabel(text, parent)
+local function createLabel(parent)
     local label = Instance.new('TextLabel')
-    label.Text = text
+    label.Position = UDim2.new(0.5, 0, 0.5, 0)
+    label.AnchorPoint = Vector2.new(0.5, 0.5)
+    label.Text = ""
     label.Font = UIConfig.Font
     label.TextSize = 18
     label.TextColor3 = Color3.new(1, 1, 1)
@@ -124,14 +126,16 @@ local function createLabel(text, parent)
     return label
 end
 
-createLabel(LanguageConfig:Get(10013), _healthBar)
-createLabel(LanguageConfig:Get(10014), _speedBar)
+local _healthLabel = createLabel(_healthBar)
+local _speedLabel = createLabel(_speedBar)
 
 local function UpdateUI(type, value, maxValue)
     if type == 'Health' then
         _healthFill.Size = UDim2.new(value / maxValue, 0, 1, 0)
+        _healthLabel.Text = string.format(LanguageConfig.Get(10013), math.floor(value), math.floor(maxValue))
     elseif type == 'Speed' then
         _speedFill.Size = UDim2.new(value / maxValue, 0, 1, 0)
+        _speedLabel.Text = string.format(LanguageConfig.Get(10014), math.floor(value), math.floor(maxValue))
     end
 end
 
@@ -242,7 +246,7 @@ local function UpdateCompass()
     end
 end
 
-local _renderSteppedConnection = game:GetService('RunService').RenderStepped:Connect(UpdateCompass)
+local _renderSteppedConnection = game:GetService('RunService').Heartbeat:Connect(UpdateCompass)
 
 local function Destroy()
     print('BoatAttributeUI Destroy')

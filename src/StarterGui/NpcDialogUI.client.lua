@@ -14,8 +14,10 @@ _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
+
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.4, 0, 0.3, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 -- title显示
 local _titleLabel = Instance.new('TextLabel')
@@ -93,12 +95,12 @@ local function Show(NPCName, NpcType, index, data)
     if config.Buttons.Confirm and config.Buttons.Confirm.Text then
         _confirmButton.Text = config.Buttons.Confirm.Text
     else
-        _confirmButton.Text = LanguageConfig:Get(10002)
+        _confirmButton.Text = LanguageConfig.Get(10002)
     end
     if config.Buttons.Cancel and config.Buttons.Cancel.Text then
         _cancelButton.Text = config.Buttons.Cancel.Text
     else
-        _cancelButton.Text = LanguageConfig:Get(10003)
+        _cancelButton.Text = LanguageConfig.Get(10003)
     end
 
     if _confirmButton.Visible and _cancelButton.Visible then

@@ -404,14 +404,20 @@ end
 function BoatAssemblingService:StopBoat(player)
     local playerBoat = workspace:FindFirstChild('PlayerBoat_' .. player.UserId)
     if not playerBoat then
-        Interface.InitPlayerPos(player)
+        local landName = Interface.InitPlayerPos(player)
+        if landName then
+            Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
+        end
         print("船不存在")
         return
     end
 
     playerBoat:Destroy()
     print("船已销毁")
-    Interface.InitPlayerPos(player)
+    local landName = Interface.InitPlayerPos(player)
+    if landName then
+        Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
+    end
 end
 
 function BoatAssemblingService.Client:StopBoat(player)

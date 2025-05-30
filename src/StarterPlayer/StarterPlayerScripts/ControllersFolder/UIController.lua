@@ -26,6 +26,9 @@ local UIController = Knit.CreateController {
     HideWharfUI = Signal.new(),
     IsLandOwner = Signal.new(),
     IsLandOwnerChanged = Signal.new(),
+    ShowSystemMessage = Signal.new(),
+    BuffChanged = Signal.new(),
+    ShowBuffUI = Signal.new(),
 }
 
 function UIController:KnitInit()

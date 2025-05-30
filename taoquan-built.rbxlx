@@ -375,7 +375,7 @@ else
     curCountryCode = 'en_us'
 end
 
-function LanguageConfig:Get(key)
+function LanguageConfig.Get(key)
     return self.Text[key][curCountryCode]
 end
 
@@ -390,7 +390,7 @@ return LanguageConfig</string>
 local NpcConfig ={
     ["Spawn"] = {
         [1] = {
-            DialogText = LanguageConfig:Get(10024),
+            DialogText = LanguageConfig.Get(10024),
             Buttons = {
                 Confirm = {
                     Visible = true,
@@ -402,7 +402,7 @@ local NpcConfig ={
             },
         },
         [2] = {
-            DialogText = LanguageConfig:Get(10043),
+            DialogText = LanguageConfig.Get(10043),
             Buttons = {
                 Cancel = {
                     Visible = true,
@@ -27564,8 +27564,8 @@ local function createLabel(text, parent)
     return label
 end
 
-createLabel(LanguageConfig:Get(10013), _healthBar)
-createLabel(LanguageConfig:Get(10014), _speedBar)
+createLabel(LanguageConfig.Get(10013), _healthBar)
+createLabel(LanguageConfig.Get(10014), _speedBar)
 
 local function UpdateUI(type, value, maxValue)
     if type == 'Health' then
@@ -27744,7 +27744,7 @@ _titleBar.Parent = _frame
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig:Get(10029)
+_titleLabel.Text = LanguageConfig.Get(10029)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -27885,7 +27885,7 @@ _titleBar.Parent = _frame
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig:Get(10027)
+_titleLabel.Text = LanguageConfig.Get(10027)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -28369,7 +28369,7 @@ _playersButton.Name = '_playersButton'
 _playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _playersButton.Size = _buttonSize
 _playersButton.Position = UDim2.new(0, 80, 0, 160)
-_playersButton.Text = LanguageConfig:Get(10026)
+_playersButton.Text = LanguageConfig.Get(10026)
 _playersButton.Font = UIConfig.Font
 _playersButton.TextSize = _buttonTextSize
 _playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
@@ -28388,7 +28388,7 @@ _startBoatButton.Name = '_startBoatButton'
 _startBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _startBoatButton.Size = _buttonSize
 _startBoatButton.Position = UDim2.new(0, 80, 1, -60)
-_startBoatButton.Text = LanguageConfig:Get(10004)
+_startBoatButton.Text = LanguageConfig.Get(10004)
 _startBoatButton.Font = UIConfig.Font
 _startBoatButton.TextSize = _buttonTextSize
 _startBoatButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)  -- 海洋蓝
@@ -28413,7 +28413,7 @@ _stopBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _stopBoatButton.Name = '_stopBoatButton'
 _stopBoatButton.Size = _buttonSize
 _stopBoatButton.Position = UDim2.new(0, 80, 1, -60)
-_stopBoatButton.Text = LanguageConfig:Get(10005)
+_stopBoatButton.Text = LanguageConfig.Get(10005)
 _stopBoatButton.Font = UIConfig.Font
 _stopBoatButton.TextSize = _buttonTextSize
 _stopBoatButton.BackgroundColor3 = Color3.fromRGB(209, 52, 56)  -- 警示红
@@ -28436,7 +28436,7 @@ _addBoatPartButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _addBoatPartButton.Name = '_addBoatPartButton'
 _addBoatPartButton.Size = _buttonSize
 _addBoatPartButton.Position = UDim2.new(0, 80, 1, -140)
-_addBoatPartButton.Text = LanguageConfig:Get(10006)
+_addBoatPartButton.Text = LanguageConfig.Get(10006)
 _addBoatPartButton.Font = UIConfig.Font
 _addBoatPartButton.TextSize = _buttonTextSize
 _addBoatPartButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)
@@ -28460,7 +28460,7 @@ local _goldLabel = Instance.new('TextLabel')
 _goldLabel.Name = 'GoldLabel'
 _goldLabel.AnchorPoint = Vector2.new(1, 1)
 _goldLabel.Position = UDim2.new(1, -20, 1, -20)
-_goldLabel.Text = LanguageConfig:Get(10007) .. ": 0"
+_goldLabel.Text = LanguageConfig.Get(10007) .. ": 0"
 _goldLabel.Font = UIConfig.Font
 _goldLabel.TextSize = 20
 _goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
@@ -28474,7 +28474,7 @@ _lootButton.Name = '_lootButton'
 _lootButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _lootButton.Size = _buttonSize
 _lootButton.Position = UDim2.new(1, -60, 1, -160)
-_lootButton.Text = LanguageConfig:Get(10008)
+_lootButton.Text = LanguageConfig.Get(10008)
 _lootButton.Font = UIConfig.Font
 _lootButton.TextSize = _buttonTextSize
 _lootButton.Active = false
@@ -28531,7 +28531,7 @@ _lootButton.MouseButton1Click:Connect(function()
     local LootService = Knit.GetService('LootService')
     LootService:Loot():andThen(function(tipId, itemName)
         if itemName then
-            local str = string.format(LanguageConfig:Get(tipId), itemName)
+            local str = string.format(LanguageConfig.Get(tipId), itemName)
             Knit.GetController('UIController').ShowTip:Fire(str)
         else
             Knit.GetController('UIController').ShowTip:Fire(tipId)
@@ -28546,7 +28546,7 @@ _backpackButton.Name = '_backpackButton'
 _backpackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _backpackButton.Size = _buttonSize
 _backpackButton.Position = UDim2.new(1, -60, 1, -80)
-_backpackButton.Text = LanguageConfig:Get(10025)
+_backpackButton.Text = LanguageConfig.Get(10025)
 _backpackButton.Font = UIConfig.Font
 _backpackButton.TextSize = _buttonTextSize
 _backpackButton.BackgroundColor3 = Color3.fromRGB(147, 51, 234)  -- 柔和紫罗兰色
@@ -28578,7 +28578,7 @@ Knit:OnStart():andThen(function()
             warn("ClientData.Gold is nil")
             return
         end
-        _goldLabel.Text = LanguageConfig:Get(10007) .. ": " .. ClientData.Gold
+        _goldLabel.Text = LanguageConfig.Get(10007) .. ": " .. ClientData.Gold
     end)
     Knit.GetController('UIController').IsAdmin:Connect(function()
         if ClientData.IsAdmin then
@@ -28703,11 +28703,11 @@ uiListLayout.Parent = _buttonContainer
 local function Show(config)
     -- 设置基础属性
     _screenGui.Enabled = true
-    _titleLabel.Text = config.Title or LanguageConfig:Get(10001)
+    _titleLabel.Text = config.Title or LanguageConfig.Get(10001)
     _contentLabel.Text = config.Content or ''
 
-    _confirmButton.Text = config.ConfirmText or LanguageConfig:Get(10002)
-    _cancelButton.Text = config.CancelText or LanguageConfig:Get(10003)
+    _confirmButton.Text = config.ConfirmText or LanguageConfig.Get(10002)
+    _cancelButton.Text = config.CancelText or LanguageConfig.Get(10003)
     -- 事件绑定
     _confirmCallFunc = config.OnConfirm
     _cancelCallFunc = config.OnCancel
@@ -28817,12 +28817,12 @@ local function Show(NPCName, NpcType, index, data)
     if config.Buttons.Confirm and config.Buttons.Confirm.Text then
         _confirmButton.Text = config.Buttons.Confirm.Text
     else
-        _confirmButton.Text = LanguageConfig:Get(10002)
+        _confirmButton.Text = LanguageConfig.Get(10002)
     end
     if config.Buttons.Cancel and config.Buttons.Cancel.Text then
         _cancelButton.Text = config.Buttons.Cancel.Text
     else
-        _cancelButton.Text = LanguageConfig:Get(10003)
+        _cancelButton.Text = LanguageConfig.Get(10003)
     end
 
     if _confirmButton.Visible and _cancelButton.Visible then
@@ -28879,7 +28879,7 @@ _titleBar.Parent = _frame
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig:Get(10033)
+_titleLabel.Text = LanguageConfig.Get(10033)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -28910,7 +28910,7 @@ local _giftButton = Instance.new('TextButton')
 _giftButton.Name = '_giftButton'
 _giftButton.Size = UDim2.new(1, 0, 1, 0)
 _giftButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)  -- 蓝色
-_giftButton.Text = LanguageConfig:Get(10027)
+_giftButton.Text = LanguageConfig.Get(10027)
 _giftButton.Font = UIConfig.Font
 _giftButton.TextSize = 18
 _giftButton.TextColor3 = Color3.new(1, 1, 1)
@@ -29032,7 +29032,7 @@ local function showMessage(message)
         return
     end
     if type(message) == 'number' then
-        message = LanguageConfig:Get(message)
+        message = LanguageConfig.Get(message)
     end
     if not message or message == "" then
         return
@@ -29083,7 +29083,7 @@ end
 Knit:OnStart():andThen(function()
     local SystemService = Knit.GetService('SystemService')
     SystemService.Tip:Connect(function(tipId, ...)
-        local tip = string.format(LanguageConfig:Get(tipId), ...)
+        local tip = string.format(LanguageConfig.Get(tipId), ...)
         showMessage(tip)
     end)
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
@@ -29165,7 +29165,7 @@ UIConfig.CreateConfirmButton = function(parent, callfunc)
     confirmButton.Name = 'confirmButton'
     confirmButton.Size = UDim2.new(0.3, 0, 0.2, 0)
     confirmButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    confirmButton.Text = LanguageConfig:Get(10002)
+    confirmButton.Text = LanguageConfig.Get(10002)
     confirmButton.Font = UIConfig.Font
     confirmButton.TextSize = 18
     confirmButton.TextColor3 = Color3.new(1, 1, 1)
@@ -29183,7 +29183,7 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     cancelButton.Name = 'cancelButton'
     cancelButton.Size = UDim2.new(0.3, 0, 0.2, 0)
     cancelButton.AnchorPoint = Vector2.new(0.5, 0.5)
-    cancelButton.Text = LanguageConfig:Get(10003)
+    cancelButton.Text = LanguageConfig.Get(10003)
     cancelButton.Font = UIConfig.Font
     cancelButton.TextSize = 18
     cancelButton.TextColor3 = Color3.new(1, 1, 1)
@@ -29257,7 +29257,7 @@ local _contentLabel = Instance.new('TextLabel')
 _contentLabel.Size = UDim2.new(0.8, 0, 0.5, 0)
 _contentLabel.Position = UDim2.new(0.1, 0, 0.15, 0)
 _contentLabel.Font = UIConfig.Font
-_contentLabel.Text = LanguageConfig:Get(10035)
+_contentLabel.Text = LanguageConfig.Get(10035)
 _contentLabel.TextSize = 18
 _contentLabel.TextWrapped = true
 _contentLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -29271,7 +29271,7 @@ _occupyButton.Visible = false
 _occupyButton.AnchorPoint = Vector2.new(0.5, 0)
 _occupyButton.Position = UDim2.new(0.7, 0, 0.7, 0)
 _occupyButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_occupyButton.Text = LanguageConfig:Get(10036)
+_occupyButton.Text = LanguageConfig.Get(10036)
 _occupyButton.TextSize = 30
 _occupyButton.Font = UIConfig.Font
 _occupyButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
@@ -29301,7 +29301,7 @@ _occupyButton.MouseButton1Click:Connect(function()
     tipText.Name = "TipText"
     tipText.Size = UDim2.new(1, 0, 0.3, 0)
     tipText.Position = UDim2.new(0, 0, 0, 0)
-    tipText.Text = LanguageConfig:Get(10037)
+    tipText.Text = LanguageConfig.Get(10037)
     tipText.TextColor3 = Color3.fromRGB(255, 255, 255)
     tipText.BackgroundTransparency = 1
     tipText.Font = UIConfig.Font
@@ -29357,7 +29357,7 @@ _occupyButton.MouseButton1Click:Connect(function()
         if elapsedTime >= totalTime then
             Hide()
             Knit.GetService("LandService"):Occupy(_titleLabel.Text):andThen(function(tipId)
-                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), _titleLabel.Text))
+                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(tipId), _titleLabel.Text))
             end)
         end
     end)
@@ -29379,7 +29379,7 @@ _payButton.Visible = false
 _payButton.AnchorPoint = Vector2.new(0.5, 0)
 _payButton.Position = UDim2.new(0.3, 0, 0.7, 0)
 _payButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_payButton.Text = string.format(LanguageConfig:Get(10041), 0)
+_payButton.Text = string.format(LanguageConfig.Get(10041), 0)
 _payButton.TextSize = 30
 _payButton.Font = UIConfig.Font
 _payButton.BackgroundColor3 = Color3.fromRGB(243, 193, 57)
@@ -29392,7 +29392,7 @@ _payButton.MouseButton1Click:Connect(function()
         if not price then
             Knit.GetController('UIController').ShowTip:Fire(tipId)
         else
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), price))
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(tipId), price))
         end
     end)
 end)
@@ -29404,7 +29404,7 @@ _intoIsLandButton.Visible = false
 _intoIsLandButton.AnchorPoint = Vector2.new(0.5, 0)
 _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
 _intoIsLandButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_intoIsLandButton.Text = LanguageConfig:Get(10040)
+_intoIsLandButton.Text = LanguageConfig.Get(10040)
 _intoIsLandButton.TextSize = 30
 _intoIsLandButton.Font = UIConfig.Font
 _intoIsLandButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)
@@ -29431,8 +29431,8 @@ Knit:OnStart():andThen(function()
         _occupyButton.Visible = false
         _payButton.Visible = false
         _intoIsLandButton.Visible = false
-        _contentLabel.Text = LanguageConfig:Get(10035)
-        _payButton.Text = string.format(LanguageConfig:Get(10041), landData.Price)
+        _contentLabel.Text = LanguageConfig.Get(10035)
+        _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
 
         if landData.Price == 0 then
             _intoIsLandButton.Visible = true
@@ -29447,11 +29447,11 @@ Knit:OnStart():andThen(function()
                 _intoIsLandButton.Visible = true
                 _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
             else
-                _contentLabel.Text = string.format(LanguageConfig:Get(10046), ClientData.IsLandOwners[landName].playerName)
+                _contentLabel.Text = string.format(LanguageConfig.Get(10046), ClientData.IsLandOwners[landName].playerName)
                 _occupyButton.Visible = true
                 _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
                 _payButton.Visible = true
-                _payButton.Text = string.format(LanguageConfig:Get(10041), landData.Price)
+                _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
                 _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
             end
         else
@@ -29640,7 +29640,7 @@ Knit:OnStart():andThen(function()
             if not isExist then
                 table.insert(ClientData.InventoryItems, itemData)
             end
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10011), itemData.itemName))
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), itemData.itemName))
             Knit.GetController('UIController').UpdateInventoryUI:Fire()
         end)
         InventoryService.RemoveItem:Connect(function(modelName, itemName)
@@ -29660,7 +29660,7 @@ Knit:OnStart():andThen(function()
             if isExist then
                 Knit.GetController('UIController').UpdateInventoryUI:Fire()
             end
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(10012), itemName))
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10012), itemName))
         end)
         InventoryService.InitInventory:Connect(function(inventoryData)
             ClientData.InventoryItems = {}
@@ -29837,7 +29837,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
             humanoidRootPart.Anchored = true
         end
 
-        model.Name = string.format(LanguageConfig:Get(10047), playerName)
+        model.Name = string.format(LanguageConfig.Get(10047), playerName)
         model:ScaleTo(8)
         model.Parent = land
         for _, child in ipairs(model:GetDescendants()) do

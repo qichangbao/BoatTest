@@ -21,8 +21,10 @@ _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
+
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.4, 0, 0.3, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 local _confirmCallFunc = nil
 local _cancelCallFunc = nil
@@ -47,6 +49,7 @@ _titleLabel.TextSize = 22
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
 _titleLabel.BackgroundTransparency = 1
 _titleLabel.Parent = _frame
+UIConfig.CreateCorner(_titleLabel, UDim.new(0, 8))
 
 -- 内容
 local _contentLabel = Instance.new('TextLabel')
@@ -94,11 +97,11 @@ uiListLayout.Parent = _buttonContainer
 local function Show(config)
     -- 设置基础属性
     _screenGui.Enabled = true
-    _titleLabel.Text = config.Title or LanguageConfig:Get(10001)
+    _titleLabel.Text = config.Title or LanguageConfig.Get(10001)
     _contentLabel.Text = config.Content or ''
 
-    _confirmButton.Text = config.ConfirmText or LanguageConfig:Get(10002)
-    _cancelButton.Text = config.CancelText or LanguageConfig:Get(10003)
+    _confirmButton.Text = config.ConfirmText or LanguageConfig.Get(10002)
+    _cancelButton.Text = config.CancelText or LanguageConfig.Get(10003)
     -- 事件绑定
     _confirmCallFunc = config.OnConfirm
     _cancelCallFunc = config.OnCancel

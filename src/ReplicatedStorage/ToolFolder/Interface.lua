@@ -28,7 +28,9 @@ function Interface.InitPlayerPos(player)
         end
         task.wait(0.2)
         player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(math.random(5, 10), 6, math.random(5, 10)))
+        return spawnLocation.Parent.Name
     end
+    return nil
 end
 
 -- 初始化船的位置
@@ -93,6 +95,9 @@ end
 
 function Interface.CreateIsLandOwnerModel(userId)
     local success, model = pcall(function()
+        if userId <= 0 then
+            return Players:CreateHumanoidModelFromUserId(7689724124)
+        end
         return Players:CreateHumanoidModelFromUserId(userId)
     end)
     

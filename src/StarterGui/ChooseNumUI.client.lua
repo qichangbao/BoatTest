@@ -21,6 +21,7 @@ UIConfig.CreateBlock(_screenGui)
 
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.3, 0, 0.15, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 -- 标题栏
 local _titleBar = Instance.new('Frame')
@@ -28,11 +29,12 @@ _titleBar.Size = UDim2.new(1, 0, 0.15, 0)
 _titleBar.Position = UDim2.new(0, 0, 0, 0)
 _titleBar.BackgroundColor3 = Color3.fromRGB(103, 80, 164)
 _titleBar.Parent = _frame
+UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
 
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig:Get(10029)
+_titleLabel.Text = LanguageConfig.Get(10029)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)

@@ -43,7 +43,7 @@ local function showMessage(message)
         return
     end
     if type(message) == 'number' then
-        message = LanguageConfig:Get(message)
+        message = LanguageConfig.Get(message)
     end
     if not message or message == "" then
         return
@@ -94,7 +94,7 @@ end
 Knit:OnStart():andThen(function()
     local SystemService = Knit.GetService('SystemService')
     SystemService.Tip:Connect(function(tipId, ...)
-        local tip = string.format(LanguageConfig:Get(tipId), ...)
+        local tip = string.format(LanguageConfig.Get(tipId), ...)
         showMessage(tip)
     end)
     Knit.GetController('UIController').AddUI:Fire(_screenGui)

@@ -1,5 +1,5 @@
 local LanguageConfig = {}
-LanguageConfig.Text = {
+local Text = {
     [10001] = {zh_cn = "提示", en_us = "提示"},
     [10002] = {zh_cn = "确定", en_us = "确定"},
     [10003] = {zh_cn = "取消", en_us = "取消"},
@@ -12,8 +12,8 @@ LanguageConfig.Text = {
     [10010] = {zh_cn = "分解可获得%s黄金,是否分解?", en_us = "分解可获得%s黄金,是否分解?"},
     [10011] = {zh_cn = "恭喜你获得了: %s", en_us = "恭喜你获得了: %s"},
     [10012] = {zh_cn = "你失去了: %s", en_us = "你失去了: %s"},
-    [10013] = {zh_cn = "生命值", en_us = "Health"},
-    [10014] = {zh_cn = "速度", en_us = "Speed"},
+    [10013] = {zh_cn = "生命  %s/%s", en_us = "Health  %s/%s"},
+    [10014] = {zh_cn = "速度  %s/%s", en_us = "Speed  %s/%s"},
     [10015] = {zh_cn = "冷却时间未到", en_us = "冷却时间未到"},
     [10016] = {zh_cn = "你获得了已有的船部件%s，已自动分解", en_us = "你获得了已有的船部件%s，已自动分解"},
     [10017] = {zh_cn = "添加部件失败，船不存在", en_us = "添加部件失败，船不存在"},
@@ -47,6 +47,8 @@ LanguageConfig.Text = {
     [10046] = {zh_cn = "此岛已被%s占领，请选择你的操作", en_us = "此岛已被%s占领，请选择你的操作"},
     [10047] = {zh_cn = "岛主:%s", en_us = "岛主:%s"},
     [10048] = {zh_cn = "离线期间,你总共获得%s黄金的收益", en_us = "离线期间,你总共获得%s黄金的收益"},
+    [10049] = {zh_cn = "你登陆了%s", en_us = "你登陆了%s"},
+    [10050] = {zh_cn = "欢迎你进入游戏", en_us = "欢迎你进入游戏"},
 }
 
 local Players = game:GetService("Players")
@@ -60,8 +62,8 @@ else
     curCountryCode = 'en_us'
 end
 
-function LanguageConfig:Get(key)
-    return self.Text[key][curCountryCode]
+function LanguageConfig.Get(key)
+    return Text[key][curCountryCode]
 end
 
 return LanguageConfig

@@ -17,8 +17,10 @@ _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
+
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.35, 0, 0.4, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 local function Hide()
     _screenGui.Enabled = false
@@ -53,7 +55,7 @@ local _contentLabel = Instance.new('TextLabel')
 _contentLabel.Size = UDim2.new(0.8, 0, 0.5, 0)
 _contentLabel.Position = UDim2.new(0.1, 0, 0.15, 0)
 _contentLabel.Font = UIConfig.Font
-_contentLabel.Text = LanguageConfig:Get(10035)
+_contentLabel.Text = LanguageConfig.Get(10035)
 _contentLabel.TextSize = 18
 _contentLabel.TextWrapped = true
 _contentLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -67,7 +69,7 @@ _occupyButton.Visible = false
 _occupyButton.AnchorPoint = Vector2.new(0.5, 0)
 _occupyButton.Position = UDim2.new(0.7, 0, 0.7, 0)
 _occupyButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_occupyButton.Text = LanguageConfig:Get(10036)
+_occupyButton.Text = LanguageConfig.Get(10036)
 _occupyButton.TextSize = 30
 _occupyButton.Font = UIConfig.Font
 _occupyButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
@@ -97,7 +99,7 @@ _occupyButton.MouseButton1Click:Connect(function()
     tipText.Name = "TipText"
     tipText.Size = UDim2.new(1, 0, 0.3, 0)
     tipText.Position = UDim2.new(0, 0, 0, 0)
-    tipText.Text = LanguageConfig:Get(10037)
+    tipText.Text = LanguageConfig.Get(10037)
     tipText.TextColor3 = Color3.fromRGB(255, 255, 255)
     tipText.BackgroundTransparency = 1
     tipText.Font = UIConfig.Font
@@ -137,7 +139,7 @@ _occupyButton.MouseButton1Click:Connect(function()
     local startTime = tick()
     local totalTime = _occupyTime
     local connection
-    connection = RunService.RenderStepped:Connect(function()
+    connection = RunService.Heartbeat:Connect(function()
         local elapsedTime = tick() - startTime
         local timeLeft = math.max(0, totalTime - elapsedTime)
         local progress = math.min(1, elapsedTime / totalTime) -- 进度从0到1
@@ -153,7 +155,7 @@ _occupyButton.MouseButton1Click:Connect(function()
         if elapsedTime >= totalTime then
             Hide()
             Knit.GetService("LandService"):Occupy(_titleLabel.Text):andThen(function(tipId)
-                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), _titleLabel.Text))
+                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(tipId), _titleLabel.Text))
             end)
         end
     end)
@@ -175,7 +177,7 @@ _payButton.Visible = false
 _payButton.AnchorPoint = Vector2.new(0.5, 0)
 _payButton.Position = UDim2.new(0.3, 0, 0.7, 0)
 _payButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_payButton.Text = string.format(LanguageConfig:Get(10041), 0)
+_payButton.Text = string.format(LanguageConfig.Get(10041), 0)
 _payButton.TextSize = 30
 _payButton.Font = UIConfig.Font
 _payButton.BackgroundColor3 = Color3.fromRGB(243, 193, 57)
@@ -188,7 +190,7 @@ _payButton.MouseButton1Click:Connect(function()
         if not price then
             Knit.GetController('UIController').ShowTip:Fire(tipId)
         else
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig:Get(tipId), price))
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(tipId), price))
         end
     end)
 end)
@@ -200,7 +202,7 @@ _intoIsLandButton.Visible = false
 _intoIsLandButton.AnchorPoint = Vector2.new(0.5, 0)
 _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
 _intoIsLandButton.Size = UDim2.new(0.3, 0, 0.2, 0)
-_intoIsLandButton.Text = LanguageConfig:Get(10040)
+_intoIsLandButton.Text = LanguageConfig.Get(10040)
 _intoIsLandButton.TextSize = 30
 _intoIsLandButton.Font = UIConfig.Font
 _intoIsLandButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)
@@ -227,8 +229,8 @@ Knit:OnStart():andThen(function()
         _occupyButton.Visible = false
         _payButton.Visible = false
         _intoIsLandButton.Visible = false
-        _contentLabel.Text = LanguageConfig:Get(10035)
-        _payButton.Text = string.format(LanguageConfig:Get(10041), landData.Price)
+        _contentLabel.Text = LanguageConfig.Get(10035)
+        _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
 
         if landData.Price == 0 then
             _intoIsLandButton.Visible = true
@@ -243,11 +245,11 @@ Knit:OnStart():andThen(function()
                 _intoIsLandButton.Visible = true
                 _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
             else
-                _contentLabel.Text = string.format(LanguageConfig:Get(10046), ClientData.IsLandOwners[landName].playerName)
+                _contentLabel.Text = string.format(LanguageConfig.Get(10046), ClientData.IsLandOwners[landName].playerName)
                 _occupyButton.Visible = true
                 _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
                 _payButton.Visible = true
-                _payButton.Text = string.format(LanguageConfig:Get(10041), landData.Price)
+                _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
                 _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
             end
         else

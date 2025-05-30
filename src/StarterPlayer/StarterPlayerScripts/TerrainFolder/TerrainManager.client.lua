@@ -105,7 +105,7 @@ local function UpdateChunks(position)
     end)
 end
 
-game:GetService("RunService").RenderStepped:Connect(function()
+game:GetService("RunService").Heartbeat:Connect(function()
     if Players.LocalPlayer.Character then
         UpdateChunks(Players.LocalPlayer.Character:GetPivot().Position)
     end

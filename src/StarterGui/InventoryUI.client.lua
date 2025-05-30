@@ -25,6 +25,7 @@ UIConfig.CreateBlock(_screenGui)
 
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.7, 0, 0.6, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 -- 标题栏
 local _titleBar = Instance.new("Frame")
@@ -34,6 +35,7 @@ _titleBar.Position = UDim2.new(0.5, 0, 0, 0)
 _titleBar.AnchorPoint = Vector2.new(0.5, 1)
 _titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
 _titleBar.Parent = _frame
+UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
 
 local _titleText = Instance.new("TextLabel")
 _titleText.Name = "TitleText"
@@ -76,6 +78,7 @@ _itemTemplate.Size = UDim2.new(0.176, 0, 0.176, 0)
 _itemTemplate.BackgroundColor3 = Color3.fromRGB(255, 251, 251)
 _itemTemplate.BackgroundTransparency = 0.7
 _itemTemplate.Visible = false
+UIConfig.CreateCorner(_itemTemplate, UDim.new(0, 8))
 
 -- 物品名称
 local _nameText = Instance.new("TextLabel")
@@ -89,6 +92,7 @@ _nameText.TextSize = 14
 _nameText.TextXAlignment = Enum.TextXAlignment.Center
 _nameText.BackgroundTransparency = 1
 _nameText.Parent = _itemTemplate
+UIConfig.CreateCorner(_nameText, UDim.new(0, 8))
 
 local _hpText = Instance.new("TextLabel")
 _hpText.Name = "HpText"
@@ -99,6 +103,7 @@ _hpText.TextColor3 = Color3.new(0.5, 1, 0.2)
 _hpText.TextXAlignment = Enum.TextXAlignment.Left
 _hpText.TextSize = 12
 _hpText.Parent = _itemTemplate
+UIConfig.CreateCorner(_hpText, UDim.new(0, 8))
 
 local _speedText = Instance.new("TextLabel")
 _speedText.Name = "SpeedText"
@@ -109,6 +114,7 @@ _speedText.TextColor3 = Color3.new(0.2, 0.6, 1)
 _speedText.TextXAlignment = Enum.TextXAlignment.Left
 _speedText.TextSize = 12
 _speedText.Parent = _itemTemplate
+UIConfig.CreateCorner(_speedText, UDim.new(0, 8))
 
 -- 物品数量
 local _countText = Instance.new("TextLabel")

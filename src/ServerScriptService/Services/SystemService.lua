@@ -19,6 +19,7 @@ local SystemService = Knit.CreateService {
     Name = "SystemService",
     Client = {
         Tip = Knit.CreateSignal(),
+        SystemMessage = Knit.CreateSignal(),
         IsLandOwnerChanged = Knit.CreateSignal(),
     },
 }
@@ -27,22 +28,23 @@ function SystemService:SendTip(player, tipId, ...)
     self.Client.Tip:Fire(player, tipId, ...)
 end
 
-function SystemService:SendIsLandOwnerChanged(player, data)
-    self.Client.IsLandOwnerChanged:Fire(player, data)
+function SystemService:SendSystemMessage(messageType, tipId, ...)
+    self.Client.SystemMessage:FireAll(messageType, tipId, ...)
+end
+
+function SystemService:SendSystemMessageToSinglePlayer(player, messageType, tipId, ...)
+    self.Client.SystemMessage:Fire(player, messageType, tipId, ...)
+end
+
+function SystemService:SendIsLandOwnerChanged(data)
+    self.Client.IsLandOwnerChanged:FireAll(data)
+    self:SendSystemMessage('success', 10039, data.playerName, data.landName)
 end
 
 -- 客户端登陆时调用，获取跨服岛主数据
 function SystemService:GetIsLandOwner(player)
     local data = table.clone(_IsLandOwners)
     return data
-end
-
-function SystemService:SendToAllPlayer(callFunc, excludeUserId)
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.UserId ~= excludeUserId then
-            callFunc(player)
-        end
-    end
 end
 
 function SystemService:UpdateIsLandOwner(player, landName)
@@ -70,7 +72,7 @@ function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
     if player then
         local gold = player:GetAttribute("Gold")
         player:SetAttribute("Gold", gold + price)
-        self:SendTip(player, 10045, payPlayerName, landName, price)
+        self:SendSystemMessageToSinglePlayer(player, 'success', 10045, payPlayerName, landName, price)
         return
     end
 
@@ -185,12 +187,7 @@ function SystemService:KnitInit()
     MessagingService:SubscribeAsync(IsLandOwnerTag, function(message)
         print("Received message for IsLandOwnerTag",  message)
         _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
-        self:SendToAllPlayer(function(player)
-            self:SendIsLandOwnerChanged(player, {landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
-            if player.UserId ~= message.Data.userId then
-                self:SendTip(player, 10039, message.Data.playerName, message.Data.landName)
-            end
-        end)
+        self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
 
         -- 如果是主服务器，则更新岛主数据库
         if _isMainServer then
@@ -214,7 +211,7 @@ function SystemService:KnitInit()
             if player then
                 local gold = player:GetAttribute("Gold") + data.price
                 player:SetAttribute("Gold", gold)
-                self:SendTip(player, 10045, data.payPlayerName, data.landName, data.price)
+                self:SendSystemMessageToSinglePlayer(player, 'success', 10045, data.payPlayerName, data.landName, data.price)
                 return
             end
         end

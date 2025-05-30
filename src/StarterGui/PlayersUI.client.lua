@@ -12,8 +12,10 @@ _screenGui.Enabled = false
 _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
+
 local _frame = UIConfig.CreateFrame(_screenGui)
 _frame.Size = UDim2.new(0.4, 0, 0.6, 0)
+UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 -- 标题栏
 local _titleBar = Instance.new('Frame')
@@ -21,11 +23,12 @@ _titleBar.Size = UDim2.new(1, 0, 0.1, 0)
 _titleBar.Position = UDim2.new(0, 0, 0, 0)
 _titleBar.BackgroundColor3 = Color3.fromRGB(103, 80, 164)
 _titleBar.Parent = _frame
+UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
 
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig:Get(10033)
+_titleLabel.Text = LanguageConfig.Get(10033)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -56,7 +59,7 @@ local _giftButton = Instance.new('TextButton')
 _giftButton.Name = '_giftButton'
 _giftButton.Size = UDim2.new(1, 0, 1, 0)
 _giftButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)  -- 蓝色
-_giftButton.Text = LanguageConfig:Get(10027)
+_giftButton.Text = LanguageConfig.Get(10027)
 _giftButton.Font = UIConfig.Font
 _giftButton.TextSize = 18
 _giftButton.TextColor3 = Color3.new(1, 1, 1)
@@ -79,6 +82,7 @@ _playerTemplate.TextSize = 18
 _playerTemplate.TextColor3 = Color3.new(1, 1, 1)
 _playerTemplate.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 _playerTemplate.Visible = false
+UIConfig.CreateCorner(_playerTemplate, UDim.new(0, 8))
 
 -- 动态生成玩家列表
 local function UpdatePlayerList()
