@@ -232,44 +232,146 @@ end
 
 -- 创建船的稳定器
 function BoatAssemblingService:CreateStabilizer(boat)
-    local function createPart(name, size, cFrame)
-        local part = Instance.new("Part")
-        part.Name = name
-        part.Size = size
-        part.Material = Enum.Material.Wood
-        part.Anchored = false
-        part.CanCollide = true
-        part.Transparency = 1
-        local offsetCFrame = boat.PrimaryPart.CFrame:ToObjectSpace(cFrame)
-        part.CFrame = boat.PrimaryPart.CFrame * offsetCFrame
-        part.Parent = boat
-        -- 创建焊接约束
-        local weldConstraint = Instance.new('WeldConstraint')
-        weldConstraint.Part0 = boat.PrimaryPart
-        weldConstraint.Part1 = part
-        weldConstraint.Parent = part
+    -- local function createPart(name, size, cFrame)
+    --     local part = Instance.new("Part")
+    --     part.Name = name
+    --     part.Size = size
+    --     part.Material = Enum.Material.Wood
+    --     part.Anchored = false
+    --     part.CanCollide = true
+    --     part.Transparency = 1
+    --     local offsetCFrame = boat.PrimaryPart.CFrame:ToObjectSpace(cFrame)
+    --     part.CFrame = boat.PrimaryPart.CFrame * offsetCFrame
+    --     part.Parent = boat
+    --     -- 创建焊接约束
+    --     local weldConstraint = Instance.new('WeldConstraint')
+    --     weldConstraint.Part0 = boat.PrimaryPart
+    --     weldConstraint.Part1 = part
+    --     weldConstraint.Parent = part
 
-        part.CollisionGroup = "BoatStabilizerCollisionGroup"
+    --     part.CollisionGroup = "BoatStabilizerCollisionGroup"
+    -- end
+
+    -- local size = Vector3.new(10, 5, 20)
+    -- createPart("BoatStabilizerPart1", size,
+    --     CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 5,
+    --         boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    --         boat.PrimaryPart.Position.Z))
+    -- createPart("BoatStabilizerPart2", size,
+    --     CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 5,
+    --         boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    --         boat.PrimaryPart.Position.Z))
+    -- size = Vector3.new(20, 5, 10)
+    -- createPart("BoatStabilizerPart3", size,
+    --     CFrame.new(boat.PrimaryPart.Position.X,
+    --         boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    --         boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
+    -- createPart("BoatStabilizerPart4", size,
+    --     CFrame.new(boat.PrimaryPart.Position.X,
+    --         boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
+    --         boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
+
+    -- 为船只添加现代约束稳定系统
+    if not boat.PrimaryPart then return end
+    
+    -- 创建锚点
+    local anchor = Instance.new("Part")
+    anchor.Anchored = true
+    anchor.CanCollide = false
+    anchor.Transparency = 1
+    anchor.Size = Vector3.new(1, 1, 1)
+    anchor.Position = boat.PrimaryPart.Position
+    anchor.Parent = workspace
+    
+    -- 创建 Attachment
+    local boatAttachment = Instance.new("Attachment")
+    boatAttachment.Parent = boat.PrimaryPart
+    
+    local anchorAttachment = Instance.new("Attachment")
+    anchorAttachment.Parent = anchor
+    
+    -- 方向约束（只限制X和Z轴旋转，允许Y轴旋转）
+    local alignOrientation = Instance.new("AlignOrientation")
+    alignOrientation.Attachment0 = boatAttachment
+    alignOrientation.Attachment1 = anchorAttachment
+    alignOrientation.MaxTorque = 3000 -- 降低扭矩
+    alignOrientation.Responsiveness = 8 -- 降低响应速度
+    alignOrientation.RigidityEnabled = false -- 关闭刚性模式
+    alignOrientation.Parent = boat.PrimaryPart
+    
+    -- 位置约束（保持浮力）
+    local alignPosition = Instance.new("AlignPosition")
+    alignPosition.Attachment0 = boatAttachment
+    alignPosition.Attachment1 = anchorAttachment
+    alignPosition.MaxForce = 4000
+    alignPosition.Responsiveness = 5
+    alignPosition.RigidityEnabled = false
+    alignPosition.Parent = boat.PrimaryPart
+end
+
+-- 动态重心平衡系统
+local function addDynamicBalance(boat)
+    if not boat.PrimaryPart then return end
+    
+    -- 创建隐形的平衡重物
+    local balanceWeight = Instance.new("Part")
+    balanceWeight.Name = "BalanceWeight"
+    balanceWeight.Anchored = false
+    balanceWeight.CanCollide = false
+    balanceWeight.Transparency = 1
+    balanceWeight.Size = Vector3.new(1, 1, 1)
+    balanceWeight.Parent = boat
+    
+    -- 设置平衡重物的物理属性
+    balanceWeight.CustomPhysicalProperties = PhysicalProperties.new(
+        2.0, -- 高密度作为配重
+        0.5,
+        0.5,
+        1,
+        1
+    )
+    
+    -- 将平衡重物焊接到船体左侧（补偿右倾）
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = boat.PrimaryPart
+    weld.Part1 = balanceWeight
+    weld.Parent = boat.PrimaryPart
+    
+    -- 设置平衡重物位置（船体左侧下方）
+    balanceWeight.CFrame = boat.PrimaryPart.CFrame * CFrame.new(-2, -1, 0)
+end
+
+-- 检查船只平衡状态
+local function checkBoatBalance(boat)
+    if not boat.PrimaryPart then return end
+    
+    local totalMass = 0
+    local centerOfMass = Vector3.new(0, 0, 0)
+    local partCount = 0
+    
+    -- 计算质心
+    for _, part in pairs(boat:GetDescendants()) do
+        if part:IsA("BasePart") then
+            local mass = part.Mass
+            totalMass = totalMass + mass
+            centerOfMass = centerOfMass + (part.Position * mass)
+            partCount = partCount + 1
+        end
     end
-
-    local size = Vector3.new(10, 5, 20)
-    createPart("BoatStabilizerPart1", size,
-        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 5,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z))
-    createPart("BoatStabilizerPart2", size,
-        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 5,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z))
-    size = Vector3.new(20, 5, 10)
-    createPart("BoatStabilizerPart3", size,
-        CFrame.new(boat.PrimaryPart.Position.X,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
-    createPart("BoatStabilizerPart4", size,
-        CFrame.new(boat.PrimaryPart.Position.X,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
+    
+    if totalMass > 0 then
+        centerOfMass = centerOfMass / totalMass
+        print("船只质心位置:", centerOfMass)
+        print("船只总质量:", totalMass)
+        print("部件数量:", partCount)
+        
+        -- 如果质心偏右，添加左侧配重
+        local boatCenter = boat.PrimaryPart.Position
+        if centerOfMass.X > boatCenter.X + 0.5 then
+            print("检测到右倾，建议添加左侧配重")
+            addDynamicBalance(boat)
+        end
+    end
 end
 
 function BoatAssemblingService.Client:AssembleBoat(player)
@@ -286,6 +388,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     self.Server:CreateVehicleSeat(boat)
     self.Server:CreateStabilizer(boat)
     self.Server:CreateMoveVelocity(boat.primaryPart)
+    checkBoatBalance(boat)
 
     -- 设置船的初始位置
     Interface.InitBoatWaterPos(player, boat)

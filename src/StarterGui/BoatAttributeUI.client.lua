@@ -71,46 +71,25 @@ labelGradient.Transparency = NumberSequence.new({
 })
 labelGradient.Parent = viewportFrame
 
--- 生命值进度条
-local _healthBar = Instance.new('Frame')
-_healthBar.Name = 'HealthBar'
-_healthBar.Size = UDim2.new(1, 0, 0.4, 0)
-_healthBar.Position = UDim2.new(0, 0, 0, 0)
-_healthBar.AnchorPoint = Vector2.new(0, 0)
-_healthBar.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
-_healthBar.BorderSizePixel = 0
-_healthBar.Parent = _container
+local function createLabel(parent, barPos, barAnchorPoint, fillColor)
+    -- 进度条
+    local _bar = Instance.new('Frame')
+    _bar.Size = UDim2.new(1, 0, 0.4, 0)
+    _bar.Position = barPos
+    _bar.AnchorPoint = barAnchorPoint
+    _bar.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
+    _bar.BorderSizePixel = 0
+    _bar.Parent = parent
 
-local _healthFill = Instance.new('Frame')
-_healthFill.Name = 'Fill'
-_healthFill.Size = UDim2.new(1, 0, 1, 0)
-_healthFill.AnchorPoint = Vector2.new(0, 0.5)
-_healthFill.Position = UDim2.new(0, 0, 0.5, 0)
-_healthFill.BackgroundColor3 = Color3.new(0.5, 1, 0.2)
-_healthFill.BorderSizePixel = 0
-_healthFill.Parent = _healthBar
+    local _fill = Instance.new('Frame')
+    _fill.Name = 'Fill'
+    _fill.Size = UDim2.new(1, 0, 1, 0)
+    _fill.AnchorPoint = Vector2.new(0, 0.5)
+    _fill.Position = UDim2.new(0, 0, 0.5, 0)
+    _fill.BackgroundColor3 = fillColor
+    _fill.BorderSizePixel = 0
+    _fill.Parent = _bar
 
--- 速度进度条
-local _speedBar = Instance.new('Frame')
-_speedBar.Name = 'SpeedBar'
-_speedBar.Size = UDim2.new(1, 0, 0.4, 0)
-_speedBar.Position = UDim2.new(0, 0, 1, 0)
-_speedBar.AnchorPoint = Vector2.new(0, 1)
-_speedBar.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
-_speedBar.BorderSizePixel = 0
-_speedBar.Parent = _container
-
-local _speedFill = Instance.new('Frame')
-_speedFill.Name = 'Fill'
-_speedFill.Size = UDim2.new(1, 0, 1, 0)
-_speedFill.AnchorPoint = Vector2.new(0, 0.5)
-_speedFill.Position = UDim2.new(0, 0, 0.5, 0)
-_speedFill.BackgroundColor3 = Color3.new(0.2, 0.6, 1)
-_speedFill.BorderSizePixel = 0
-_speedFill.Parent = _speedBar
-
--- 文字标签
-local function createLabel(parent)
     local label = Instance.new('TextLabel')
     label.Position = UDim2.new(0.5, 0, 0.5, 0)
     label.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -122,12 +101,13 @@ local function createLabel(parent)
     label.TextStrokeTransparency = 0.5
     label.Size = UDim2.new(0.3, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.Parent = parent
-    return label
+    label.Parent = _bar
+
+    return _bar, _fill, label
 end
 
-local _healthLabel = createLabel(_healthBar)
-local _speedLabel = createLabel(_speedBar)
+local _healthBar, _healthFill, _healthLabel = createLabel(_container, UDim2.new(0, 0, 0, 0), Vector2.new(0, 0), Color3.new(0.5, 1, 0.2))
+local _speedBar, _speedFill, _speedLabel = createLabel(_container, UDim2.new(0, 0, 1, 0), Vector2.new(0, 1), Color3.new(0.2, 0.6, 1))
 
 local function UpdateUI(type, value, maxValue)
     if type == 'Health' then

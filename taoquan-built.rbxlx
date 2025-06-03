@@ -26296,20 +26296,20 @@ return CreateMonsterAction</string>
         </Item>
         <Item class="ModuleScript" referent="223">
           <Properties>
-            <string name="Name">CreatePartAction</string>
+            <string name="Name">CreateChestAction</string>
             <string name="Source">print("加载CreatePartAction")
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
 
-local CreatePartAction = {}
-setmetatable(CreatePartAction, ActionBase)
-CreatePartAction.__index = CreatePartAction
+local CreateChestAction = {}
+setmetatable(CreateChestAction, ActionBase)
+CreateChestAction.__index = CreateChestAction
 
-function CreatePartAction.new(config, condition)
-    local self = setmetatable(ActionBase.new(config, condition), CreatePartAction)
+function CreateChestAction.new(config, condition)
+    local self = setmetatable(ActionBase.new(config, condition), CreateChestAction)
     return self
 end
 
-function CreatePartAction:Execute()
+function CreateChestAction:Execute()
     ActionBase.Execute(self)
 
     print("执行CreatePartAction")
@@ -26323,7 +26323,7 @@ function CreatePartAction:Execute()
     self.part.Parent = workspace
 end
 
-function CreatePartAction:Destroy()
+function CreateChestAction:Destroy()
     ActionBase.Destroy(self)
     
     if self.part then
@@ -26331,7 +26331,7 @@ function CreatePartAction:Destroy()
     end
 end
 
-return CreatePartAction</string>
+return CreateChestAction</string>
           </Properties>
         </Item>
         <Item class="ModuleScript" referent="224">
@@ -26853,7 +26853,7 @@ local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerAction
 local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
 
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
-local CreatePartAction = require(ActionFolder:WaitForChild("CreatePartAction"))
+local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
 local WaveAction = require(ActionFolder:WaitForChild("WaveAction"))
 local CreateMonsterAction = require(ActionFolder:WaitForChild("CreateMonsterAction"))
 
@@ -26919,7 +26919,7 @@ end
 function TriggerManager:InitAction(actionConfig, condition)
     local action
     if actionConfig.ActionType == "CreatePart" then
-        action = CreatePartAction.new(actionConfig, condition)
+        action = CreateChestAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "Wave" then
         action = WaveAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "CreateMonster" then

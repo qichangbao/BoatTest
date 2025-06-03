@@ -10,6 +10,7 @@ print("MainUI.lua loaded")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
+local TweenService = game:GetService('TweenService')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
@@ -102,10 +103,18 @@ _messageFrame.AnchorPoint = Vector2.new(0, 0)
 _messageFrame.Size = UDim2.new(0, 200, 0, 150)
 _messageFrame.Position = UDim2.new(0, 0, 0, 0)
 _messageFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-_messageFrame.BackgroundTransparency = 0.2
+_messageFrame.BackgroundTransparency = 1  -- 初始完全透明
 _messageFrame.BorderSizePixel = 0
+_messageFrame.Visible = false  -- 初始隐藏
 _messageFrame.Parent = _screenGui
 UIConfig.CreateCorner(_messageFrame, UDim.new(0, 8))
+
+-- 消息框自动隐藏相关变量
+local _messageHideTimer = nil
+local _fadeInTween = nil
+local _fadeOutTween = nil
+local _fadeOutConnection = nil
+local MESSAGE_DISPLAY_TIME = 5  -- 显示5秒
 
 -- 滚动框
 local _scrollingFrame = Instance.new('ScrollingFrame')
@@ -139,8 +148,95 @@ local _messageColors = {
     ['system'] = Color3.fromRGB(200, 200, 200),  -- 灰色 - 系统
 }
 
+-- 隐藏消息框（渐出效果）
+local function hideMessageFrame()
+    -- 取消之前的动画
+    if _fadeInTween then
+        _fadeInTween:Cancel()
+    end
+    if _fadeOutTween then
+        _fadeOutTween:Cancel()
+    end
+    
+    -- 断开之前的连接
+    if _fadeOutConnection then
+        _fadeOutConnection:Disconnect()
+        _fadeOutConnection = nil
+    end
+    
+    -- 创建渐出动画
+    local tweenInfo = TweenInfo.new(
+        0.3,  -- 持续时间
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+    
+    _fadeOutTween = TweenService:Create(_messageFrame, tweenInfo, {
+        BackgroundTransparency = 1
+    })
+    
+    _fadeOutTween:Play()
+    
+    -- 动画完成后隐藏
+    _fadeOutConnection = _fadeOutTween.Completed:Connect(function()
+        _messageFrame.Visible = false
+        if _fadeOutConnection then
+            _fadeOutConnection:Disconnect()
+            _fadeOutConnection = nil
+        end
+    end)
+end
+
+-- 显示消息框（渐入效果）
+local function showMessageFrame()
+    -- 取消之前的动画
+    if _fadeInTween then
+        _fadeInTween:Cancel()
+    end
+    if _fadeOutTween then
+        _fadeOutTween:Cancel()
+    end
+    
+    -- 重置隐藏计时器
+    if _messageHideTimer then
+        task.cancel(_messageHideTimer)
+    end
+    
+    -- 显示消息框
+    _messageFrame.Visible = true
+    
+    -- 如果消息框已经显示（透明度小于1），直接重置计时器
+    if _messageFrame.BackgroundTransparency < 1 then
+        _messageHideTimer = task.delay(MESSAGE_DISPLAY_TIME, function()
+            hideMessageFrame()
+        end)
+        return
+    end
+    
+    -- 创建渐入动画（仅在消息框完全透明时）
+    local tweenInfo = TweenInfo.new(
+        0.3,  -- 持续时间
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+    
+    _fadeInTween = TweenService:Create(_messageFrame, tweenInfo, {
+        BackgroundTransparency = 0.2
+    })
+    
+    _fadeInTween:Play()
+    
+    -- 设置隐藏计时器
+    _messageHideTimer = task.delay(MESSAGE_DISPLAY_TIME, function()
+        hideMessageFrame()
+    end)
+end
+
 -- 添加消息函数
 local function addMessage(messageType, messageText)
+    -- 显示消息框
+    showMessageFrame()
+    
     -- 如果消息数量超过最大值，删除最旧的消息
     if #_messages >= _maxMessages then
         local oldestMessage = _messages[1]
@@ -163,24 +259,18 @@ local function addMessage(messageType, messageText)
     messageLabel.TextYAlignment = Enum.TextYAlignment.Top
     messageLabel.LayoutOrder = #_messages + 1
     
-    -- 先设置临时尺寸并添加到父级
-    messageLabel.Size = UDim2.new(1, -10, 0, 16)  -- 临时高度
-    messageLabel.Parent = _scrollingFrame
-    
-    -- 等待UI更新
-    task.wait(0.1)
-    
     -- 计算文本高度（使用固定宽度190像素，这是滚动框宽度200减去间距）
     local textService = game:GetService('TextService')
     local textSize = textService:GetTextSize(
         messageText,
-        14,
+        16,  -- 使用正确的字体大小
         UIConfig.Font,
         Vector2.new(190, math.huge)
     )
     
-    -- 更新最终尺寸（使用实际文本高度）
-    messageLabel.Size = UDim2.new(1, -10, 0, textSize.Y + _yOffset)
+    -- 设置正确的尺寸并添加到父级
+    messageLabel.Size = UDim2.new(1, -10, 0, math.max(20, textSize.Y + _yOffset))
+    messageLabel.Parent = _scrollingFrame
     -- 添加到消息列表
     table.insert(_messages, messageLabel)
     
@@ -221,53 +311,6 @@ _playersButton.Parent = _screenGui
 -- 玩家按钮点击事件
 _playersButton.MouseButton1Click:Connect(function()
     Knit.GetController('UIController').ShowPlayersUI:Fire()
-
-    -- local TweenService = game:GetService("TweenService")
-    -- local chest = workspace.Chest
-    -- local chestTop = chest:FindFirstChild("ChestTop")
-    
-    -- if not chestTop then
-    --     warn("找不到箱盖模型，请确保箱子中有名为 'ChestTop' 的模型")
-    --     return
-    -- end
-    
-    -- -- 确保chestTop有PrimaryPart
-    -- if not chestTop.PrimaryPart then
-    --     warn("ChestTop模型没有设置PrimaryPart，请在Studio中设置")
-    --     return
-    -- end
-    
-    -- -- 获取当前位置和目标位置
-    -- local currentCFrame = chestTop:GetPivot()
-    -- local targetCFrame = currentCFrame * CFrame.Angles(0, 0, math.rad(-90))
-    
-    -- -- 创建动画
-    -- local tweenInfo = TweenInfo.new(
-    --     1.5, -- 持续时间
-    --     Enum.EasingStyle.Quad,
-    --     Enum.EasingDirection.Out
-    -- )
-    
-    -- -- 创建一个NumberValue用于动画进度
-    -- local animationProgress = Instance.new("NumberValue")
-    -- animationProgress.Value = 0
-    
-    -- -- 创建Tween
-    -- local tween = TweenService:Create(animationProgress, tweenInfo, {Value = 1})
-    
-    -- -- 监听动画进度
-    -- animationProgress.Changed:Connect(function(alpha)
-    --     local lerpedCFrame = currentCFrame:Lerp(targetCFrame, alpha)
-    --     chestTop:PivotTo(lerpedCFrame)
-    -- end)
-    
-    -- -- 播放动画
-    -- tween:Play()
-    
-    -- -- 清理
-    -- tween.Completed:Connect(function()
-    --     animationProgress:Destroy()
-    -- end)
 end)
 
 UIConfig.CreateCorner(_playersButton)
@@ -384,6 +427,27 @@ local function Destroy()
     if _renderSteppedConnection then
         _renderSteppedConnection:Disconnect()
         _renderSteppedConnection = nil
+    end
+    
+    -- 清理消息框相关资源
+    if _messageHideTimer then
+        task.cancel(_messageHideTimer)
+        _messageHideTimer = nil
+    end
+    
+    if _fadeInTween then
+        _fadeInTween:Cancel()
+        _fadeInTween = nil
+    end
+    
+    if _fadeOutTween then
+        _fadeOutTween:Cancel()
+        _fadeOutTween = nil
+    end
+    
+    if _fadeOutConnection then
+        _fadeOutConnection:Disconnect()
+        _fadeOutConnection = nil
     end
 end
 

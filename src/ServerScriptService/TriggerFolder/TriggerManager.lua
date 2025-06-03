@@ -8,7 +8,7 @@ local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerAction
 local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
 
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
-local CreatePartAction = require(ActionFolder:WaitForChild("CreatePartAction"))
+local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
 local WaveAction = require(ActionFolder:WaitForChild("WaveAction"))
 local CreateMonsterAction = require(ActionFolder:WaitForChild("CreateMonsterAction"))
 
@@ -84,8 +84,8 @@ end
 -- 加载动作
 function TriggerManager:InitAction(actionConfig, condition)
     local action
-    if actionConfig.ActionType == "CreatePart" then
-        action = CreatePartAction.new(actionConfig, condition)
+    if actionConfig.ActionType == "CreateChest" then
+        action = CreateChestAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "Wave" then
         action = WaveAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "CreateMonster" then

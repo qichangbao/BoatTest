@@ -39,6 +39,22 @@ return {
             ChangeHp = 30,
         },
     },
+    -- 单独的位置触发器
+    {
+        ConditionType = "Position", -- 条件类型：基于位置的触发器
+        MaxConditions = 1, -- 最大触发次数，超过此次数后不再触发
+        Position = Vector3.new(200, 0, 100), -- 触发位置
+        Radius = 50, -- 触发区域的半径，与Position共同定义触发区域
+        Cooldown = 20, -- 触发冷却时间（秒），在此时间内不会再次触发
+        RandomChance = 100, -- 随机触发的概率
+        Action = {
+            ActionType = "CreateChest",
+            Position = Vector3.new(200, 0, 100),
+            DestroyToResetCondition = true, -- 死亡是否重置条件
+            ResetConditionDelayTime = {30, 50}, -- 重置条件的延迟时间
+            Duration = 10
+        },
+    },
     
     -- -- 单独的玩家动作触发器
     -- {
@@ -49,7 +65,7 @@ return {
     --     TimeWindow = 3, -- 完成所需动作的时间窗口（秒）
     --     ResetOnLeave = true, -- 当玩家离开区域时是否重置触发器状态
     --     Action = {
-    --         ActionType = "CreatePart",
+    --         ActionType = "CreateChest",
     --         Lifetime = 5,
     --         Position = Vector3.new(0, 10, 0),
     --         Size = Vector3.new(3,3,3),
@@ -79,7 +95,7 @@ return {
     --         }
     --     },
     --     Action = {
-    --         ActionType = "CreatePart",
+    --         ActionType = "CreateChest",
     --         Lifetime = 5,
     --         Position = Vector3.new(5, 5, 5),
     --         Size = Vector3.new(1,5,1),
