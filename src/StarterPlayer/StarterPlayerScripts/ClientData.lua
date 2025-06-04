@@ -128,6 +128,7 @@ Knit:OnStart():andThen(function()
             config = config
         }
 
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), config.displayName))
         Knit.GetController('UIController').BuffChanged:Fire()
     end)
     BuffService.BuffRemoved:Connect(function(buffId)
@@ -154,6 +155,15 @@ Knit:OnStart():andThen(function()
             end
         end
     end):catch(warn)
+
+    -- 监听宝箱奖励事件
+    local chestService = Knit.GetService('ChestService')
+    chestService.RewardReceived:Connect(function(rewardType, rewardData)
+        if rewardType == "Gold" then
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), rewardData.amount) .. LanguageConfig.Get(10007))
+            return
+        end
+    end)
     
     -- 启动时间更新循环
     game:GetService("RunService").Heartbeat:Connect(function()

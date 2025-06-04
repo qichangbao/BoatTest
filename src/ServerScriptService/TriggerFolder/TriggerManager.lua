@@ -6,6 +6,7 @@ local ConditionFolder = TriggerFolder:WaitForChild("ConditionFolder")
 local PositionCondition = require(ConditionFolder:WaitForChild("PositionCondition"))
 local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerActionCondition"))
 local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
+local SailingDistanceCondition = require(ConditionFolder:WaitForChild("SailingDistanceCondition"))
 
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
@@ -36,6 +37,9 @@ function TriggerManager:Init()
             condition = PlayerActionCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "Composite" then
             condition = CompositeCondition.new(triggerConfig)
+        elseif triggerConfig.ConditionType == "SailingDistance" then
+            condition = SailingDistanceCondition.new(triggerConfig)
+            table.insert(_needHeartbeatConditions, condition)
         else
             warn("未知的触发器类型:", triggerConfig.ConditionType)
             continue
@@ -58,6 +62,8 @@ function TriggerManager:Init()
                 print("玩家随机触发器被触发!", data.Player.Name)
             elseif triggerConfig.ConditionType == "Composite" then
                 print("组合触发器被触发!", "模式:", data.ConditionMode)
+            elseif triggerConfig.ConditionType == "SailingDistance" then
+                print("玩家航行距离触发器被触发!", data.Player.Name)
             else
                 warn("未知的触发器类型:", triggerConfig.ConditionType)
                 return
@@ -65,14 +71,15 @@ function TriggerManager:Init()
             
             -- 执行关联动作
             if action then
-                action:Execute()
+                action:Execute(data)
             end
         end)
     end
 
     game:GetService("RunService").Heartbeat:Connect(function()
         for _, condition in ipairs(_needHeartbeatConditions) do
-            if condition.config.ConditionType == "Position" then
+            local conditionType = condition.config.ConditionType
+            if conditionType == "Position" or conditionType == "SailingDistance" then
                 for _, v in pairs(game.Players:GetPlayers()) do
                     condition:MonitorPlayer(v)
                 end

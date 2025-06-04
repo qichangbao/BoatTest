@@ -196,50 +196,49 @@ function BuffService:GetDamageMultiplier(player)
 end
 
 -- 添加BUFF
-function BuffService:AddBuff(player, buffId, duration)
+function BuffService:AddBuff(player, buffData)
     initPlayerBuffs(player)
     
-    local config = BuffConfig.GetBuffConfig(buffId)
-    if not config then
-        warn("BuffService: 未找到BUFF配置: " .. tostring(buffId))
+    if not buffData then
+        warn("BuffService: 未找到BUFF配置: " .. tostring(buffData.buffId))
         return false
     end
     
-    if not playerBuffs[player.UserId][config.buffType] then
-        warn("BuffService: 无效的BUFF类型: " .. tostring(config.buffType))
+    if not playerBuffs[player.UserId][buffData.buffType] then
+        warn("BuffService: 无效的BUFF类型: " .. tostring(buffData.buffType))
         return false
     end
     
     -- 添加BUFF数据
-    playerBuffs[player.UserId][config.buffType][buffId] = {
+    playerBuffs[player.UserId][buffData.buffType][buffData.buffId] = {
         startTime = tick(),
-        duration = duration or config.duration,
-        config = config
+        duration = buffData.duration,
+        config = buffData
     }
     
     -- 设置BUFF过期计时器
-    local timerId = player.UserId .. "_" .. config.buffType .. "_" .. buffId
+    local timerId = player.UserId .. "_" .. buffData.buffType .. "_" .. buffData.buffId
     if buffTimers[timerId] then
         pcall(task.cancel, buffTimers[timerId])
     end
     
-    buffTimers[timerId] = task.delay(duration or config.duration, function()
+    buffTimers[timerId] = task.delay(buffData.duration, function()
         -- 清除计时器引用，避免在RemoveBuff中重复取消
         buffTimers[timerId] = nil
-        self:RemoveBuff(player, buffId, config.buffType)
+        self:RemoveBuff(player, buffData.buffId)
     end)
     
     -- 应用BUFF效果
-    if config.buffType == "speed" then
+    if buffData.buffType == "speed" then
         applySpeedBuff(player)
-    elseif config.buffType == "health" then
+    elseif buffData.buffType == "health" then
         applyHealthBuff(player)
     end
     
     -- 通知客户端
-    self.Client.BuffAdded:Fire(player, buffId, duration or config.duration)
+    self.Client.BuffAdded:Fire(player, buffData.buffId, buffData.duration)
     
-    print("BuffService: 为玩家 " .. player.Name .. " 添加了BUFF: " .. buffId)
+    print("BuffService: 为玩家 " .. player.Name .. " 添加了BUFF: " .. buffData.buffId)
     return true
 end
 
@@ -346,7 +345,7 @@ function BuffService:ClearAllBuffs(player)
     
     for buffType, buffs in pairs(playerBuffs[player.UserId]) do
         for buffId, _ in pairs(buffs) do
-            self:RemoveBuff(player, buffId, buffType)
+            self:RemoveBuff(player, buffId)
         end
     end
 end

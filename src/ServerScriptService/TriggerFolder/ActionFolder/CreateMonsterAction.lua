@@ -14,7 +14,7 @@ function CreateMonsterAction.new(config, condition)
     return self
 end
 
-function CreateMonsterAction:Execute()
+function CreateMonsterAction:Execute(data)
     ActionBase.Execute(self)
 
     print("执行CreateMonsterAction")
@@ -51,10 +51,6 @@ function CreateMonsterAction:Execute()
             MonsterDead()
         end)
     end
-end
-
-function CreateMonsterAction:Destroy()
-    ActionBase.Destroy(self)
 end
 
 return CreateMonsterAction

@@ -13,7 +13,7 @@ local function CreateWave(data)
 	-- 创建波浪
 	local wave = ReplicatedStorage:WaitForChild('Assets'):WaitForChild('OceanWaves'):Clone()
     wave.Material = Enum.Material.Water
-    wave.CanCollide = true
+    wave.CanCollide = false
 	wave.Parent = workspace
 	
 	-- 设置初始位置和朝向
@@ -40,8 +40,6 @@ local function CreateWave(data)
                 print("波浪碰到船只:", model.Name)
                 -- 对船只造成伤害，但不销毁波浪
                 Knit.GetService('TriggerService'):WaveHitBoat(changeHp)
-                task.wait(0.5)
-                wave.CanCollide = false
             end
         end
     end)

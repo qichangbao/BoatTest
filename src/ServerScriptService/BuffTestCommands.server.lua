@@ -16,7 +16,7 @@ Knit.OnStart():andThen(function()
         
         local args = string.split(message, " ")
         local command = args[1]:lower()
-        -- /addbuff qichangbao speed_boost 60
+        -- /addbuff qichangbao speed_boost
         if command == "/addbuff" then
             -- 用法: /addbuff [玩家名] [BUFF ID] [持续时间(可选)]
             if #args >= 4 then
@@ -26,7 +26,7 @@ Knit.OnStart():andThen(function()
                 
                 local targetPlayer = Players:FindFirstChild(targetPlayerName)
                 if targetPlayer then
-                    local success = BuffService:AddBuff(targetPlayer, buffId, duration)
+                    local success = BuffService:AddBuff(targetPlayer, buffId)
                     if success then
                         game:GetService("StarterGui"):SetCore("ChatMakeSystemMessage", {
                             Text = "已为玩家 " .. targetPlayer.Name .. " 添加BUFF: " .. buffId,

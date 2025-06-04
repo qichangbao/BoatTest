@@ -1,7 +1,6 @@
 print('LootService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ServerStorage = game:GetService('ServerStorage')
 local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
@@ -19,31 +18,33 @@ local LOOT_COOLDOWN = 3.6
 local _playerCoolDown = {}
 
 local function getRandomParts(player)
-    local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
-    if not boatTemplate then return {} end
-
-    local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
-    local InventoryService = Knit.GetService("InventoryService")
-    
-    -- 添加主要部件（如果首次获取）
-    local primaryPartName = ''
-    for name, data in pairs(curBoatConfig) do
-        if data.isPrimaryPart then
-            primaryPartName = name
-            break
+    local itemData = ItemConfig.GetRandomItem()
+    if itemData.modelName == BOAT_PARTS_FOLDER_NAME then
+        local curBoatConfig = BoatConfig.GetBoatConfig(itemData.modelName)
+        local InventoryService = Knit.GetService("InventoryService")
+        
+        -- 添加主要部件（如果首次获取）
+        local primaryPartName = ''
+        for name, data in pairs(curBoatConfig) do
+            if data.isPrimaryPart then
+                primaryPartName = name
+                break
+            end
         end
-    end
-    
-    local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', primaryPartName)
-    if not isFirstLoot and primaryPartName ~= '' then
-        return primaryPartName
-    end
-
-    local randomItem = ItemConfig.GetRandomItem()
-    for name, data in pairs(curBoatConfig) do
-        if name == randomItem.itemName then
-            return name
+        
+        local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', primaryPartName)
+        if not isFirstLoot and primaryPartName ~= '' then
+            return primaryPartName, itemData.modelName
         end
+
+        local randomItem = ItemConfig.GetRandomItem()
+        for name, data in pairs(curBoatConfig) do
+            if name == randomItem.itemName then
+                return name, itemData.modelName
+            end
+        end
+    else
+        return itemData.itemName, itemData.modelName
     end
 end
 
@@ -55,7 +56,7 @@ function LootService.Client:Loot(player)
     _playerCoolDown[player.UserId] = LOOT_COOLDOWN
     
     -- 获取随机配件
-    local partName = getRandomParts(player)
+    local partName, modelName = getRandomParts(player)
     local InventoryService = Knit.GetService("InventoryService")
     if InventoryService:Inventory(player, 'CheckExists', partName) then
         local itemConfig = ItemConfig.GetItemConfig(partName)
@@ -65,7 +66,7 @@ function LootService.Client:Loot(player)
         return 10016, partName
     else
         -- 调用背包管理器添加物品
-        InventoryService:Inventory(player, 'AddItem', partName, BOAT_PARTS_FOLDER_NAME)
+        InventoryService:Inventory(player, 'AddItem', partName, modelName)
     end
 
     return

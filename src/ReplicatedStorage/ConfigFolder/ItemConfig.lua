@@ -52,6 +52,7 @@ for i, v in pairs(_data) do
     local randomSubMaxNum = {}
     for j, k in pairs(v.Parts) do
         k.itemName = j
+        k.modelName = i
         subMaxNum += k.Random
         table.insert(randomSubMaxNum, {subItem = k, random = subMaxNum})
     end

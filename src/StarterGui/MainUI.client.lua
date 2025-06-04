@@ -456,6 +456,7 @@ Knit:OnStart():andThen(function()
     BoatAssemblingService.UpdateMainUI:Connect(function(data)
         _startBoatButton.Visible = not data.explore
         _stopBoatButton.Visible = data.explore
+        _addBoatPartButton.Visible = false
     end)
     
     Knit.GetController('UIController').AddUI:Fire(_screenGui, Destroy)
