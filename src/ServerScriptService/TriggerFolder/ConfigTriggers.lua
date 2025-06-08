@@ -108,7 +108,7 @@ return {
         ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
         MaxConditions = -1, -- 最大触发次数，-1表示无限制
         RequiredDistance = 500, -- 需要航行的距离（单位：studs）
-        Cooldown = 10, -- 触发冷却时间（秒）
+        Cooldown = 30, -- 触发冷却时间（秒）
         RandomChance = 30, -- 随机触发的概率，30%的概率触发
         Action = {
             ActionType = "CreateChest",
@@ -124,7 +124,7 @@ return {
         ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
         MaxConditions = -1, -- 最大触发次数，-1表示无限制
         RequiredDistance = 300, -- 需要航行的距离（单位：studs）
-        Cooldown = 10, -- 触发冷却时间（秒）
+        Cooldown = 30, -- 触发冷却时间（秒）
         RandomChance = 30, -- 随机触发的概率，30%的概率触发
         Action = {
             ActionType = "Wave",

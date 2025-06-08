@@ -26,7 +26,7 @@ _screenGui.Parent = PlayerGui
 
 -- 启航按钮布局
 local _startBoatButton = Instance.new('TextButton')
-_startBoatButton.Name = '_startBoatButton'
+_startBoatButton.Name = 'StartBoatButton'
 _startBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _startBoatButton.Size = _buttonSize
 _startBoatButton.Position = UDim2.new(0, 80, 1, -60)
@@ -52,7 +52,7 @@ end)
 -- 止航按钮
 local _stopBoatButton = Instance.new('TextButton')
 _stopBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_stopBoatButton.Name = '_stopBoatButton'
+_stopBoatButton.Name = 'StopBoatButton'
 _stopBoatButton.Size = _buttonSize
 _stopBoatButton.Position = UDim2.new(0, 80, 1, -60)
 _stopBoatButton.Text = LanguageConfig.Get(10005)
@@ -75,7 +75,7 @@ end)
 -- 创建添加部件按钮
 local _addBoatPartButton = Instance.new('TextButton')
 _addBoatPartButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_addBoatPartButton.Name = '_addBoatPartButton'
+_addBoatPartButton.Name = 'AddBoatPartButton'
 _addBoatPartButton.Size = _buttonSize
 _addBoatPartButton.Position = UDim2.new(0, 80, 1, -140)
 _addBoatPartButton.Text = LanguageConfig.Get(10006)
@@ -298,7 +298,7 @@ _goldLabel.Parent = _screenGui
 
 -- 玩家按钮
 local _playersButton = Instance.new('TextButton')
-_playersButton.Name = '_playersButton'
+_playersButton.Name = 'PlayersButton'
 _playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _playersButton.Size = _buttonSize
 _playersButton.Position = UDim2.new(1, -60, 1, -240)
@@ -317,7 +317,7 @@ UIConfig.CreateCorner(_playersButton)
 
 -- Buff按钮
 local _buffButton = Instance.new('TextButton')
-_buffButton.Name = '_buffButton'
+_buffButton.Name = 'BuffButton'
 _buffButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _buffButton.Size = _buttonSize
 _buffButton.Position = UDim2.new(1, -60, 1, -320)
@@ -335,7 +335,7 @@ UIConfig.CreateCorner(_buffButton)
 
 -- 抽奖按钮
 local _lootButton = Instance.new('TextButton')
-_lootButton.Name = '_lootButton'
+_lootButton.Name = 'LootButton'
 _lootButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _lootButton.Size = _buttonSize
 _lootButton.Position = UDim2.new(1, -60, 1, -160)
@@ -407,7 +407,7 @@ UIConfig.CreateCorner(_lootButton)
 
 -- 背包按钮
 local _backpackButton = Instance.new('TextButton')
-_backpackButton.Name = '_backpackButton'
+_backpackButton.Name = 'BackpackButton'
 _backpackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _backpackButton.Size = _buttonSize
 _backpackButton.Position = UDim2.new(1, -60, 1, -80)
@@ -471,7 +471,7 @@ Knit:OnStart():andThen(function()
         if ClientData.IsAdmin then
             -- 用户控制按钮
             local _adminButton = Instance.new('TextButton')
-            _adminButton.Name = '_adminButton'
+            _adminButton.Name = 'AdminButton'
             _adminButton.AnchorPoint = Vector2.new(0.5, 0.5)
             _adminButton.Size = _buttonSize
             _adminButton.Position = UDim2.new(1, -60, 0, 60) -- 右侧5%位置

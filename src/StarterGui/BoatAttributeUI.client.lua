@@ -6,6 +6,7 @@
 print('BoatAttributeUI.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local TweenService = game:GetService('TweenService')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
 local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
@@ -109,12 +110,73 @@ end
 local _healthBar, _healthFill, _healthLabel = createLabel(_container, UDim2.new(0, 0, 0, 0), Vector2.new(0, 0), Color3.new(0.5, 1, 0.2))
 local _speedBar, _speedFill, _speedLabel = createLabel(_container, UDim2.new(0, 0, 1, 0), Vector2.new(0, 1), Color3.new(0.2, 0.6, 1))
 
+-- 存储当前值用于动画计算
+local currentHealth = 0
+local currentMaxHealth = 100
+local currentSpeed = 0
+local currentMaxSpeed = 100
+
+-- 动画相关变量
+local healthTween = nil
+local speedTween = nil
+
 local function UpdateUI(type, value, maxValue)
     if type == 'Health' then
-        _healthFill.Size = UDim2.new(value / maxValue, 0, 1, 0)
+        local oldHealth = currentHealth
+        local oldMaxHealth = currentMaxHealth
+        currentHealth = value
+        currentMaxHealth = maxValue
+        
+        -- 停止之前的动画
+        if healthTween then
+            healthTween:Cancel()
+        end
+        
+        -- 如果最大值发生变化，先调整比例
+        if oldMaxHealth ~= maxValue then
+            local adjustedRatio = oldHealth / maxValue
+            _healthFill.Size = UDim2.new(adjustedRatio, 0, 1, 0)
+        end
+        
+        -- 创建平滑动画到新的比例
+        local targetRatio = value / maxValue
+        healthTween = TweenService:Create(
+            _healthFill,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = UDim2.new(targetRatio, 0, 1, 0)}
+        )
+        healthTween:Play()
+        
+        -- 更新文本
         _healthLabel.Text = string.format(LanguageConfig.Get(10013), math.floor(value), math.floor(maxValue))
+        
     elseif type == 'Speed' then
-        _speedFill.Size = UDim2.new(value / maxValue, 0, 1, 0)
+        local oldSpeed = currentSpeed
+        local oldMaxSpeed = currentMaxSpeed
+        currentSpeed = value
+        currentMaxSpeed = maxValue
+        
+        -- 停止之前的动画
+        if speedTween then
+            speedTween:Cancel()
+        end
+        
+        -- 如果最大值发生变化，先调整比例
+        if oldMaxSpeed ~= maxValue then
+            local adjustedRatio = oldSpeed / maxValue
+            _speedFill.Size = UDim2.new(adjustedRatio, 0, 1, 0)
+        end
+        
+        -- 创建平滑动画到新的比例
+        local targetRatio = value / maxValue
+        speedTween = TweenService:Create(
+            _speedFill,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {Size = UDim2.new(targetRatio, 0, 1, 0)}
+        )
+        speedTween:Play()
+        
+        -- 更新文本
         _speedLabel.Text = string.format(LanguageConfig.Get(10014), math.floor(value), math.floor(maxValue))
     end
 end

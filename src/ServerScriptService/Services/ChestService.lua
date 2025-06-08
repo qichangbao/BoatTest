@@ -16,28 +16,19 @@ local ChestService = Knit.CreateService({
 local CHEST_REWARDS = {
     -- 金币奖励配置
     gold = {
-        chance = 0, -- 60%概率获得金币
+        chance = 0.6, -- 60%概率获得金币
         minAmount = 10,
         maxAmount = 50,
     },
     
     -- Buff奖励配置
     buff = {
-        chance = 0, -- 30%概率获得Buff
-        availableBuffs = {
-            "speed_boost",
-            "health_boost",
-            "attack_boost",
-            "fishing_bonus"
-        },
-        minDuration = 30,
-        maxDuration = 120,
+        chance = 0.3, -- 30%概率获得Buff
     },
     
     -- 物品奖励配置
     item = {
-        chance = 1, -- 40%概率获得物品
-        -- 使用ItemConfig中的随机物品系统
+        chance = 0.4, -- 40%概率获得物品
     }
 }
 
@@ -82,36 +73,45 @@ local function sendRewardNotification(player, rewardType, rewardData)
 end
 
 -- 处理宝箱奖励
-function ChestService:ProcessChestRewards(player)
+function ChestService:ProcessChestRewards(player, chestPosition)
     if not player or not player.Parent then
         return false
     end
     
+    -- 如果没有提供宝箱位置，使用默认位置
+    if not chestPosition then
+        chestPosition = Vector3.new(0, 10, 0)
+    end
+    
     -- 检查金币奖励
-    if math.random(0, 1) < CHEST_REWARDS.gold.chance then
+    if math.random() < CHEST_REWARDS.gold.chance then
         local goldAmount = generateRandomGold()
         if addGoldToPlayer(player, goldAmount) then
-            sendRewardNotification(player, "Gold", {amount = goldAmount})
+            sendRewardNotification(player, "Gold", {amount = goldAmount, chestPosition = chestPosition})
             print("ChestService: 玩家 " .. player.Name .. " 获得金币: " .. goldAmount)
         end
     end
     
     -- 检查Buff奖励
-    if math.random(0, 1) < CHEST_REWARDS.buff.chance then
+    if math.random() < CHEST_REWARDS.buff.chance then
         local buffData = generateRandomBuff()
         if addBuffToPlayer(player, buffData) then
+            sendRewardNotification(player, "Buff", {displayName = buffData.displayName, chestPosition = chestPosition})
             print("ChestService: 玩家 " .. player.Name .. " 获得Buff: " .. buffData.displayName)
         end
     end
     
     -- 检查物品奖励
-    if math.random(0, 1) < CHEST_REWARDS.item.chance then
+    if math.random() < CHEST_REWARDS.item.chance then
         local itemData = generateRandomItem()
         if itemData and addItemToPlayer(player, itemData) then
+            sendRewardNotification(player, "Item", {itemName = itemData.itemName, chestPosition = chestPosition})
             print("ChestService: 玩家 " .. player.Name .. " 获得物品: " .. itemData.itemName)
         end
     end
     
+    sendRewardNotification(player, "")
+    print("ChestService: 玩家捡到了空箱子:", player.Name)
     return true
 end
 

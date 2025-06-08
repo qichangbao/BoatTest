@@ -158,10 +158,19 @@ Knit:OnStart():andThen(function()
 
     -- 监听宝箱奖励事件
     local chestService = Knit.GetService('ChestService')
+    local RewardFlyEffect = require(game:GetService('StarterGui'):WaitForChild('RewardFlyEffect'))
+    
     chestService.RewardReceived:Connect(function(rewardType, rewardData)
+        -- 播放飞行特效
+        if rewardData and rewardData.chestPosition then
+            RewardFlyEffect.PlayEffect(rewardType, rewardData.chestPosition)
+        end
+        
         if rewardType == "Gold" then
             Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), rewardData.amount) .. LanguageConfig.Get(10007))
             return
+        elseif rewardType == "" then
+            Knit.GetController('UIController').ShowTip:Fire(10051)
         end
     end)
     

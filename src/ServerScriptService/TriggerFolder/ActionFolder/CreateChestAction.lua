@@ -157,7 +157,8 @@ function CreateChestAction:Execute(data)
         local Knit = require(game.ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
         local ChestService = Knit.GetService('ChestService')
         if ChestService and ChestService.ProcessChestRewards then
-            ChestService:ProcessChestRewards(player)
+            local chestPosition = chest.PrimaryPart.Position
+            ChestService:ProcessChestRewards(player, chestPosition)
         end
     end
 
