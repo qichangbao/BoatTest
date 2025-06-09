@@ -90,36 +90,33 @@ local function createBuffItem(buffId, buffType, remainingTime, config)
     
     UIConfig.CreateCorner(buffItem, UDim.new(0, 8))
     
-    -- BUFF图标（暂时用颜色代替）
-    local icon = Instance.new("Frame")
-    icon.Name = "Icon"
-    icon.Size = UDim2.new(0, 20, 0, 20)
-    icon.Position = UDim2.new(0, 2, 0, 2)
-    icon.BorderSizePixel = 0
-    icon.Parent = buffItem
-    
-    local iconCorner = Instance.new("UICorner")
-    iconCorner.CornerRadius = UDim.new(0, 2)
-    iconCorner.Parent = icon
-    
-    -- 根据BUFF类型设置图标颜色
-    if buffType == "speed" then
-        icon.BackgroundColor3 = Color3.fromRGB(0, 255, 255) -- 青色
-    elseif buffType == "health" then
-        icon.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- 红色
-    elseif buffType == "damage" then
-        icon.BackgroundColor3 = Color3.fromRGB(255, 165, 0) -- 橙色
-    else
-        icon.BackgroundColor3 = Color3.fromRGB(128, 128, 128) -- 灰色
+    -- 格式化效果显示文本
+    local function formatEffectText()
+        local effectText = ""
+        if config.effectType == "additive" then
+            effectText = string.format("+%.0f", config.value)
+        elseif config.effectType == "multiplier" then
+            effectText = string.format("×%.1f", config.value)
+        elseif config.effectType == "chance" then
+            effectText = string.format("+%.0f%%", config.value * 100)
+        else
+            effectText = string.format("+%.1f", config.value)
+        end
+        return effectText
     end
     
-    -- BUFF名称
+    -- BUFF名称和效果
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Name = "NameLabel"
     nameLabel.Size = UDim2.new(1, -80, 1, 0)
-    nameLabel.Position = UDim2.new(0, 25, 0, 0)
+    nameLabel.Position = UDim2.new(0, 10, 0, 0)
     nameLabel.BackgroundTransparency = 1
-    nameLabel.Text = config.displayName or buffId
+    
+    -- 组合显示名称和效果值
+    local displayName = config.displayName or buffId
+    local effectText = formatEffectText()
+    nameLabel.Text = displayName .. " (" .. effectText .. ")"
+    
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.TextScaled = true
     nameLabel.Font = UIConfig.Font

@@ -29,6 +29,7 @@ local UIController = Knit.CreateController {
     ShowSystemMessage = Signal.new(),
     BuffChanged = Signal.new(),
     ShowBuffUI = Signal.new(),
+    ShowIslandManageUI = Signal.new(),
 }
 
 function UIController:KnitInit()

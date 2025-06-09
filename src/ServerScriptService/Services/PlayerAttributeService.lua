@@ -90,6 +90,8 @@ function PlayerAttributeService:KnitInit()
                 end
             end
         end)
+        -- 设置玩家的幸运值
+        player:SetAttribute("Lucky", 0)
 
         local DBService = Knit.GetService('DBService')
         DBService:PlayerAdded(player)

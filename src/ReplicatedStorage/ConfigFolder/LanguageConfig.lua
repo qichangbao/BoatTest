@@ -50,17 +50,30 @@ local Text = {
     [10049] = {zh_cn = "你登陆了%s", en_us = "你登陆了%s"},
     [10050] = {zh_cn = "欢迎你进入游戏", en_us = "欢迎你进入游戏"},
     [10051] = {zh_cn = "运气太衰，这是个空箱子", en_us = "运气太衰，这是个空箱子"},
+    [10052] = {zh_cn = "速度", en_us = "速度"},
+    [10053] = {zh_cn = "生命", en_us = "生命"},
+    [10054] = {zh_cn = "幸运", en_us = "幸运"},
 }
 
 local Players = game:GetService("Players")
 local LocalizationService = game:GetService("LocalizationService")
+local RunService = game:GetService("RunService")
 
 local curCountryCode = 'zh_cn'
-local countryCode = LocalizationService:GetCountryRegionForPlayerAsync(Players.LocalPlayer)
-if countryCode == "CN" then
-    curCountryCode = 'zh_cn'
-else
-    curCountryCode = 'en_us'
+
+-- 只在客户端获取玩家地区信息
+if RunService:IsClient() and Players.LocalPlayer then
+    local success, countryCode = pcall(function()
+        return LocalizationService:GetCountryRegionForPlayerAsync(Players.LocalPlayer)
+    end)
+    
+    if success and countryCode then
+        if countryCode == "CN" then
+            curCountryCode = 'zh_cn'
+        else
+            curCountryCode = 'en_us'
+        end
+    end
 end
 
 function LanguageConfig.Get(key)

@@ -43,8 +43,7 @@ end
 
 -- 客户端登陆时调用，获取跨服岛主数据
 function SystemService:GetIsLandOwner(player)
-    local data = table.clone(_IsLandOwners)
-    return data
+    return _IsLandOwners
 end
 
 function SystemService:UpdateIsLandOwner(player, landName)
@@ -58,7 +57,8 @@ function SystemService:UpdateIsLandOwner(player, landName)
         }
     )
 
-    _IsLandOwners[landName] = {userId = player.UserId, playerName = player.Name}
+    local isLandData = {towerData = {}}
+    _IsLandOwners[landName] = {userId = player.UserId, playerName = player.Name, isLandData = isLandData}
 end
 
 function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
@@ -176,7 +176,6 @@ end
 
 function SystemService:KnitInit()
     print('SystemService initialized')
-    
     -- 开启协程定时检查主服务器，防止主服务器崩溃
     task.spawn(function()
         CheckMainServer()
@@ -186,7 +185,8 @@ function SystemService:KnitInit()
     -- 跨服接收土地更新领主消息
     MessagingService:SubscribeAsync(IsLandOwnerTag, function(message)
         print("Received message for IsLandOwnerTag",  message)
-        _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
+        local isLandData = {towerData = {}}
+        _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName, isLandData = isLandData}
         self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
 
         -- 如果是主服务器，则更新岛主数据库

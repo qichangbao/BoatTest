@@ -134,7 +134,7 @@ local function UpdateUI(type, value, maxValue)
         
         -- 如果最大值发生变化，先调整比例
         if oldMaxHealth ~= maxValue then
-            local adjustedRatio = oldHealth / maxValue
+            local adjustedRatio = math.min(oldHealth / maxValue, 1)
             _healthFill.Size = UDim2.new(adjustedRatio, 0, 1, 0)
         end
         
@@ -163,7 +163,7 @@ local function UpdateUI(type, value, maxValue)
         
         -- 如果最大值发生变化，先调整比例
         if oldMaxSpeed ~= maxValue then
-            local adjustedRatio = oldSpeed / maxValue
+            local adjustedRatio = math.min(oldSpeed / maxValue, 1)
             _speedFill.Size = UDim2.new(adjustedRatio, 0, 1, 0)
         end
         

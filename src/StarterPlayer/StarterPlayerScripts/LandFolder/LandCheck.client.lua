@@ -49,7 +49,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
     end
 
     local landData = GameConfig.FindIsLand(landName)
-    if not landData then
+    if not landData or not landData.OwnerModelOffsetPos then
         return
     end
     local model = Interface.CreateIsLandOwnerModel(data.userId)

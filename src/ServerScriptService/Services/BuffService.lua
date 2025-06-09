@@ -25,7 +25,7 @@ local function initPlayerBuffs(player)
             speed = {},
             health = {},
             damage = {},
-            other = {},
+            lucky = {},
         }
     end
 end
@@ -185,6 +185,14 @@ local function restoreBoatAttributes(player, buffType)
     end
 end
 
+-- 应用幸运BUFF
+local function applyLuckyBuff(player)
+    local effect = calculateBuffEffect(player, "lucky")
+    local curLucky = player:GetAttribute("Lucky") or 0
+    local newLucky = curLucky + effect.chance
+    player:SetAttribute("Lucky", newLucky)
+end
+
 -- 获取伤害BUFF效果（供其他系统调用）
 function BuffService:GetDamageMultiplier(player)
     if not playerBuffs[player.UserId] then
@@ -233,6 +241,8 @@ function BuffService:AddBuff(player, buffData)
         applySpeedBuff(player)
     elseif buffData.buffType == "health" then
         applyHealthBuff(player)
+    elseif buffData.buffType == "lucky" then
+        applyLuckyBuff(player)
     end
     
     -- 通知客户端

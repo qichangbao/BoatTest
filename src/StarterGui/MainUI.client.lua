@@ -422,6 +422,24 @@ _backpackButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_backpackButton)
 
+-- 岛屿管理按钮
+local _islandManageButton = Instance.new('TextButton')
+_islandManageButton.Name = 'IslandManageButton'
+_islandManageButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_islandManageButton.Size = _buttonSize
+_islandManageButton.Position = UDim2.new(1, -60, 1, -160)
+_islandManageButton.Text = "岛屿管理"
+_islandManageButton.Font = UIConfig.Font
+_islandManageButton.TextSize = _buttonTextSize
+_islandManageButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)  -- 森林绿
+_islandManageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_islandManageButton.Parent = _screenGui
+-- 岛屿管理按钮点击事件
+_islandManageButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowIslandManageUI:Fire()
+end)
+UIConfig.CreateCorner(_islandManageButton)
+
 local function Destroy()
     print("MainUI Destroy")
     if _renderSteppedConnection then

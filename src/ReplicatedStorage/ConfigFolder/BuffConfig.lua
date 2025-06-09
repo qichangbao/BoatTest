@@ -1,3 +1,5 @@
+local LanguageConfig = require(script.Parent:WaitForChild("LanguageConfig"))
+
 local _data = {
     -- -- 攻击/伤害类BUFF
     -- damage = {
@@ -10,62 +12,58 @@ local _data = {
     --             effectType = "multiplier",
     --             value = 1.2,
     --             duration = 60,
-    --             icon = "rbxassetid://12345678",
     --             Random = 10,
     --         },
     --     }
     -- },
     
-    -- 速度类BUFF
-    speed = {
-        buffType = "speed",
-        Random = 100,
-        Parts = {
-            speed_boost = {
-                displayName = "机动强化",
-                buffType = "speed",
-                effectType = "additive",
-                value = 5,
-                duration = 45,
-                icon = "rbxassetid://87654321",
-                Random = 10,
-            },
-        }
-    },
-    
-    -- 生命类BUFF
-    health = {
-        buffType = "health",
-        Random = 100,
-        Parts = {
-            health_boost = {
-                displayName = "轻微生命提升",
-                buffType = "health",
-                effectType = "multiplier",
-                value = 1.2,
-                duration = 60,
-                icon = "rbxassetid://11111111",
-                Random = 10,
-            },
-        }
-    },
-    
-    -- -- 其他类BUFF
-    -- other = {
-    --     buffType = "other",
+    -- -- 速度类BUFF
+    -- speed = {
+    --     buffType = "speed",
     --     Random = 100,
     --     Parts = {
-    --         fishing_bonus = {
-    --             displayName = "渔获加成",
-    --             buffType = "other",
-    --             effectType = "chance",
-    --             value = 0.15,
-    --             duration = 90,
-    --             icon = "rbxassetid://13579246",
+    --         speed_boost = {
+    --             displayName = LanguageConfig.Get(10052),
+    --             buffType = "speed",
+    --             effectType = "additive",
+    --             value = 5,
+    --             duration = 45,
     --             Random = 10,
     --         },
     --     }
     -- },
+    
+    -- -- 生命类BUFF
+    -- health = {
+    --     buffType = "health",
+    --     Random = 100,
+    --     Parts = {
+    --         health_boost = {
+    --             displayName = LanguageConfig.Get(10053),
+    --             buffType = "health",
+    --             effectType = "multiplier",
+    --             value = 1.2,
+    --             duration = 60,
+    --             Random = 10,
+    --         },
+    --     }
+    -- },
+    
+    -- 幸运类BUFF
+    lucky = {
+        buffType = "lucky",
+        Random = 100,
+        Parts = {
+            lucky_boost = {
+                displayName = LanguageConfig.Get(10054),
+                buffType = "lucky",
+                effectType = "chance",
+                value = 0.3,
+                duration = 90,
+                Random = 100,
+            },
+        }
+    },
 }
 
 local BuffConfig = {}

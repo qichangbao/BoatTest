@@ -230,9 +230,9 @@ Knit:OnStart():andThen(function()
         _payButton.Visible = false
         _intoIsLandButton.Visible = false
         _contentLabel.Text = LanguageConfig.Get(10035)
-        _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
+        _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
 
-        if landData.Price == 0 then
+        if not landData.Price or landData.Price == 0 then
             _intoIsLandButton.Visible = true
             _occupyButton.Visible = false
             _payButton.Visible = false
@@ -249,7 +249,7 @@ Knit:OnStart():andThen(function()
                 _occupyButton.Visible = true
                 _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
                 _payButton.Visible = true
-                _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price)
+                _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
                 _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
             end
         else

@@ -83,11 +83,13 @@ function ChestService:ProcessChestRewards(player, chestPosition)
         chestPosition = Vector3.new(0, 10, 0)
     end
     
+    local isReward = false
     -- 检查金币奖励
     if math.random() < CHEST_REWARDS.gold.chance then
         local goldAmount = generateRandomGold()
         if addGoldToPlayer(player, goldAmount) then
             sendRewardNotification(player, "Gold", {amount = goldAmount, chestPosition = chestPosition})
+            isReward = true
             print("ChestService: 玩家 " .. player.Name .. " 获得金币: " .. goldAmount)
         end
     end
@@ -97,6 +99,7 @@ function ChestService:ProcessChestRewards(player, chestPosition)
         local buffData = generateRandomBuff()
         if addBuffToPlayer(player, buffData) then
             sendRewardNotification(player, "Buff", {displayName = buffData.displayName, chestPosition = chestPosition})
+            isReward = true
             print("ChestService: 玩家 " .. player.Name .. " 获得Buff: " .. buffData.displayName)
         end
     end
@@ -106,12 +109,15 @@ function ChestService:ProcessChestRewards(player, chestPosition)
         local itemData = generateRandomItem()
         if itemData and addItemToPlayer(player, itemData) then
             sendRewardNotification(player, "Item", {itemName = itemData.itemName, chestPosition = chestPosition})
+            isReward = true
             print("ChestService: 玩家 " .. player.Name .. " 获得物品: " .. itemData.itemName)
         end
     end
     
-    sendRewardNotification(player, "")
-    print("ChestService: 玩家捡到了空箱子:", player.Name)
+    if not isReward then
+        sendRewardNotification(player, "")
+        print("ChestService: 玩家捡到了空箱子:", player.Name)
+    end
     return true
 end
 
