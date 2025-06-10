@@ -33,10 +33,10 @@ end
 
 Knit:OnStart():andThen(function()
     Players.LocalPlayer:GetAttributeChangedSignal('Gold'):Connect(function()
-        ClientData.Gold = Players.LocalPlayer:GetAttribute('Gold')
+        ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold'))
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
-    ClientData.Gold = Players.LocalPlayer:GetAttribute('Gold') or 0
+    ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold')) or 0
     if ClientData.Gold ~= 0 then
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end
@@ -62,6 +62,12 @@ Knit:OnStart():andThen(function()
     SystemService.IsLandOwnerChanged:Connect(function(data)
         ClientData.IsLandOwners[data.landName] = {userId = data.userId, playerName = data.playerName}
         Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
+    end)
+    SystemService.IsLandInfoChanged:Connect(function(data)
+        if not ClientData.IsLandOwners[data.landName] then
+            return
+        end
+        ClientData.IsLandOwners[data.landName].towerData = data.isLandData
     end)
 
     local InventoryService = Knit.GetService('InventoryService')

@@ -18,6 +18,7 @@ local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'MessageBoxUI_GUI'
 _screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
+_screenGui.DisplayOrder = 100
 _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
@@ -38,7 +39,7 @@ end
 local _closeButton = UIConfig.CreateCloseButton(_frame, function()
     _screenGui.Enabled = false
 end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0, 0)
 
 -- 标题
 local _titleLabel = Instance.new('TextLabel')
@@ -70,7 +71,7 @@ _buttonContainer.BackgroundTransparency = 1
 _buttonContainer.Parent = _frame
 
 -- 确认按钮
-local _confirmButton = UIConfig.CreateConfirmButton(_buttonContainer, function()
+local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
     if _confirmCallFunc then
         _confirmCallFunc()
     end
@@ -79,20 +80,13 @@ end)
 _confirmButton.Position = UDim2.new(0.7, 0, 0.85, 0)
 
 -- 取消按钮
-local _cancelButton = UIConfig.CreateCancelButton(_buttonContainer, function()
+local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
     if _cancelCallFunc then
         _cancelCallFunc()
     end
     Hide()
 end)
 _cancelButton.Position = UDim2.new(0.3, 0, 0.85, 0)
-
-local uiListLayout = Instance.new('UIListLayout')
-uiListLayout.FillDirection = Enum.FillDirection.Horizontal
-uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-uiListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-uiListLayout.Padding = UDim.new(0.1, 0)
-uiListLayout.Parent = _buttonContainer
 
 local function Show(config)
     -- 设置基础属性

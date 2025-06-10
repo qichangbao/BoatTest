@@ -27,7 +27,7 @@ _screenGui.Parent = playerGui
 UIConfig.CreateBlock(_screenGui)
 
 local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0, 900, 0, 450)
+_frame.Size = UDim2.new(0, 700, 0, 450)
 UIConfig.CreateCorner(_frame, UDim.new(0, 12))
 
 -- 标题栏
@@ -70,10 +70,10 @@ leftTitleLabel.Name = "LeftTitleLabel"
 leftTitleLabel.Size = UDim2.new(1, 0, 0, 40)
 leftTitleLabel.Position = UDim2.new(0, 0, 0, 0)
 leftTitleLabel.BackgroundColor3 = Color3.fromRGB(74, 144, 226)
-leftTitleLabel.Text = "🗺️ 我的岛屿"
+leftTitleLabel.Text = "我的岛屿"
 leftTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-leftTitleLabel.TextSize = 16
-leftTitleLabel.Font = Enum.Font.SourceSansBold
+leftTitleLabel.TextSize = 18
+leftTitleLabel.Font = UIConfig.Font
 leftTitleLabel.Parent = _leftFrame
 UIConfig.CreateCorner(leftTitleLabel, UDim.new(0, 10))
 
@@ -117,6 +117,7 @@ _rightContent.Parent = _rightFrame
 local _selectedIsland = nil
 local _selectedIslandData = nil
 local updateIslandDetails = nil
+local refreshIslandData = nil
 
 local function selectIsland(islandItem, islandData)
     -- 重置所有按钮颜色
@@ -143,10 +144,10 @@ local function createIslandItem(islandData)
     islandItem.Name = "IslandItem_" .. islandData.id
     islandItem.Size = UDim2.new(1, -5, 0, 50)
     islandItem.BackgroundColor3 = Color3.fromRGB(73, 80, 87)
-    islandItem.Text = "🏝️ " .. islandData.name
+    islandItem.Text = islandData.name
     islandItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-    islandItem.TextSize = 14
-    islandItem.Font = Enum.Font.SourceSans
+    islandItem.TextSize = 16
+    islandItem.Font = UIConfig.Font
     islandItem.Parent = _islandList
     UIConfig.CreateCorner(islandItem, UDim.new(0, 8))
     
@@ -159,7 +160,7 @@ local function createIslandItem(islandData)
 end
 
 -- 刷新岛屿数据
-local function refreshIslandData()
+refreshIslandData = function()
     if _selectedIsland and _selectedIslandData then
         -- 重新获取岛屿数据
         Knit.GetService('IslandManageService'):GetIslandData(_selectedIsland):andThen(function(islandData)
@@ -171,17 +172,7 @@ local function refreshIslandData()
     end
 end
 
--- 更新岛屿详情显示
-updateIslandDetails = function(islandData)
-    -- 清除现有内容
-    for _, child in pairs(_rightContent:GetChildren()) do
-        child:Destroy()
-    end
-    
-    -- 获取岛屿配置
-    local islandConfig = GameConfig.FindIsLand(islandData.name)
-    local maxTowers = islandConfig and islandConfig.TowerOffsetPos and #islandConfig.TowerOffsetPos or 0
-    
+local function createTowerInfo(islandData, maxTowers)
     -- 箭塔信息区域
     local towerInfoFrame = Instance.new("Frame")
     towerInfoFrame.Name = "TowerInfoFrame"
@@ -197,31 +188,47 @@ updateIslandDetails = function(islandData)
     towerCountLabel.Size = UDim2.new(0.5, -15, 0, 35)
     towerCountLabel.Position = UDim2.new(0, 15, 0, 15)
     towerCountLabel.BackgroundTransparency = 1
-    towerCountLabel.Text = string.format("🗼 箭塔数量: %d/%d", islandData.towerCount or 0, maxTowers)
+    towerCountLabel.Text = string.format("箭塔数量: %d/%d", #islandData.towerData or 0, maxTowers)
     towerCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    towerCountLabel.TextSize = 14
-    towerCountLabel.Font = Enum.Font.SourceSansBold
+    towerCountLabel.TextSize = 18
+    towerCountLabel.Font = UIConfig.Font
     towerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
     towerCountLabel.Parent = towerInfoFrame
     
-    -- 箭数量标签
-    local arrowCountLabel = Instance.new("TextLabel")
-    arrowCountLabel.Name = "ArrowCountLabel"
-    arrowCountLabel.Size = UDim2.new(0.5, -15, 0, 35)
-    arrowCountLabel.Position = UDim2.new(0.5, 0, 0, 15)
-    arrowCountLabel.BackgroundTransparency = 1
-    local maxArrows = (islandData.towerCount or 0) * 100
-    arrowCountLabel.Text = string.format("🏹 箭数量: %d/%d", islandData.arrowCount or 0, maxArrows)
-    arrowCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    arrowCountLabel.TextSize = 14
-    arrowCountLabel.Font = Enum.Font.SourceSansBold
-    arrowCountLabel.TextXAlignment = Enum.TextXAlignment.Left
-    arrowCountLabel.Parent = towerInfoFrame
+    -- 总收益
+    local dailyIncome = 1000
+    local incomeLabel = Instance.new("TextLabel")
+    incomeLabel.Name = "IncomeLabel"
+    incomeLabel.Size = UDim2.new(0.5, -15, 0, 35)
+    incomeLabel.Position = UDim2.new(0, 15, 0, 40)
+    incomeLabel.BackgroundTransparency = 1
+    incomeLabel.Text = string.format("总收益: %d", dailyIncome)
+    incomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    incomeLabel.TextSize = 18
+    incomeLabel.Font = UIConfig.Font
+    incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    incomeLabel.Parent = towerInfoFrame
     
+    -- 当日收益
+    local netIncome = 100
+    local netIncomeLabel = Instance.new("TextLabel")
+    netIncomeLabel.Name = "NetIncomeLabel"
+    netIncomeLabel.Size = UDim2.new(0.5, -15, 0, 35)
+    netIncomeLabel.Position = UDim2.new(0.5, 0, 0, 40)
+    netIncomeLabel.BackgroundTransparency = 1
+    netIncomeLabel.Text = string.format("今日收益: %d", netIncome)
+    netIncomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    netIncomeLabel.Font = UIConfig.Font
+    netIncomeLabel.TextSize = 18
+    netIncomeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    netIncomeLabel.Parent = towerInfoFrame
+end
+
+local function createTowerPosition(islandData, maxTowers)
     -- 箭塔位置管理区域
     local towerPositionFrame = Instance.new("Frame")
     towerPositionFrame.Name = "TowerPositionFrame"
-    towerPositionFrame.Size = UDim2.new(1, 0, 0, 200)
+    towerPositionFrame.Size = UDim2.new(1, 0, 0, 280)
     towerPositionFrame.Position = UDim2.new(0, 0, 0, 100)
     towerPositionFrame.BackgroundColor3 = Color3.fromRGB(73, 80, 87)
     towerPositionFrame.Parent = _rightContent
@@ -233,10 +240,10 @@ updateIslandDetails = function(islandData)
     towerPositionTitle.Size = UDim2.new(1, 0, 0, 30)
     towerPositionTitle.Position = UDim2.new(0, 0, 0, 0)
     towerPositionTitle.BackgroundTransparency = 1
-    towerPositionTitle.Text = "🏰 箭塔位置管理"
+    towerPositionTitle.Text = "箭塔管理"
     towerPositionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    towerPositionTitle.TextSize = 16
-    towerPositionTitle.Font = Enum.Font.SourceSansBold
+    towerPositionTitle.TextSize = 18
+    towerPositionTitle.Font = UIConfig.Font
     towerPositionTitle.Parent = towerPositionFrame
     
     -- 箭塔位置滚动区域
@@ -254,42 +261,33 @@ updateIslandDetails = function(islandData)
     -- 网格布局
     local gridLayout = Instance.new("UIGridLayout")
     gridLayout.CellSize = UDim2.new(0.23, 0, 0, 80)
-    gridLayout.CellPadding = UDim2.new(0.01, 0, 0, 10)
+    gridLayout.CellPadding = UDim2.new(0.02, 0, 0, 10)
     gridLayout.FillDirectionMaxCells = 4
     gridLayout.Parent = positionScrollFrame
     
     -- 创建箭塔位置槽位模板
-    local positionTemplate = Instance.new("Frame")
+    local positionTemplate = Instance.new("TextButton")
     positionTemplate.Name = "PositionTemplate"
     positionTemplate.Size = UDim2.new(0.23, 0, 0, 80)
     positionTemplate.BackgroundColor3 = Color3.fromRGB(68, 75, 82)
+    positionTemplate.Text = ""
+    positionTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+    positionTemplate.TextSize = 16
+    positionTemplate.Font = UIConfig.Font
     positionTemplate.Visible = false
     positionTemplate.Parent = positionScrollFrame
     UIConfig.CreateCorner(positionTemplate, UDim.new(0, 8))
     
-    -- 操作按钮
-    local actionButton = Instance.new("TextButton")
-    actionButton.Name = "ActionButton"
-    actionButton.Size = UDim2.new(1, -10, 0, 35)
-    actionButton.Position = UDim2.new(0, 5, 0, 25)
-    actionButton.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
-    actionButton.Text = "🛒 购买箭塔"
-    actionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    actionButton.TextSize = 11
-    actionButton.Font = Enum.Font.SourceSansBold
-    actionButton.Parent = positionTemplate
-    UIConfig.CreateCorner(actionButton, UDim.new(0, 6))
-    
     -- 价格/状态标签
     local statusLabel = Instance.new("TextLabel")
     statusLabel.Name = "StatusLabel"
-    statusLabel.Size = UDim2.new(1, -10, 0, 15)
-    statusLabel.Position = UDim2.new(0, 5, 0, 62)
+    statusLabel.Size = UDim2.new(1, -10, 0, 18)
+    statusLabel.Position = UDim2.new(0, 5, 0, 60)
     statusLabel.BackgroundTransparency = 1
-    statusLabel.Text = "💰 100金币"
+    statusLabel.Text = ""
     statusLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
-    statusLabel.TextSize = 10
-    statusLabel.Font = Enum.Font.SourceSans
+    statusLabel.TextSize = 16
+    statusLabel.Font = UIConfig.Font
     statusLabel.TextXAlignment = Enum.TextXAlignment.Center
     statusLabel.Parent = positionTemplate
     
@@ -300,15 +298,14 @@ updateIslandDetails = function(islandData)
         positionSlot.Visible = true
         positionSlot.Parent = positionScrollFrame
         
-        local actionBtn = positionSlot:FindFirstChild("ActionButton")
         local statusLbl = positionSlot:FindFirstChild("StatusLabel")
         
         -- 检查该位置是否已有箭塔
         local hasTower = false
         local towerInfo = nil
-        if islandData.towers then
-            for _, tower in ipairs(islandData.towers) do
-                if tower.position == i then
+        if islandData.towerData then
+            for _, tower in ipairs(islandData.towerData) do
+                if tower.index == i then
                     hasTower = true
                     towerInfo = tower
                     break
@@ -319,327 +316,65 @@ updateIslandDetails = function(islandData)
         -- 检查该位置是否超出岛屿允许的箭塔数量
          if i > maxTowers then
              -- 超出岛屿允许的箭塔数量，显示为空位置
-             actionBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-             actionBtn.Text = "❌ 不可用"
-             actionBtn.Active = false
+             positionSlot.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+             positionSlot.Text = "不可用"
+             positionSlot.Active = false
              statusLbl.Text = "此岛屿不支持"
              statusLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
         elseif hasTower and towerInfo then
-            -- 已有箭塔，显示补充箭矢
-            local towerData = TowerConfig[towerInfo.type]
-            if towerData then
-                local currentArrows = (islandData.towerArrows and islandData.towerArrows[i]) or 0
-                if currentArrows >= towerData.MaxArrow then
-                    actionBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-                    actionBtn.Text = "✅ 箭矢已满"
-                    actionBtn.Active = false
-                    statusLbl.Text = string.format("🏹 %d/%d", currentArrows, towerData.MaxArrow)
-                    statusLbl.TextColor3 = Color3.fromRGB(144, 238, 144)
-                elseif (ClientData.Gold or 0) < 10 then
-                    actionBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 100)
-                    actionBtn.Text = "💸 金币不足"
-                    actionBtn.Active = false
-                    statusLbl.Text = "需要10金币"
-                    statusLbl.TextColor3 = Color3.fromRGB(255, 99, 71)
-                else
-                    actionBtn.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-                    actionBtn.Text = "🏹 补充箭矢"
-                    actionBtn.Active = true
-                    statusLbl.Text = string.format("🏹 %d/%d (10金币/100支)", currentArrows, towerData.MaxArrow)
-                    statusLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
-                end
-                
-                -- 补充箭矢点击事件
-                actionBtn.MouseButton1Click:Connect(function()
-                    if currentArrows < towerData.MaxArrow and (ClientData.Gold or 0) >= 10 then
-                        Knit.GetService('IslandManageService'):BuyArrows(_selectedIsland, i, 100):andThen(function(success)
-                            if success then
-                                Knit.GetController('UIController').ShowTip:Fire(10019) -- 购买成功
-                                refreshIslandData()
-                            else
-                                Knit.GetController('UIController').ShowTip:Fire(10044) -- 金币不够
-                            end
-                        end)
-                    end
-                end)
+            positionSlot.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+            positionSlot.Text = towerInfo.towerType
+            positionSlot.Active = false
+            local config = TowerConfig[towerInfo.towerType]
+            if config then
+                statusLbl.Text = string.format("伤害:%d", config.Damage)
+            else
+                statusLbl.Text = ""
             end
+            statusLbl.TextColor3 = Color3.fromRGB(144, 238, 144)
+            
+            -- 购买箭塔点击事件
+            positionSlot.MouseButton1Click:Connect(function()
+                Knit.GetController('UIController').ShowMessageBox:Fire({Content = "你是否要拆除此箭塔？", OnConfirm = function()
+                    Knit.GetService('IslandManageService'):RemoveTower(_selectedIsland, i):andThen(function(success, tipId)
+                        Knit.GetController('UIController').ShowTip:Fire(tipId)
+                        if success then
+                            refreshIslandData()
+                        end
+                    end)
+                end})
+            end)
         else
             -- 没有箭塔，显示购买选项
-            if (ClientData.Gold or 0) < 100 then
-                actionBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 100)
-                actionBtn.Text = "💸 金币不足"
-                actionBtn.Active = false
-                statusLbl.Text = "需要100金币"
-                statusLbl.TextColor3 = Color3.fromRGB(255, 99, 71)
-            else
-                actionBtn.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
-                actionBtn.Text = "🛒 购买箭塔"
-                actionBtn.Active = true
-                statusLbl.Text = "💰 100金币"
-                statusLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
-            end
+            positionSlot.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
+            positionSlot.Text = "购买箭塔"
+            positionSlot.TextColor3 = Color3.fromRGB(104, 48, 207)
+            positionSlot.Active = true
+            statusLbl.Text = ""
             
-            -- 购买箭塔点击事件（这里可以弹出箭塔类型选择）
-            actionBtn.MouseButton1Click:Connect(function()
-                if (ClientData.Gold or 0) >= 100 then
-                    -- 默认购买第一种箭塔类型，或者可以添加选择界面
-                    local firstTowerType = next(TowerConfig)
-                    if firstTowerType then
-                        Knit.GetService('IslandManageService'):BuyTower(_selectedIsland, firstTowerType, i):andThen(function(success)
-                            if success then
-                                Knit.GetController('UIController').ShowTip:Fire(10019) -- 购买成功
-                                refreshIslandData()
-                            else
-                                Knit.GetController('UIController').ShowTip:Fire(10044) -- 金币不够
-                            end
-                        end)
-                    end
-                end
+            -- 购买箭塔点击事件
+            positionSlot.MouseButton1Click:Connect(function()
+                Knit.GetController('UIController').ShowTowerSelectUI:Fire(_selectedIsland, i, refreshIslandData)
             end)
         end
     end
     
     -- 设置滚动框内容大小（固定为1行4个）
     positionScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 90)
-    
-    -- 已购买箭塔管理区域
-    local towerManageFrame = Instance.new("Frame")
-    towerManageFrame.Name = "TowerManageFrame"
-    towerManageFrame.Size = UDim2.new(1, 0, 0, 200)
-    towerManageFrame.Position = UDim2.new(0, 0, 0, 410)
-    towerManageFrame.BackgroundColor3 = Color3.fromRGB(73, 80, 87)
-    towerManageFrame.Parent = _rightContent
-    UIConfig.CreateCorner(towerManageFrame, UDim.new(0, 10))
-    
-    -- 箭塔管理标题
-    local towerManageTitle = Instance.new("TextLabel")
-    towerManageTitle.Name = "TowerManageTitle"
-    towerManageTitle.Size = UDim2.new(1, 0, 0, 35)
-    towerManageTitle.Position = UDim2.new(0, 0, 0, 0)
-    towerManageTitle.BackgroundTransparency = 1
-    towerManageTitle.Text = "🏰 箭塔管理"
-    towerManageTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    towerManageTitle.TextSize = 16
-    towerManageTitle.Font = Enum.Font.SourceSansBold
-    towerManageTitle.Parent = towerManageFrame
-    
-    -- 显示已购买的箭塔
-    if islandData.towers and #islandData.towers > 0 then
-        local scrollFrame = Instance.new("ScrollingFrame")
-        scrollFrame.Name = "TowerScrollFrame"
-        scrollFrame.Size = UDim2.new(1, -15, 1, -45)
-        scrollFrame.Position = UDim2.new(0, 8, 0, 40)
-        scrollFrame.BackgroundTransparency = 1
-        scrollFrame.BorderSizePixel = 0
-        scrollFrame.ScrollBarThickness = 8
-        scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(74, 144, 226)
-        scrollFrame.ScrollBarImageTransparency = 0.3
-        scrollFrame.Parent = towerManageFrame
-        
-        local yPos = 0
-        for i, towerInfo in ipairs(islandData.towers) do
-            local towerData = TowerConfig[towerInfo.type]
-            if towerData then
-                -- 箭塔项目框架
-                local towerItemFrame = Instance.new("Frame")
-                towerItemFrame.Name = "TowerItem" .. i
-                towerItemFrame.Size = UDim2.new(1, -5, 0, 90)
-                towerItemFrame.Position = UDim2.new(0, 0, 0, yPos)
-                towerItemFrame.BackgroundColor3 = Color3.fromRGB(68, 75, 82)
-                towerItemFrame.Parent = scrollFrame
-                UIConfig.CreateCorner(towerItemFrame, UDim.new(0, 8))
-                
-                -- 添加项目渐变
-                local itemGradient = Instance.new("UIGradient")
-                itemGradient.Color = ColorSequence.new{
-                    ColorSequenceKeypoint.new(0, Color3.fromRGB(68, 75, 82)),
-                    ColorSequenceKeypoint.new(1, Color3.fromRGB(58, 65, 72))
-                }
-                itemGradient.Rotation = 45
-                itemGradient.Parent = towerItemFrame
-                
-                -- 箭塔信息
-                local towerInfoLabel = Instance.new("TextLabel")
-                towerInfoLabel.Name = "TowerInfoLabel"
-                towerInfoLabel.Size = UDim2.new(0.6, 0, 0, 30)
-                towerInfoLabel.Position = UDim2.new(0, 15, 0, 8)
-                towerInfoLabel.BackgroundTransparency = 1
-                towerInfoLabel.Text = string.format("🗼 箭塔 #%d: %s (⚔️ 伤害:%d)", i, towerData.Name, towerData.Damage)
-                towerInfoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                towerInfoLabel.TextSize = 13
-                towerInfoLabel.Font = Enum.Font.SourceSansBold
-                towerInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
-                towerInfoLabel.Parent = towerItemFrame
-                
-                -- 箭矢数量信息
-                local currentArrows = (islandData.towerArrows and islandData.towerArrows[i]) or 0
-                local arrowInfoLabel = Instance.new("TextLabel")
-                arrowInfoLabel.Name = "ArrowInfoLabel"
-                arrowInfoLabel.Size = UDim2.new(0.6, 0, 0, 25)
-                arrowInfoLabel.Position = UDim2.new(0, 15, 0, 35)
-                arrowInfoLabel.BackgroundTransparency = 1
-                arrowInfoLabel.Text = string.format("🏹 箭矢: %d/%d", currentArrows, towerData.MaxArrow)
-                arrowInfoLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
-                arrowInfoLabel.TextSize = 12
-                arrowInfoLabel.Font = Enum.Font.SourceSans
-                arrowInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
-                arrowInfoLabel.Parent = towerItemFrame
-                
-                -- 购买箭矢按钮
-                local buyArrowBtn = Instance.new("TextButton")
-                buyArrowBtn.Name = "BuyArrowBtn"
-                buyArrowBtn.Size = UDim2.new(0.35, -15, 0, 35)
-                buyArrowBtn.Position = UDim2.new(0.65, 0, 0, 8)
-                buyArrowBtn.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
-                buyArrowBtn.Text = "💰 购买箭矢"
-                buyArrowBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                buyArrowBtn.TextSize = 12
-                buyArrowBtn.Font = Enum.Font.SourceSansBold
-                buyArrowBtn.Parent = towerItemFrame
-                UIConfig.CreateCorner(buyArrowBtn, UDim.new(0, 8))
-                
-                -- 价格标签
-                local priceLabel = Instance.new("TextLabel")
-                priceLabel.Name = "PriceLabel"
-                priceLabel.Size = UDim2.new(0.35, -15, 0, 25)
-                priceLabel.Position = UDim2.new(0.65, 0, 0, 45)
-                priceLabel.BackgroundTransparency = 1
-                priceLabel.Text = "💰 10金币/100支"
-                priceLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
-                priceLabel.TextSize = 11
-                priceLabel.Font = Enum.Font.SourceSans
-                priceLabel.TextXAlignment = Enum.TextXAlignment.Center
-                priceLabel.Parent = towerItemFrame
-                
-                -- 检查是否可以购买箭矢
-                if currentArrows >= towerData.MaxArrow then
-                    buyArrowBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-                    buyArrowBtn.Text = "箭矢已满"
-                    buyArrowBtn.Active = false
-                    priceLabel.Text = "已满"
-                elseif (ClientData.Gold or 0) < 10 then
-                    buyArrowBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 100)
-                    buyArrowBtn.Text = "金币不足"
-                    buyArrowBtn.Active = false
-                end
-                
-                -- 购买箭矢点击事件
-                buyArrowBtn.MouseButton1Click:Connect(function()
-                    if currentArrows < towerData.MaxArrow and (ClientData.Gold or 0) >= 10 then
-                        Knit.GetService('IslandManageService'):BuyArrows(_selectedIsland, i, 100):andThen(function(success)
-                            if success then
-                                Knit.GetController('UIController').ShowTip:Fire(10019) -- 购买成功
-                                refreshIslandData()
-                            else
-                                Knit.GetController('UIController').ShowTip:Fire(10044) -- 金币不够
-                            end
-                        end)
-                    end
-                end)
-                
-                yPos = yPos + 100
-            end
-        end
-        
-        -- 设置滚动框内容大小
-        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, yPos)
-    else
-        -- 没有箭塔时显示提示
-        local noTowerLabel = Instance.new("TextLabel")
-        noTowerLabel.Name = "NoTowerLabel"
-        noTowerLabel.Size = UDim2.new(1, -20, 1, -45)
-        noTowerLabel.Position = UDim2.new(0, 10, 0, 40)
-        noTowerLabel.BackgroundTransparency = 1
-        noTowerLabel.Text = "🏗️ 还没有购买任何箭塔\n\n请在上方选择箭塔类型"
-        noTowerLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-        noTowerLabel.TextSize = 14
-        noTowerLabel.Font = Enum.Font.SourceSans
-        noTowerLabel.Parent = towerManageFrame
+end
+
+-- 更新岛屿详情显示
+updateIslandDetails = function(islandData)
+    -- 清除现有内容
+    for _, child in pairs(_rightContent:GetChildren()) do
+        child:Destroy()
     end
     
-    -- 岛屿统计信息
-    local statsFrame = Instance.new("Frame")
-    statsFrame.Name = "StatsFrame"
-    statsFrame.Size = UDim2.new(1, 0, 0, 200)
-    statsFrame.Position = UDim2.new(0, 0, 0, 560)
-    statsFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    statsFrame.Parent = _rightContent
-    UIConfig.CreateCorner(statsFrame, UDim.new(0, 6))
-    
-    -- 统计标题
-    local statsTitle = Instance.new("TextLabel")
-    statsTitle.Name = "StatsTitle"
-    statsTitle.Size = UDim2.new(1, 0, 0, 30)
-    statsTitle.Position = UDim2.new(0, 0, 0, 0)
-    statsTitle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    statsTitle.Text = "岛屿统计"
-    statsTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    statsTitle.TextScaled = true
-    statsTitle.Font = UIConfig.Font
-    statsTitle.Parent = statsFrame
-    UIConfig.CreateCorner(statsTitle, UDim.new(0, 6))
-    
-    -- 防御等级
-    local defenseLevel = math.min(math.floor((islandData.towerCount or 0) / maxTowers * 5) + 1, 5)
-    local defenseLevelLabel = Instance.new("TextLabel")
-    defenseLevelLabel.Name = "DefenseLevelLabel"
-    defenseLevelLabel.Size = UDim2.new(1, -20, 0, 25)
-    defenseLevelLabel.Position = UDim2.new(0, 10, 0, 40)
-    defenseLevelLabel.BackgroundTransparency = 1
-    defenseLevelLabel.Text = string.format("防御等级: %d/5", defenseLevel)
-    defenseLevelLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    defenseLevelLabel.TextScaled = true
-    defenseLevelLabel.Font = UIConfig.Font
-    defenseLevelLabel.TextXAlignment = Enum.TextXAlignment.Left
-    defenseLevelLabel.Parent = statsFrame
-    
-    -- 维护费用
-    local maintenanceCost = (islandData.towerCount or 0) * 5 + math.floor((islandData.arrowCount or 0) / 100) * 2
-    local maintenanceLabel = Instance.new("TextLabel")
-    maintenanceLabel.Name = "MaintenanceLabel"
-    maintenanceLabel.Size = UDim2.new(1, -20, 0, 25)
-    maintenanceLabel.Position = UDim2.new(0, 10, 0, 70)
-    maintenanceLabel.BackgroundTransparency = 1
-    maintenanceLabel.Text = string.format("每日维护费用: %d金币", maintenanceCost)
-    maintenanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    maintenanceLabel.TextScaled = true
-    maintenanceLabel.Font = UIConfig.Font
-    maintenanceLabel.TextXAlignment = Enum.TextXAlignment.Left
-    maintenanceLabel.Parent = statsFrame
-    
-    -- 预计收益
-    local dailyIncome = (islandData.towerCount or 0) * 20 + defenseLevel * 10
-    local incomeLabel = Instance.new("TextLabel")
-    incomeLabel.Name = "IncomeLabel"
-    incomeLabel.Size = UDim2.new(1, -20, 0, 25)
-    incomeLabel.Position = UDim2.new(0, 10, 0, 100)
-    incomeLabel.BackgroundTransparency = 1
-    incomeLabel.Text = string.format("预计每日收益: %d金币", dailyIncome)
-    incomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    incomeLabel.TextScaled = true
-    incomeLabel.Font = UIConfig.Font
-    incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    incomeLabel.Parent = statsFrame
-    
-    -- 净收益
-    local netIncome = dailyIncome - maintenanceCost
-    local netIncomeLabel = Instance.new("TextLabel")
-    netIncomeLabel.Name = "NetIncomeLabel"
-    netIncomeLabel.Size = UDim2.new(1, -20, 0, 25)
-    netIncomeLabel.Position = UDim2.new(0, 10, 0, 130)
-    netIncomeLabel.BackgroundTransparency = 1
-    netIncomeLabel.Text = string.format("净收益: %d金币/天", netIncome)
-    if netIncome > 0 then
-        netIncomeLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-    elseif netIncome < 0 then
-        netIncomeLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-    else
-        netIncomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end
-    netIncomeLabel.TextScaled = true
-    netIncomeLabel.Font = UIConfig.Font
-    netIncomeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    netIncomeLabel.Parent = statsFrame
+    -- 获取岛屿配置
+    local islandConfig = GameConfig.FindIsLand(islandData.name)
+    local maxTowers = islandConfig and islandConfig.TowerOffsetPos and #islandConfig.TowerOffsetPos or 0
+    createTowerInfo(islandData, maxTowers)
+    createTowerPosition(islandData, maxTowers)
 end
 
 -- 加载玩家拥有的岛屿
@@ -683,19 +418,9 @@ end
 
 -- 等待Knit启动
 Knit.OnStart():andThen(function()
-    local UIController = Knit.GetController('UIController')
-    
     -- 监听显示岛屿管理UI事件
-    UIController.ShowIslandManageUI:Connect(function()
+    Knit.GetController('UIController').ShowIslandManageUI:Connect(function()
         _screenGui.Enabled = true
         loadPlayerIslands()
-    end)
-    
-    -- 监听金币更新事件
-    UIController.UpdateGoldUI:Connect(function()
-        -- 如果当前有选中的岛屿，刷新详情显示
-        if _selectedIsland and _selectedIslandData then
-            updateIslandDetails(_selectedIslandData)
-        end
     end)
 end):catch(warn)

@@ -10,8 +10,11 @@ local ActiveServers = MemoryStoreService:GetSortedMap("ActiveServers")
 local RunService = game:GetService("RunService")
 local isStudio = RunService:IsStudio()
 
-local IsLandOwnerTag = "IsLandOwnerTag"
+local IsLandOwnerTag = "IsLandOwnerTag" -- 土地更新领主消息，其他服务器发送，用于让主服务器更新数据库
+local IsLandOwnerMainServeTag = "IsLandOwnerMainServeTag"   -- 土地更新领主消息，主服务器发送，用于让其他服务器同步数据
 local IsLandPayTag = "IsLandPayTag"
+local ChangeIsLandDataTag = "ChangeIsLandDataTag"
+local ChangeIsLandDataMainServeTag = "ChangeIsLandDataMainServeTag"
 local _IsLandOwners = {}
 local _isMainServer = false
 
@@ -21,8 +24,29 @@ local SystemService = Knit.CreateService {
         Tip = Knit.CreateSignal(),
         SystemMessage = Knit.CreateSignal(),
         IsLandOwnerChanged = Knit.CreateSignal(),
+        IsLandInfoChanged = Knit.CreateSignal(),
     },
 }
+
+-- 安全的DataStore操作函数
+local function safeDataStoreOperation(operation, ...)
+    if isStudio then
+        warn("Studio环境：DataStore操作可能受限")
+    end
+    
+    local success, result = pcall(operation, ...)
+    if not success then
+        if string.find(result, "HTTP 403") or string.find(result, "Forbidden") then
+            warn("DataStore访问被拒绝：请检查Studio设置或游戏发布状态")
+            return false, "Access denied"
+        else
+            warn("DataStore操作失败：", result)
+            return false, result
+        end
+    end
+    
+    return success, result
+end
 
 function SystemService:SendTip(player, tipId, ...)
     self.Client.Tip:Fire(player, tipId, ...)
@@ -41,24 +65,60 @@ function SystemService:SendIsLandOwnerChanged(data)
     self:SendSystemMessage('success', 10039, data.playerName, data.landName)
 end
 
--- 客户端登陆时调用，获取跨服岛主数据
-function SystemService:GetIsLandOwner(player)
-    return _IsLandOwners
+function SystemService:GetIsLandOwner()
+    return table.clone(_IsLandOwners)
 end
 
-function SystemService:UpdateIsLandOwner(player, landName)
-    -- 跨服发送土地更新领主消息
-    MessagingService:PublishAsync(
-        IsLandOwnerTag,
-        {
-            landName = landName,
-            userId = player.UserId,
-            playerName = player.Name,
-        }
-    )
+-- 更新岛屿信息
+function SystemService:ChangeIsLandOwnerData(isLandOwners, changeInfo)
+    local islandId = changeInfo.islandId
+    local isLandData = changeInfo.isLandData
+    if _isMainServer then
+        _IsLandOwners = isLandOwners
+        local success = safeDataStoreOperation(function()
+            return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+        end)
+        if not success then
+            warn('无法连接数据库: SystemStore')
+        end
+        MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {isLandOwners = isLandOwners, islandId = islandId, isLandData = isLandData})
+    else
+        MessagingService:PublishAsync(ChangeIsLandDataTag, {isLandOwners = isLandOwners, islandId = islandId, isLandData = isLandData})
+    end
+end
 
-    local isLandData = {towerData = {}}
-    _IsLandOwners[landName] = {userId = player.UserId, playerName = player.Name, isLandData = isLandData}
+-- 更新岛主信息
+function SystemService:UpdateIsLandOwner(player, landName)
+    -- 如果是主服务器，则更新岛主数据库
+    if _isMainServer then
+        _IsLandOwners[landName] = {userId = player.UserId, playerName = player.Name, isLandData = {}}
+        local success = safeDataStoreOperation(function()
+            return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+        end)
+        if not success then
+            warn('无法连接数据库: SystemStore')
+        end
+        -- 跨服发送土地更新领主消息
+        MessagingService:PublishAsync(
+            IsLandOwnerMainServeTag,
+            {
+                IsLandOwners = _IsLandOwners,
+                landName = landName,
+                userId = player.UserId,
+                playerName = player.Name,
+            }
+        )
+    else
+        -- 跨服发送土地更新领主消息
+        MessagingService:PublishAsync(
+            IsLandOwnerTag,
+            {
+                landName = landName,
+                userId = player.UserId,
+                playerName = player.Name,
+            }
+        )
+    end
 end
 
 function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
@@ -154,26 +214,6 @@ local function CheckMainServer()
     end
 end
 
--- 安全的DataStore操作函数
-local function safeDataStoreOperation(operation, ...)
-    if isStudio then
-        warn("Studio环境：DataStore操作可能受限")
-    end
-    
-    local success, result = pcall(operation, ...)
-    if not success then
-        if string.find(result, "HTTP 403") or string.find(result, "Forbidden") then
-            warn("DataStore访问被拒绝：请检查Studio设置或游戏发布状态")
-            return false, "Access denied"
-        else
-            warn("DataStore操作失败：", result)
-            return false, result
-        end
-    end
-    
-    return success, result
-end
-
 function SystemService:KnitInit()
     print('SystemService initialized')
     -- 开启协程定时检查主服务器，防止主服务器崩溃
@@ -182,21 +222,37 @@ function SystemService:KnitInit()
         task.wait(30)
     end)
     
-    -- 跨服接收土地更新领主消息
+    -- 其他服务器接收主服务器土地更新领主消息
+    MessagingService:SubscribeAsync(IsLandOwnerMainServeTag, function(message)
+        print("Received message for IsLandOwnerMainServeTag",  message)
+        -- 主服务器在发送这个消息的时候已经更新了数据库，所以这里只需要更新其他服务器的数据
+        if not _isMainServer then
+            _IsLandOwners = message.Data.IsLandOwners
+        end
+        self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
+    end)
+    -- 主服务器更新领主消息
     MessagingService:SubscribeAsync(IsLandOwnerTag, function(message)
         print("Received message for IsLandOwnerTag",  message)
-        local isLandData = {towerData = {}}
-        _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName, isLandData = isLandData}
-        self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
-
-        -- 如果是主服务器，则更新岛主数据库
+        -- 如果是主服务器，则更新岛主数据库, 并发送消息给其他服务器
         if _isMainServer then
+            _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName, isLandData = {}}
             local success = safeDataStoreOperation(function()
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
             if not success then
                 warn('无法连接数据库: SystemStore')
             end
+            -- 跨服发送土地更新领主消息
+            MessagingService:PublishAsync(
+                IsLandOwnerMainServeTag,
+                {
+                    IsLandOwners = _IsLandOwners,
+                    landName = message.Data.landName,
+                    userId = message.Data.userId,
+                    playerName = message.Data.playerName,
+                }
+            )
         end
     end)
     -- 跨服接收土地付费消息
@@ -225,6 +281,36 @@ function SystemService:KnitInit()
                 return oldData
             end)
             return
+        end
+    end)
+    -- 跨服发送土地属性改变消息
+    MessagingService:SubscribeAsync(ChangeIsLandDataMainServeTag, function(message)
+        print("Received message for ChangeIsLandDataTag",  message)
+        if not _isMainServer then
+            _IsLandOwners = message.Data.isLandOwners
+            self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
+        end
+    end)
+    -- 跨服发送土地属性改变消息
+    MessagingService:SubscribeAsync(ChangeIsLandDataTag, function(message)
+        print("Received message for ChangeIsLandDataTag",  message)
+        if _isMainServer then
+            _IsLandOwners[message.Data.islandId] = message.Data.isLandData
+            self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
+            if _isMainServer then
+                local success = safeDataStoreOperation(function()
+                    return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+                end)
+                if not success then
+                    warn('无法连接数据库: SystemStore')
+                end
+            end
+            
+            MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
+                isLandOwners = _IsLandOwners,
+                islandId = message.Data.islandId,
+                isLandData = message.Data.isLandData
+            })
         end
     end)
 end

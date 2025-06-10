@@ -30,6 +30,7 @@ local UIController = Knit.CreateController {
     BuffChanged = Signal.new(),
     ShowBuffUI = Signal.new(),
     ShowIslandManageUI = Signal.new(),
+    ShowTowerSelectUI = Signal.new(),
 }
 
 function UIController:KnitInit()

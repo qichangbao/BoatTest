@@ -94,6 +94,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
     for key, value in pairs(data) do
         local currentPath = table.clone(parentPath)
         table.insert(currentPath, key)
+        local valueType = type(value)
         local entryFrame = Instance.new('Frame')
         entryFrame.Name = 'EntryFrame'
         entryFrame.BackgroundTransparency = 0
@@ -316,6 +317,11 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
                     end
                 else
                     mergedData = valueBox.Text
+                    if valueType == 'number' then
+                        mergedData = tonumber(valueBox.Text)
+                    elseif valueType == 'boolean' then
+                        mergedData = valueBox.Text == 'true'
+                    end
                     Knit.GetService("DBService"):AdminRequest("SetData",
                         userIdInputText,
                         keyTest,

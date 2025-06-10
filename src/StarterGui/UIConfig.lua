@@ -4,7 +4,7 @@ local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
 
 local UIConfig = {}
 -- 定义UI元素
-UIConfig.Font = Enum.Font.Arimo
+UIConfig.Font = Enum.Font.SourceSansBold
 UIConfig.CloseButtonSize = UDim2.new(0, 50, 0, 50)
 
 UIConfig.CreateCorner = function(parent, radius)

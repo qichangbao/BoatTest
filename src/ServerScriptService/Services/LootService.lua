@@ -61,7 +61,7 @@ function LootService.Client:Loot(player)
     if InventoryService:Inventory(player, 'CheckExists', partName) then
         local itemConfig = ItemConfig.GetItemConfig(partName)
         if itemConfig then
-            player:SetAttribute('Gold', player:GetAttribute('Gold') + itemConfig.sellPrice)
+            player:SetAttribute('Gold', tonumber(player:GetAttribute('Gold')) + itemConfig.sellPrice)
         end
         return 10016, partName
     else
