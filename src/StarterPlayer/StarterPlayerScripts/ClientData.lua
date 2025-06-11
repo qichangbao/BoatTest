@@ -64,10 +64,7 @@ Knit:OnStart():andThen(function()
         Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
     end)
     SystemService.IsLandInfoChanged:Connect(function(data)
-        if not ClientData.IsLandOwners[data.landName] then
-            return
-        end
-        ClientData.IsLandOwners[data.landName].towerData = data.isLandData
+        ClientData.IsLandOwners[data.landName] = data.isLandData
     end)
 
     local InventoryService = Knit.GetService('InventoryService')

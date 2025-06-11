@@ -49,7 +49,7 @@ function TerrainGenerationService:RemoveBlock(position)
 end
 
 function TerrainGenerationService:UpdateChunk(player, currentChunk)
-    local playerChunk = self.PlayerChunks[player]
+    local playerChunk = self.PlayerChunks[player] or {}
     for coordStr, value in pairs(playerChunk) do
         playerChunk[coordStr] = false
     end

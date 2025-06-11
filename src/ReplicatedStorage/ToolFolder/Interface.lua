@@ -1,5 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig'))
 
 local Interface = {}

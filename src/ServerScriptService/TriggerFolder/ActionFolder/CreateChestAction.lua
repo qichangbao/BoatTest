@@ -18,6 +18,7 @@ end
 function CreateChestAction:CreateAnchor(chest)
     -- 创建一个不可见的锚点
     local anchor = Instance.new("Part")
+    anchor.Name = "ChestAnchorPart"
     anchor.Anchored = true
     anchor.CanCollide = false
     anchor.Transparency = 1

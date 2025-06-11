@@ -133,7 +133,6 @@ function AttackState:Exit()
         self.attackConnection = nil
     end
     self.AIManager.target = nil
-    --self.proximityPrompt:Destroy()
 end
 
 return AttackState

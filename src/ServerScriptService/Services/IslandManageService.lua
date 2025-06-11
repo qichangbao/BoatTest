@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local TowerConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("TowerConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local IslandManageService = Knit.CreateService {
     Name = "IslandManageService",
@@ -31,7 +32,7 @@ function IslandManageService:GetPlayerIslands(player)
     
     -- 从SystemService获取所有岛屿的拥有者信息
     local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner(player)
+    local islandOwners = SystemService:GetIsLandOwner()
     
     -- 遍历所有被占领的岛屿，找出属于当前玩家的岛屿
     for landName, ownerData in pairs(islandOwners) do
@@ -68,7 +69,7 @@ end
 function IslandManageService:GetIslandData(player, islandId)
     -- 从SystemService验证玩家是否拥有该岛屿
     local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner(player)
+    local islandOwners = SystemService:GetIsLandOwner()
     
     -- 检查玩家是否拥有该岛屿（islandId现在是岛屿名称）
     local ownerData = islandOwners[islandId]
@@ -108,7 +109,7 @@ end
 function IslandManageService:BuyTower(player, islandId, towerType, index)
     -- 从SystemService验证玩家是否拥有该岛屿
     local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner(player)
+    local islandOwners = SystemService:GetIsLandOwner()
     
     -- 检查玩家是否拥有该岛屿（islandId现在是岛屿名称）
     local isLandData = islandOwners[islandId]
@@ -143,7 +144,8 @@ function IslandManageService:BuyTower(player, islandId, towerType, index)
     
     -- 验证箭塔类型
     towerType = towerType or "Tower1" -- 默认箭塔类型
-    if not TowerConfig[towerType] then
+    local towerConfig = TowerConfig[towerType]
+    if not towerConfig then
         return false, 10057
     end
     
@@ -156,12 +158,19 @@ function IslandManageService:BuyTower(player, islandId, towerType, index)
     
     -- 扣除金币
     player:SetAttribute("Gold", tonumber(playerGold) - towerCost)
+
+    local TowerService = Knit.GetService("TowerService")
+    local towerDataTemp = {towerType = towerType, index = index, health = towerConfig.Health}
+    local towerModel = TowerService:CreateTower(islandId, towerDataTemp)
+    towerDataTemp.towerName = towerModel.Name
     
     -- 存储箭塔类型信息
-    table.insert(isLandData.towerData, {
-        towerType = towerType,
-        index = index,
-    })
+    table.insert(isLandData.towerData, towerDataTemp)
+    
+    -- 初始化箭塔到TowerService
+    local towerIndex = #isLandData.towerData
+    TowerService:InitializeTower(towerModel, islandId, towerIndex, towerType)
+    
     SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandId, isLandData = isLandData})
     
     return true, 10055
@@ -175,7 +184,7 @@ end
 function IslandManageService:RemoveTower(player, islandId, index)
     -- 从SystemService验证玩家是否拥有该岛屿
     local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner(player)
+    local islandOwners = SystemService:GetIsLandOwner()
     
     -- 检查玩家是否拥有该岛屿（islandId现在是岛屿名称）
     local isLandData = islandOwners[islandId]
@@ -187,16 +196,58 @@ function IslandManageService:RemoveTower(player, islandId, index)
         return false, 10057
     end
 
+    local towerDataTemp = nil
+    local towerArrayIndex = nil
     -- 移除箭塔
     for i, data in ipairs(isLandData.towerData) do
         if data.index == index then
+            towerDataTemp = data
+            towerArrayIndex = i
             table.remove(isLandData.towerData, i)
             break
         end
     end
     
+    local TowerService = Knit.GetService("TowerService")
+    TowerService:RemoveTower(islandId, towerDataTemp.towerName)
+    -- 从TowerService中移除箭塔
+    if towerArrayIndex then
+        local towerKey = islandId .. "_" .. towerArrayIndex
+        if TowerService._activeTowers and TowerService._activeTowers[towerKey] then
+            TowerService:StopTowerAttack(towerKey)
+            TowerService._activeTowers[towerKey] = nil
+        end
+    end
+    
     SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandId, isLandData = isLandData})
     return true, 10060
+end
+
+-- 获取箭塔信息
+function IslandManageService.Client:GetTowerInfo(player, islandId, index)
+    return self.Server:GetTowerInfo(player, islandId, index)
+end
+
+function IslandManageService:GetTowerInfo(player, islandId, index)
+    -- 从SystemService验证玩家是否拥有该岛屿
+    local SystemService = Knit.GetService("SystemService")
+    local islandOwners = SystemService:GetIsLandOwner()
+    
+    -- 检查玩家是否拥有该岛屿（islandId现在是岛屿名称）
+    local isLandData = islandOwners[islandId]
+    if not isLandData or isLandData.userId ~= player.UserId then
+        return false, 10061
+    end
+    
+    -- 获取箭塔信息
+    local TowerService = Knit.GetService("TowerService")
+    local towerInfo = TowerService:GetTowerInfo(islandId, index)
+    
+    if towerInfo then
+        return true, towerInfo
+    else
+        return false, 10062 -- 箭塔不存在
+    end
 end
 
 function IslandManageService:KnitInit()

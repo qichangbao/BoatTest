@@ -9,6 +9,16 @@ local LandService = Knit.CreateService {
     }
 }
 
+-- 客户端调用，玩家开始占领岛屿
+function LandService.Client:StartOccupy(player, landName)
+    local land = GameConfig.FindIsLand(landName)
+    if not land then
+        return
+    end
+
+    Knit.GetService("TowerService"):SetTowerOccupied(landName, true, player.UserId)
+end
+
 -- 客户端调用，占领岛屿
 function LandService.Client:Occupy(player, landName)
     Knit.GetService("SystemService"):UpdateIsLandOwner(player, landName)

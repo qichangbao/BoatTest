@@ -134,6 +134,8 @@ _occupyButton.MouseButton1Click:Connect(function()
     countdownText.Font = UIConfig.Font
     countdownText.TextSize = 18
     countdownText.Parent = progressContainer
+
+    Knit.GetService("LandService"):StartOccupy(_titleLabel.Text)
     
     -- 使用RenderStepped实现平滑动画
     local startTime = tick()
@@ -256,6 +258,7 @@ Knit:OnStart():andThen(function()
             _occupyButton.Visible = true
             _occupyButton.Position = UDim2.new(0.5, 0, 0.7, 0)
         end
+        _occupyButton.Visible = true
     end)
 
     Knit.GetController('UIController').HideWharfUI:Connect(function()

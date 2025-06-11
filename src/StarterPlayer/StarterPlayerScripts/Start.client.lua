@@ -13,7 +13,7 @@ require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):Wa
 -- )
 
 local loadingUI = require(game.StarterGui:WaitForChild("LoadingUI"))
-loadingUI.Show(3)
+loadingUI.Show(5)
 
 local camera = game.Workspace.CurrentCamera
 local function onCharacterAdded(character)

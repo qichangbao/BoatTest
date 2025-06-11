@@ -79,28 +79,20 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 end
 
 function DBService:SetPayInfos(userId, payInfos)
-	local profileKey = "PayInfos_"..userId
-	pcall(function()
-		return SystemStore:SetAsync(profileKey, payInfos)
+	task.spawn(function()
+		local profileKey = "PayInfos_"..userId
+		pcall(function()
+			return SystemStore:SetAsync(profileKey, payInfos)
+		end)
 	end)
-end
-
-function DBService:GetPayInfos(userId)
-	local profileKey = "PayInfos_"..userId
-	local successful, payInfos = pcall(function()
-		return SystemStore:GetAsync(profileKey)
-	end)
-	if not successful then
-		warn("无法连接数据库: SystemStore")
-		return nil
-	end
-	return payInfos
 end
 
 function DBService:UpdatePayInfos(userId, callback)
-	local profileKey = "PayInfos_"..userId
-	SystemStore:UpdateAsync(profileKey, function(oldData)
-		return callback(oldData or {})
+	task.spawn(function()
+		local profileKey = "PayInfos_"..userId
+		SystemStore:UpdateAsync(profileKey, function(oldData)
+			return callback(oldData or {})
+		end)
 	end)
 end
 
@@ -110,13 +102,15 @@ function DBService:PlayerAdded(player)
 		return
 	end
 
-	local loginData = {}
-	loginData.Login = true
-	loginData.LoginTime = os.time()
-	loginData.JobId = game.JobId
-	loginData.GameId = game.GameId
-	pcall(function()
-		return SystemStore:SetAsync("PlayerSystem_"..userId, loginData)
+	task.spawn(function()
+		local loginData = {}
+		loginData.Login = true
+		loginData.LoginTime = os.time()
+		loginData.JobId = game.JobId
+		loginData.GameId = game.GameId
+		pcall(function()
+			return SystemStore:SetAsync("PlayerSystem_"..userId, loginData)
+		end)
 	end)
 
 	local profileKey = "Player_"..userId
@@ -146,9 +140,11 @@ end
 function DBService:PlayerRemoving(player)
 	local userId = player.UserId
 	local profileKey = "PlayerSystem_"..userId
-	SystemStore:UpdateAsync(profileKey, function(oldData)
-		oldData.Login = false
-		return oldData
+	task.spawn(function()
+		SystemStore:UpdateAsync(profileKey, function(oldData)
+			oldData.Login = false
+			return oldData
+		end)
 	end)
 
 	if self.Profiles[userId] then

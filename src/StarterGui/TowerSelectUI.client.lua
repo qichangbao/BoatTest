@@ -84,7 +84,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
         towerInfo.Size = UDim2.new(0.7, 0, 0, 30)
         towerInfo.Position = UDim2.new(0, 15, 0, 10)
         towerInfo.BackgroundTransparency = 1
-        towerInfo.Text = towerData.Name
+        towerInfo.Text = towerData.ModelName
         towerInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
         towerInfo.TextSize = 18
         towerInfo.Font = UIConfig.Font

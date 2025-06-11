@@ -21,7 +21,7 @@ local GameConfig = {
             WharfInOffsetPos = Vector3.new(75, 20, 180),
             WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
             OwnerModelOffsetPos = CFrame.new(Vector3.new(0, 27, 65)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
-            TowerOffsetPos = {Vector3.new(100, 12, 120), Vector3.new(70, 12, 120)},
+            TowerOffsetPos = {Vector3.new(100, 12, 140), Vector3.new(70, 12, 140)},
             Price = 100,
         },
         [3] = {
@@ -31,7 +31,7 @@ local GameConfig = {
             WharfInOffsetPos = Vector3.new(75, 20, 180),
             WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
             OwnerModelOffsetPos = CFrame.new(Vector3.new(0, 27, 65)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
-            TowerOffsetPos = {Vector3.new(100, 12, 120), Vector3.new(70, 12, 120), Vector3.new(40, 12, 120)},
+            TowerOffsetPos = {Vector3.new(100, 12, 140), Vector3.new(70, 12, 140), Vector3.new(40, 12, 140)},
             Price = 150,
         },
     },
