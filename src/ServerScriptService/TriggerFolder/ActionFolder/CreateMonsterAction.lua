@@ -1,4 +1,3 @@
-print("加载CreateMonsterAction")
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
 local AIManager = require(game:WaitForChild('ServerScriptService'):WaitForChild('AIManagerFolder'):WaitForChild("AIManager"))
 

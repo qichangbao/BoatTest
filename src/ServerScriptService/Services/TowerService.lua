@@ -1,4 +1,4 @@
-print('TowerService.lua loaded')
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local RunService = game:GetService("RunService")
@@ -6,6 +6,7 @@ local Debris = game:GetService("Debris")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local TowerConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("TowerConfig"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local TowerService = Knit.CreateService({
     Name = 'TowerService',
@@ -15,13 +16,12 @@ local TowerService = Knit.CreateService({
     },
 })
 
--- 存储所有活跃的箭塔
-local _activeTowers = {}
+-- 存储激活的岛屿及其箭塔数据
+local _activeIslands = {}
+-- 存储所有岛屿的箭塔数据（包括未激活的）
+local _islandTowers = {}
 -- 存储箭塔的攻击连接
 local _towerConnections = {}
-
--- 提供外部访问_activeTowers的接口
-TowerService._activeTowers = _activeTowers
 
 -- 初始化箭塔
 function TowerService:InitializeTower(towerModel, islandName, towerIndex, towerType)
@@ -50,15 +50,15 @@ function TowerService:InitializeTower(towerModel, islandName, towerIndex, towerT
         towerIndex = towerIndex,
         towerType = towerType,
         config = towerConfig,
-        lastAttackTime = 0,
-        isOccupied = false, -- 是否被占领
-        occupierUserId = nil, -- 记录占领者的UserId
-        attackConnection = nil
+        lastAttackTime = 0
     }
     
-    -- 存储箭塔数据
-    local towerKey = islandName .. "_" .. towerIndex
-    _activeTowers[towerKey] = towerData
+    -- 存储箭塔数据到岛屿分组中
+    if not _islandTowers[islandName] then
+        _islandTowers[islandName] = {}
+    end
+    local towerKey = towerModel.Name
+    _islandTowers[islandName][towerKey] = towerData
     
     -- 监听生命值变化
     if humanoid then
@@ -75,85 +75,100 @@ function TowerService:InitializeTower(towerModel, islandName, towerIndex, towerT
             died = diedConnection
         }
     end
-    
-    print("箭塔初始化完成:", towerKey, "类型:", towerType)
 end
 
--- 设置岛屿箭塔占领状态
+-- 设置岛屿激活状态
 -- @param islandName 岛屿名称
--- @param isOccupied 是否被占领
+-- @param isActive 是否激活
 -- @param occupierUserId 占领者用户ID
-function TowerService:SetTowerOccupied(islandName, isOccupied, occupierUserId)
-    -- 遍历该岛屿上的所有箭塔
-    for towerKey, towerData in pairs(_activeTowers) do
-        if towerData.islandName == islandName then
-            towerData.isOccupied = isOccupied
-            towerData.occupierUserId = isOccupied and occupierUserId or nil
-            
-            if isOccupied then
-                -- 开始攻击
-                self:StartTowerAttack(towerKey)
-                print("箭塔被占领，开始攻击占领者的船只:", islandName, towerData.towerIndex, occupierUserId)
-            else
-                -- 停止攻击并恢复满血
-                self:StopTowerAttack(towerKey)
-                towerData.health = towerData.config.Health
-                self:UpdateTowerHealthInDatabase(islandName, towerData.towerIndex, towerData.health)
-                print("箭塔占领状态取消，血量恢复满血:", islandName, towerData.towerIndex)
+function TowerService:SetIslandActive(islandName, isActive, occupierUserId)
+    if isActive then
+        -- 激活岛屿，将该岛屿的箭塔数据复制到激活列表中
+        local islandData = {
+            occupierUserId = occupierUserId,
+            activatedTime = tick(),
+            towers = _islandTowers[islandName] or {}
+        }
+        _activeIslands[islandName] = islandData
+        
+        -- 为该岛屿创建统一的攻击心跳
+        islandData.attackConnection = RunService.Heartbeat:Connect(function()
+            self:IslandAttackTick(islandName)
+        end)
+        
+        print("岛屿被激活，所有箭塔开始攻击:", islandName, "占领者:", occupierUserId)
+    else
+        -- 取消激活岛屿
+        local islandData = _activeIslands[islandName]
+        local previousUserId = islandData and islandData.occupierUserId
+        _activeIslands[islandName] = nil
+        
+        -- 断开岛屿的攻击心跳连接
+        if islandData.attackConnection then
+            islandData.attackConnection:Disconnect()
+        end
+        
+        -- 恢复该岛屿上所有箭塔满血
+        local islandTowers = _islandTowers[islandName]
+        if islandTowers then
+            for towerKey, towerData in pairs(islandTowers) do
+                local humanoid = towerData.model:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid.Health = towerData.config.Health
+                end
             end
         end
+        
+        if previousUserId then
+            local player = Players:GetPlayerByUserId(previousUserId)
+            if player then
+                Knit.GetService("SystemService"):SendTip(player, 10065)
+            end
+        end
+        
+        print("岛屿激活状态取消，所有箭塔停止攻击并恢复满血:", islandName)
     end
 end
 
--- 开始箭塔攻击
-function TowerService:StartTowerAttack(towerKey)
-    local towerData = _activeTowers[towerKey]
-    if not towerData or towerData.attackConnection then
+-- 岛屿攻击心跳处理
+-- @param islandName 岛屿名称
+function TowerService:IslandAttackTick(islandName)
+    local islandData = _activeIslands[islandName]
+    if not islandData or not islandData.towers then
         return
     end
     
-    -- 创建攻击循环
-    towerData.attackConnection = RunService.Heartbeat:Connect(function()
-        if towerData.isOccupied then
-            self:TowerAttackTick(towerKey)
-        end
-    end)
+    -- 遍历该岛屿上的所有箭塔进行攻击
+    for towerKey, towerData in pairs(islandData.towers) do
+        self:TowerAttackTick(islandName, towerKey)
+    end
 end
 
--- 停止箭塔攻击
-function TowerService:StopTowerAttack(towerKey)
-    local towerData = _activeTowers[towerKey]
+-- 箭塔攻击逻辑
+function TowerService:TowerAttackTick(islandName, towerKey)
+    -- 检查岛屿是否仍然激活
+    local islandData = _activeIslands[islandName]
+    if not islandData or not islandData.occupierUserId or not islandData.towers then
+        return
+    end
+    
+    local towerData = islandData.towers[towerKey]
     if not towerData then
         return
     end
     
-    if towerData.attackConnection then
-        towerData.attackConnection:Disconnect()
-        towerData.attackConnection = nil
-    end
-    
-    towerData.targetBoat = nil
-end
-
--- 箭塔攻击逻辑
-function TowerService:TowerAttackTick(towerKey)
-    local towerData = _activeTowers[towerKey]
-    if not towerData or not towerData.isOccupied or not towerData.occupierUserId then
-        return
-    end
-    
     -- 检查占领者船只是否在100距离内
-    local occupierBoat = workspace:FindFirstChild("PlayerBoat_" .. towerData.occupierUserId)
+    local occupierBoat = workspace:FindFirstChild("PlayerBoat_" .. islandData.occupierUserId)
     if occupierBoat and occupierBoat.PrimaryPart then
         local distance = (occupierBoat.PrimaryPart.Position - towerData.model.PrimaryPart.Position).Magnitude
         if distance > 100 then
-            -- 占领者船只超出100距离，取消占领状态
-            self:SetTowerOccupied(towerData.islandName, false, nil)
+            -- 占领者船只超出100距离，取消岛屿激活状态
+            self:SetIslandActive(towerData.islandName, false, nil)
             return
         end
     else
-        -- 占领者船只不存在，取消占领状态
-        self:SetTowerOccupied(towerData.islandName, false, nil)
+        -- 占领者船只不存在，取消岛屿激活状态
+        self:SetIslandActive(towerData.islandName, false, nil)
         return
     end
     
@@ -165,32 +180,29 @@ function TowerService:TowerAttackTick(towerKey)
         return
     end
     
-    -- 寻找占领者的船只作为目标
-    local targetBoat = self:FindOccupierBoat(towerData.model.PrimaryPart.Position, towerData.config.AttackRange or 50, towerData.occupierUserId)
+    -- 寻找敌方船只
+    local targetBoat = nil
+    local minDistance = math.huge
+
+    local boat = Interface.GetBoatByPlayerUserId(islandData.occupierUserId)
+    if boat and boat.PrimaryPart then
+        local distance = (boat.PrimaryPart.Position - towerData.model.PrimaryPart.Position).Magnitude
+        if distance <= (towerData.config.AttackRange or 50) and distance < minDistance then
+            targetBoat = boat
+            minDistance = distance
+        end
+    end
     
     if targetBoat then
         -- 执行攻击
         self:ExecuteTowerAttack(towerData, targetBoat)
         towerData.lastAttackTime = currentTime
         
-        print("箭塔攻击占领者船只:", towerData.occupierUserId)
+        print("箭塔攻击占领者船只:", islandData.occupierUserId)
     end
 end
 
 -- 寻找占领者的船只
-function TowerService:FindOccupierBoat(towerPosition, attackRange, occupierUserId)
-    local occupierBoat = workspace:FindFirstChild("PlayerBoat_" .. occupierUserId)
-    
-    if occupierBoat and occupierBoat.PrimaryPart then
-        local distance = (occupierBoat.PrimaryPart.Position - towerPosition).Magnitude
-        if distance <= attackRange then
-            return occupierBoat
-        end
-    end
-    
-    return nil
-end
-
 -- 执行箭塔攻击
 -- @param towerData 箭塔数据
 -- @param targetBoat 目标船只
@@ -210,8 +222,7 @@ function TowerService:FireArrow(towerData, targetBoat)
     if not towerData.model or not towerData.model.PrimaryPart or not targetBoat.PrimaryPart then
         return
     end
-    
-    local startPos = towerData.model.PrimaryPart.Position + Vector3.new(0, 15, 0)
+    local startPos = towerData.model:GetPivot().Position + towerData.model:FindFirstChild("ArrowPos").Value
     local endPos = targetBoat.PrimaryPart.Position
     
     -- 克隆箭矢模型
@@ -220,45 +231,89 @@ function TowerService:FireArrow(towerData, targetBoat)
     arrow.Name = "Arrow_" .. tick()
     arrow.Parent = workspace
     
-    -- 使用 PivotTo 设置箭矢位置和朝向
-    local direction = (endPos - startPos).Unit
+    -- 获取箭矢原始朝向和方向
+    local originalCFrame = arrow:GetPivot()
+    
+    -- 使用简单的lookAt方法设置朝向
     local lookAtCFrame = CFrame.lookAt(startPos, endPos)
-    arrow:PivotTo(lookAtCFrame)
+    
+    -- 使用lookAtCFrame设置位置和朝向，然后应用原始旋转
+    -- 提取原始的旋转部分（去除位置信息）
+    local originalRotation = originalCFrame - originalCFrame.Position
+    local finalCFrame = lookAtCFrame * originalRotation
+    arrow:PivotTo(finalCFrame)
     
     -- 设置箭矢属性
     if arrow.PrimaryPart then
-        arrow.PrimaryPart.Anchored = false
-        arrow.PrimaryPart.CanCollide = true
+        arrow.PrimaryPart.Anchored = true
+        arrow.PrimaryPart.CanCollide = false
         
-        -- 添加 BodyVelocity 让箭矢飞向目标
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-        bodyVelocity.Velocity = direction * 3 -- 箭矢飞行速度
-        bodyVelocity.Parent = arrow.PrimaryPart
+        -- 计算飞行时间（基于距离）
+        local distance = (endPos - startPos).Magnitude
+        local flyTime = distance / towerData.config.ArrowSpeed
         
-        -- 添加碰撞检测
+        -- 使用TweenService创建移动动画
+        local TweenService = game:GetService("TweenService")
+        local tweenInfo = TweenInfo.new(
+            flyTime, -- 动画时间
+            Enum.EasingStyle.Linear, -- 线性运动
+            Enum.EasingDirection.Out,
+            0, -- 重复次数
+            false, -- 是否反向
+            0 -- 延迟时间
+        )
+        
+        -- 创建移动到目标位置的动画（保持朝向）
+        -- 计算目标位置的CFrame，保持当前朝向
+        local currentRotation = finalCFrame - finalCFrame.Position
+        local targetCFrame = CFrame.new(endPos) * currentRotation
+        
+        -- 创建一个临时的CFrame值对象来进行动画
+        local cframeValue = Instance.new("CFrameValue")
+        cframeValue.Value = finalCFrame
+        
+        -- 监听CFrame值变化，更新整个箭矢模型的位置
         local connection
-        connection = arrow.PrimaryPart.Touched:Connect(function(hit)
-            local hitModel = hit.Parent
-            
-            -- 检查是否碰撞到目标船只
-            if hitModel == targetBoat then
-                connection:Disconnect()
-                
-                -- 对船只造成伤害
-                self:AttackBoat(targetBoat, towerData.config.Damage or 10)
-                
-                -- 销毁箭矢
-                --arrow:Destroy()
-            elseif hit.Name == "Terrain" or hit.Parent.Name == "Terrain" then
-                -- 碰撞到地形，销毁箭矢
-                connection:Disconnect()
-                --arrow:Destroy()
+        connection = cframeValue.Changed:Connect(function(newCFrame)
+            if arrow and arrow.Parent then
+                arrow:PivotTo(newCFrame)
             end
         end)
         
-        -- 1秒后自动销毁箭矢（防止箭矢永远存在）
-        --Debris:AddItem(arrow, 1)
+        local moveTween = TweenService:Create(cframeValue, tweenInfo, {Value = targetCFrame})
+        
+        -- 开始动画
+        moveTween:Play()
+        
+        -- 动画完成后检查是否击中目标
+        moveTween.Completed:Connect(function()
+            -- 清理连接和临时对象
+            if connection then
+                connection:Disconnect()
+            end
+            if cframeValue then
+                cframeValue:Destroy()
+            end
+            
+            -- 检查箭矢是否到达目标船只附近
+            if targetBoat and targetBoat.Parent and arrow.PrimaryPart then
+                local arrowPos = arrow.PrimaryPart.Position
+                local boatPos = targetBoat.PrimaryPart and targetBoat.PrimaryPart.Position or targetBoat:GetPivot().Position
+                local hitDistance = (arrowPos - boatPos).Magnitude
+                
+                -- 如果箭矢在船只附近（容错范围10单位），认为击中
+                if hitDistance <= 10 then
+                    -- 对船只造成伤害
+                    self:AttackBoat(targetBoat, towerData.config.Damage or 10)
+                end
+            end
+            
+            -- 销毁箭矢
+            arrow:Destroy()
+        end)
+        
+        -- 5秒后自动销毁箭矢（防止箭矢永远存在）
+        game:GetService("Debris"):AddItem(arrow, 5)
     end
 end
 
@@ -286,7 +341,18 @@ end
 
 -- 箭塔生命值变化处理
 function TowerService:OnTowerHealthChanged(towerKey, health)
-    local towerData = _activeTowers[towerKey]
+    -- 从towerKey中提取岛屿名称
+    local islandName = towerKey:match("^(.+)_%d+$")
+    if not islandName then
+        return
+    end
+    
+    local islandTowers = _islandTowers[islandName]
+    if not islandTowers then
+        return
+    end
+    
+    local towerData = islandTowers[towerKey]
     if not towerData then
         return
     end
@@ -298,22 +364,27 @@ function TowerService:OnTowerHealthChanged(towerKey, health)
         health = health,
         maxHealth = towerData.config.Health or 100
     })
-    
-    -- 更新数据库中的箭塔生命值
-    self:UpdateTowerHealthInDatabase(towerData.islandName, towerData.towerIndex, health)
 end
 
 -- 箭塔被摧毁处理
 function TowerService:OnTowerDestroyed(towerKey)
-    local towerData = _activeTowers[towerKey]
+    -- 从towerKey中提取岛屿名称
+    local islandName = towerKey:match("^(.+)_%d+$")
+    if not islandName then
+        return
+    end
+    
+    local islandTowers = _islandTowers[islandName]
+    if not islandTowers then
+        return
+    end
+    
+    local towerData = islandTowers[towerKey]
     if not towerData then
         return
     end
     
     print("箭塔被摧毁:", towerKey)
-    
-    -- 停止攻击
-    self:StopTowerAttack(towerKey)
     
     -- 断开连接
     local connections = _towerConnections[towerKey]
@@ -336,7 +407,7 @@ function TowerService:OnTowerDestroyed(towerKey)
     end
     
     -- 移除箭塔数据
-    _activeTowers[towerKey] = nil
+    islandTowers[towerKey] = nil
     
     -- 通知客户端箭塔被摧毁
     self.Client.TowerDestroyed:FireAll({
@@ -355,108 +426,49 @@ function TowerService:RemoveTowerFromDatabase(islandName, towerIndex)
         islandData.towerData[towerIndex] = nil
         
         -- 通知SystemService更新数据
-        SystemService:ChangeIsLandData(islandName, islandData)
+        SystemService:ChangeIsLandOwnerData(islandName, islandData)
     end
 end
 
--- 获取箭塔信息（移除了弹药相关信息）
+-- 获取箭塔信息
 function TowerService:GetTowerInfo(islandName, towerIndex)
     local towerKey = islandName .. "_" .. towerIndex
-    local towerData = _activeTowers[towerKey]
+    local islandTowers = _islandTowers[islandName]
+    if not islandTowers then
+        return nil
+    end
     
+    local towerData = islandTowers[towerKey]
     if not towerData then
         return nil
     end
     
+    -- 从 _activeIslands 中获取占领信息
+    local islandData = _activeIslands[towerData.islandName]
+    local isOccupied = islandData ~= nil
+    local occupierUserId = islandData and islandData.occupierUserId or nil
+    
     return {
         health = towerData.health,
         maxHealth = towerData.config.Health,
-        isOccupied = towerData.isOccupied,
-        occupierUserId = towerData.occupierUserId,
+        isOccupied = isOccupied,
+        occupierUserId = occupierUserId,
         towerType = towerData.towerType
     }
 end
 
--- 船只攻击箭塔
-function TowerService:BoatAttackTower(boat, islandName, towerIndex, damage)
-    local towerKey = islandName .. "_" .. towerIndex
-    local towerData = _activeTowers[towerKey]
-    
-    if not towerData or not towerData.model then
-        return false
-    end
-    
-    -- 对箭塔造成伤害
-    local attackDamage = damage or 10
-    local currentHealth = towerData.health or 0
-    local newHealth = math.max(0, currentHealth - attackDamage)
-    towerData.health = newHealth
-    
-    print("船只攻击箭塔，造成", attackDamage, "点伤害，箭塔剩余生命值:", newHealth)
-    
-    -- 如果箭塔生命值为0，摧毁箭塔
-    if newHealth <= 0 then
-        self:DestroyTower(islandName, towerIndex)
-        print("箭塔被摧毁!")
-    else
-        -- 更新数据库中的箭塔生命值
-        self:UpdateTowerHealthInDatabase(islandName, towerIndex, newHealth)
-    end
-    
-    return true
+-- 获取岛屿激活信息
+-- @param islandName 岛屿名称
+-- @return 岛屿激活数据或nil
+function TowerService:GetIslandActiveInfo(islandName)
+    return _activeIslands[islandName]
 end
 
--- 摧毁箭塔
-function TowerService:DestroyTower(islandName, towerIndex)
-    local towerKey = islandName .. "_" .. towerIndex
-    local towerData = _activeTowers[towerKey]
-    
-    if not towerData then
-        return
-    end
-    
-    -- 停止攻击
-    self:StopTowerAttack(towerKey)
-    
-    -- 从活跃箭塔列表中移除
-    _activeTowers[towerKey] = nil
-    
-    -- 摧毁箭塔模型
-    if towerData.model then
-        towerData.model:Destroy()
-    end
-    
-    -- 从数据库中移除箭塔数据
-    local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner()
-    local islandData = islandOwners[islandName]
-    
-    if islandData and islandData.towerData then
-        -- 找到并移除对应的箭塔数据
-        for i, towerInfo in ipairs(islandData.towerData) do
-            if i == towerIndex then
-                table.remove(islandData.towerData, i)
-                break
-            end
-        end
-        
-        -- 更新数据库
-        SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandName, isLandData = islandData})
-    end
-    
-    print("箭塔已被摧毁:", islandName, towerIndex)
-end
-
--- 更新数据库中的箭塔生命值
-function TowerService:UpdateTowerHealthInDatabase(islandName, towerIndex, newHealth)
-    local SystemService = Knit.GetService("SystemService")
-    local islandOwners = SystemService:GetIsLandOwner()
-    local islandData = islandOwners[islandName]
-    
-    if islandData and islandData.towerData and islandData.towerData[towerIndex] then
-        islandData.towerData[towerIndex].health = newHealth
-        --SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandName, isLandData = islandData})
-    end
+-- 检查岛屿是否激活
+-- @param islandName 岛屿名称
+-- @return boolean 是否激活
+function TowerService:IsIslandActive(islandName)
+    return _activeIslands[islandName] ~= nil
 end
 
 function TowerService:CreateTower(landName, towerData)
@@ -496,6 +508,8 @@ function TowerService:CreateTower(landName, towerData)
         landData.Position.Z + towerOffsetPos.Z
     )
     towerModel:PivotTo(newCFrame)
+
+    self:InitializeTower(towerModel, landName, index, towerData.towerType)
     return towerModel
 end
 
@@ -509,6 +523,10 @@ function TowerService:RemoveTower(landName, towerName)
         return
     end
     tower:Destroy()
+
+    if _islandTowers[landName] then
+        _islandTowers[landName][towerName] = nil
+    end
 end
 
 function TowerService:CreateTowersByLandName(islandName)
@@ -523,9 +541,6 @@ function TowerService:CreateTowersByLandName(islandName)
         local towerModel = self:CreateTower(islandName, data)
         if towerModel then
             data.towerName = towerModel.Name
-            
-            -- 初始化箭塔到TowerService
-            self:InitializeTower(towerModel, islandName, i, data.towerType)
         end
     end
 end
@@ -537,24 +552,25 @@ function TowerService:RemoveTowersByLandName(islandName)
         return
     end
     
+    -- 取消岛屿激活状态
+    if _activeIslands[islandName] then
+        self:SetIslandActive(islandName, false, nil)
+    end
+    
     -- 移除箭塔
     for i, data in ipairs(isLandData.towerData) do
         -- 从TowerService中移除箭塔数据
         self:RemoveTower(islandName, data.towerName)
-        local towerKey = islandName .. "_" .. i
-        if self._activeTowers and self._activeTowers[towerKey] then
-            self:StopTowerAttack(towerKey)
-            self._activeTowers[towerKey] = nil
+        if _islandTowers[islandName] then
+            _islandTowers[islandName][data.towerName] = nil
         end
     end
 end
 
 function TowerService:KnitStart()
-    print('TowerService started')
 end
 
 function TowerService:KnitInit()
-    print('TowerService initialized')
 end
 
 return TowerService

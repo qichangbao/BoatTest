@@ -1,4 +1,3 @@
-print("加载PlayerActionCondition")
 local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
 
 local PlayerActionCondition = {}

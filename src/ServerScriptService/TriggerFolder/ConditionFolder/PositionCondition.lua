@@ -1,4 +1,3 @@
-print("加载PositionCondition")
 local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
 
 local PositionCondition = {}

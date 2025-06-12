@@ -1,4 +1,3 @@
-print('LandService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
@@ -16,7 +15,7 @@ function LandService.Client:StartOccupy(player, landName)
         return
     end
 
-    Knit.GetService("TowerService"):SetTowerOccupied(landName, true, player.UserId)
+    Knit.GetService("TowerService"):SetIslandActive(landName, true, player.UserId)
 end
 
 -- 客户端调用，占领岛屿
@@ -53,11 +52,9 @@ function LandService.Client:IntoIsLand(player, landName)
 end
 
 function LandService:KnitInit()
-    print('LandService initialized')
 end
 
 function LandService:KnitStart()
-    print('LandService started')
 end
 
 return LandService

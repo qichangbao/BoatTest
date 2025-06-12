@@ -1,4 +1,3 @@
-print("加载TriggerManager")
 local TriggerFolder = script.Parent
 local ConfigTriggers = require(TriggerFolder:WaitForChild("ConfigTriggers"))
 

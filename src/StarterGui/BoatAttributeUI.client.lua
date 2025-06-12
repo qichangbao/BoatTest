@@ -3,7 +3,6 @@
 版本：1.1.0
 新增生命值和速度进度条
 --]]
-print('BoatAttributeUI.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local TweenService = game:GetService('TweenService')

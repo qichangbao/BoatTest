@@ -26,33 +26,7 @@ _screenGui.Parent = playerGui
 
 UIConfig.CreateBlock(_screenGui)
 
-local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0, 700, 0, 450)
-UIConfig.CreateCorner(_frame, UDim.new(0, 12))
-
--- 标题栏
-local _titleBar = Instance.new('Frame')
-_titleBar.Size = UDim2.new(1, 0, 0.1, 0)
-_titleBar.Position = UDim2.new(0, 0, 0, 0)
-_titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
-_titleBar.Parent = _frame
-UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
-
-local _titleLabel = Instance.new('TextLabel')
-_titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-_titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = "岛屿管理"
-_titleLabel.Font = UIConfig.Font
-_titleLabel.TextSize = 20
-_titleLabel.TextColor3 = Color3.new(1, 1, 1)
-_titleLabel.BackgroundTransparency = 1
-_titleLabel.Parent = _titleBar
-
--- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
-    _screenGui.Enabled = false
-end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+local _frame = UIConfig.CreateBigFrame(_screenGui, LanguageConfig.Get(10066))
 
 -- 左侧岛屿列表框架
 local _leftFrame = Instance.new("Frame")
@@ -70,7 +44,7 @@ leftTitleLabel.Name = "LeftTitleLabel"
 leftTitleLabel.Size = UDim2.new(1, 0, 0, 40)
 leftTitleLabel.Position = UDim2.new(0, 0, 0, 0)
 leftTitleLabel.BackgroundColor3 = Color3.fromRGB(74, 144, 226)
-leftTitleLabel.Text = "我的岛屿"
+leftTitleLabel.Text = LanguageConfig.Get(10067)
 leftTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 leftTitleLabel.TextSize = 18
 leftTitleLabel.Font = UIConfig.Font
@@ -188,7 +162,7 @@ local function createTowerInfo(islandData, maxTowers)
     towerCountLabel.Size = UDim2.new(0.5, -15, 0, 35)
     towerCountLabel.Position = UDim2.new(0, 15, 0, 15)
     towerCountLabel.BackgroundTransparency = 1
-    towerCountLabel.Text = string.format("箭塔数量: %d/%d", #islandData.towerData or 0, maxTowers)
+    towerCountLabel.Text = LanguageConfig.Get(10068) .. string.format(": %d/%d", #islandData.towerData or 0, maxTowers)
     towerCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     towerCountLabel.TextSize = 18
     towerCountLabel.Font = UIConfig.Font
@@ -196,32 +170,17 @@ local function createTowerInfo(islandData, maxTowers)
     towerCountLabel.Parent = towerInfoFrame
     
     -- 总收益
-    local dailyIncome = 1000
     local incomeLabel = Instance.new("TextLabel")
     incomeLabel.Name = "IncomeLabel"
     incomeLabel.Size = UDim2.new(0.5, -15, 0, 35)
     incomeLabel.Position = UDim2.new(0, 15, 0, 40)
     incomeLabel.BackgroundTransparency = 1
-    incomeLabel.Text = string.format("总收益: %d", dailyIncome)
+    incomeLabel.Text = LanguageConfig.Get(10069) .. string.format(": %d", islandData.dailyIncome or 0)
     incomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     incomeLabel.TextSize = 18
     incomeLabel.Font = UIConfig.Font
     incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
     incomeLabel.Parent = towerInfoFrame
-    
-    -- 当日收益
-    local netIncome = 100
-    local netIncomeLabel = Instance.new("TextLabel")
-    netIncomeLabel.Name = "NetIncomeLabel"
-    netIncomeLabel.Size = UDim2.new(0.5, -15, 0, 35)
-    netIncomeLabel.Position = UDim2.new(0.5, 0, 0, 40)
-    netIncomeLabel.BackgroundTransparency = 1
-    netIncomeLabel.Text = string.format("今日收益: %d", netIncome)
-    netIncomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    netIncomeLabel.Font = UIConfig.Font
-    netIncomeLabel.TextSize = 18
-    netIncomeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    netIncomeLabel.Parent = towerInfoFrame
 end
 
 local function createTowerPosition(islandData, maxTowers)
@@ -240,7 +199,7 @@ local function createTowerPosition(islandData, maxTowers)
     towerPositionTitle.Size = UDim2.new(1, 0, 0, 30)
     towerPositionTitle.Position = UDim2.new(0, 0, 0, 0)
     towerPositionTitle.BackgroundTransparency = 1
-    towerPositionTitle.Text = "箭塔管理"
+    towerPositionTitle.Text = LanguageConfig.Get(10070)
     towerPositionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
     towerPositionTitle.TextSize = 18
     towerPositionTitle.Font = UIConfig.Font
@@ -317,9 +276,9 @@ local function createTowerPosition(islandData, maxTowers)
          if i > maxTowers then
              -- 超出岛屿允许的箭塔数量，显示为空位置
              positionSlot.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-             positionSlot.Text = "不可用"
+             positionSlot.Text = LanguageConfig.Get(10071)
              positionSlot.Active = false
-             statusLbl.Text = "此岛屿不支持"
+             statusLbl.Text = LanguageConfig.Get(10072)
              statusLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
         elseif hasTower and towerInfo then
             positionSlot.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
@@ -327,7 +286,7 @@ local function createTowerPosition(islandData, maxTowers)
             positionSlot.Active = false
             local config = TowerConfig[towerInfo.towerType]
             if config then
-                statusLbl.Text = string.format("伤害:%d", config.Damage)
+                statusLbl.Text = LanguageConfig.Get(10073) .. string.format(":%d", config.Damage)
             else
                 statusLbl.Text = ""
             end
@@ -335,7 +294,7 @@ local function createTowerPosition(islandData, maxTowers)
             
             -- 购买箭塔点击事件
             positionSlot.MouseButton1Click:Connect(function()
-                Knit.GetController('UIController').ShowMessageBox:Fire({Content = "你是否要拆除此箭塔？", OnConfirm = function()
+                Knit.GetController('UIController').ShowMessageBox:Fire({Content = LanguageConfig.Get(10074), OnConfirm = function()
                     Knit.GetService('IslandManageService'):RemoveTower(_selectedIsland, i):andThen(function(success, tipId)
                         Knit.GetController('UIController').ShowTip:Fire(tipId)
                         if success then
@@ -347,7 +306,7 @@ local function createTowerPosition(islandData, maxTowers)
         else
             -- 没有箭塔，显示购买选项
             positionSlot.BackgroundColor3 = Color3.fromRGB(40, 167, 69)
-            positionSlot.Text = "购买箭塔"
+            positionSlot.Text = LanguageConfig.Get(10075)
             positionSlot.TextColor3 = Color3.fromRGB(104, 48, 207)
             positionSlot.Active = true
             statusLbl.Text = ""
@@ -405,7 +364,7 @@ local function loadPlayerIslands()
             noIslandLabel.Name = "NoIslandLabel"
             noIslandLabel.Size = UDim2.new(1, -10, 0, 40)
             noIslandLabel.BackgroundTransparency = 1
-            noIslandLabel.Text = "您还没有拥有任何岛屿"
+            noIslandLabel.Text = LanguageConfig.Get(10076)
             noIslandLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             noIslandLabel.TextScaled = true
             noIslandLabel.Font = UIConfig.Font

@@ -122,7 +122,6 @@ function ChestService:ProcessChestRewards(player, chestPosition)
 end
 
 function ChestService:KnitInit()
-    print('ChestService initialized')
 end
 
 return ChestService

@@ -9,8 +9,6 @@ local BoatConfig = {
         ["Polysurface201"] = {HP = 10, speed = 1},
         ["Polysurface21"] = {HP = 10, speed = 1},
         ["Polysurface31"] = {HP = 10, speed = 1},
-        ["Polysurface371"] = {HP = 10, speed = 1},
-        ["Polysurface381"] = {HP = 10, speed = 1},
         ["Polysurface41"] = {HP = 10, speed = 1},
         ["Polysurface51"] = {HP = 10, speed = 1},
         ["对象001"] = {HP = 10, speed = 1},
@@ -33,8 +31,11 @@ local BoatConfig = {
         ["对象018"] = {HP = 10, speed = 1},
         ["对象019"] = {HP = 10, speed = 1},
         ["对象020"] = {HP = 10, speed = 1},
-        ["对象022"] = {HP = 10, speed = 1},
         ["对象023"] = {HP = 10, speed = 1},
+        ["船炮1"] = {HP = 10, speed = 1},
+        ["船炮2"] = {HP = 10, speed = 1},
+        ["船炮3"] = {HP = 10, speed = 1},
+        ["船炮4"] = {HP = 10, speed = 1},
     }
 }
 

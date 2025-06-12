@@ -5,8 +5,6 @@
 版本：1.0.0
 最后修改：2024-05-28
 ]]
-print('MessageBoxUI.client.lua loaded')
-
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)

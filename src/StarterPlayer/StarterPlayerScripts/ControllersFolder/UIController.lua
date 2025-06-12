@@ -1,4 +1,3 @@
-print('UIController.lua loaded')
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
@@ -34,7 +33,6 @@ local UIController = Knit.CreateController {
 }
 
 function UIController:KnitInit()
-    print('UIController initialized')
     self.AddUI:Connect(function(uiScript, destroyCallFunc)
         table.insert(self.UIScripts, {uiScript = uiScript, destroyCallFunc = destroyCallFunc})
     end)
@@ -55,7 +53,6 @@ function UIController:KnitInit()
 end
 
 function UIController:KnitStart()
-    print('UIController started')
 end
 
 return UIController

@@ -1,5 +1,3 @@
-print("StarterPlayerScripts start.lua loaded...")
-
 require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
 -- -- 禁用滚轮缩放

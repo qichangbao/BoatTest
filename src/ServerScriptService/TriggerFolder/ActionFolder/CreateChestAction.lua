@@ -1,4 +1,3 @@
-print("加载CreateChestAction")
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
 
 local CreateChestAction = {}

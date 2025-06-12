@@ -119,7 +119,6 @@ function BoatMovementService.Client:UpdateMovement(player, direction, angular)
 end
 
 function BoatMovementService:KnitInit()
-    print('BoatMovementService Initialized')
     -- 初始化心跳事件
     game:GetService('RunService').Heartbeat:Connect(function()
         for userId, data in pairs(self.Boats) do
@@ -147,7 +146,6 @@ function BoatMovementService:KnitInit()
 end
 
 function BoatMovementService:KnitStart()
-    print('BoatMovementService Started')
 end
 
 return BoatMovementService

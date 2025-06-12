@@ -253,11 +253,9 @@ function DBService:GiveStats(player)
 end
 
 function DBService:KnitInit()
-    print('DBService initialized')
 end
 
 function DBService:KnitStart()
-    print('DBService started')
 end
 
 return DBService

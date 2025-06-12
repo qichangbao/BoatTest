@@ -1,4 +1,3 @@
-print("加载WaveAction")
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
 
 local WaveAction = {}

@@ -167,10 +167,6 @@ function IslandManageService:BuyTower(player, islandId, towerType, index)
     -- 存储箭塔类型信息
     table.insert(isLandData.towerData, towerDataTemp)
     
-    -- 初始化箭塔到TowerService
-    local towerIndex = #isLandData.towerData
-    TowerService:InitializeTower(towerModel, islandId, towerIndex, towerType)
-    
     SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandId, isLandData = isLandData})
     
     return true, 10055
@@ -210,14 +206,6 @@ function IslandManageService:RemoveTower(player, islandId, index)
     
     local TowerService = Knit.GetService("TowerService")
     TowerService:RemoveTower(islandId, towerDataTemp.towerName)
-    -- 从TowerService中移除箭塔
-    if towerArrayIndex then
-        local towerKey = islandId .. "_" .. towerArrayIndex
-        if TowerService._activeTowers and TowerService._activeTowers[towerKey] then
-            TowerService:StopTowerAttack(towerKey)
-            TowerService._activeTowers[towerKey] = nil
-        end
-    end
     
     SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandId, isLandData = isLandData})
     return true, 10060

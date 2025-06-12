@@ -1,4 +1,3 @@
-print('LootService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Players = game:GetService('Players')
@@ -73,7 +72,6 @@ function LootService.Client:Loot(player)
 end
 
 function LootService:KnitInit()
-    print('LootService initialized')
     RunService.Heartbeat:Connect(function(dt)
         for userId, cooldown in pairs(_playerCoolDown) do
             local player = Players:GetPlayerByUserId(userId)
@@ -97,7 +95,6 @@ function LootService:KnitInit()
 end
 
 function LootService:KnitStart()
-    print('LootService started')
 end
 
 return LootService

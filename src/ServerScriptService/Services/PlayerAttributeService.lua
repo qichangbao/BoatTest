@@ -73,8 +73,6 @@ function PlayerAttributeService.Client:GetLoginData(player)
 end
 
 function PlayerAttributeService:KnitInit()
-    print('PlayerAttributeService initialized')
-
     local function playerAdded(player)
         print("PlayerAdded    ", player.Name)
         player.CharacterAdded:Connect(function(character)
@@ -145,7 +143,6 @@ function PlayerAttributeService:KnitInit()
 end
 
 function PlayerAttributeService:KnitStart()
-    print('PlayerAttributeService started')
 end
 
 return PlayerAttributeService

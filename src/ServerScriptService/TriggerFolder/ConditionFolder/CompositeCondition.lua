@@ -1,4 +1,3 @@
-print("加载CompositeCondition")
 local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
 local PositionCondition = require(script.Parent:WaitForChild("PositionCondition"))
 local PlayerActionCondition = require(script.Parent:WaitForChild("PlayerActionCondition"))

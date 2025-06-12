@@ -1,4 +1,3 @@
-print('Wave.lua loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild('Packages'):WaitForChild("Knit"):WaitForChild("Knit"))
 local TweenService = game:GetService("TweenService")

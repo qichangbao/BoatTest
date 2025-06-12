@@ -64,7 +64,7 @@ local function CreateIsLandOwnerModel(landName, playerName)
             humanoidRootPart.Anchored = true
         end
 
-        model.Name = string.format(LanguageConfig.Get(10047), playerName)
+        model.Name = LanguageConfig.Get(10047) .. string.format(":%s", playerName)
         model:ScaleTo(8)
         model.Parent = land
         for _, child in ipairs(model:GetDescendants()) do

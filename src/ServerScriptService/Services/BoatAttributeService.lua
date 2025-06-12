@@ -43,11 +43,9 @@ function BoatAttributeService:ChangeBoatSpeed(player, speed, maxSpeed)
 end
 
 function BoatAttributeService:KnitInit()
-    print('BoatAttributeService initialized')
 end
 
 function BoatAttributeService:KnitStart()
-    print('BoatAttributeService started')
 end
 
 return BoatAttributeService

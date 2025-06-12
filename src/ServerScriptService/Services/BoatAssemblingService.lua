@@ -1,6 +1,4 @@
-print('BoatAssemblingService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 local ServerStorage = game:GetService('ServerStorage')
 local CollectionService = game:GetService("CollectionService")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
@@ -425,11 +423,9 @@ function BoatAssemblingService.Client:StopBoat(player)
 end
 
 function BoatAssemblingService:KnitInit()
-    print('BoatAssemblingService initialized')
 end
 
 function BoatAssemblingService:KnitStart()
-    print('BoatAssemblingService started')
 end
 
 return BoatAssemblingService

@@ -1,4 +1,3 @@
-print('SystemService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MessagingService = game:GetService("MessagingService")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
@@ -68,6 +67,9 @@ function SystemService:ChangeIsLandOwnerData(isLandOwners, changeInfo)
         _IsLandOwners = isLandOwners
         task.spawn(function()
             pcall(function()
+                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                    warn("岛屿信息为空")
+                end
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
 
@@ -98,6 +100,9 @@ function SystemService:UpdateIsLandOwner(player, landName)
     if _isMainServer then
         task.spawn(function()
             pcall(function()
+                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                    warn("岛屿信息为空")
+                end
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
 
@@ -134,6 +139,7 @@ function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
     if player then
         local gold = player:GetAttribute("Gold")
         player:SetAttribute("Gold", gold + price)
+        data.dailyIncome = data.dailyIncome or 0 + price
         self:SendSystemMessageToSinglePlayer(player, 'success', 10045, payPlayerName, landName, price)
         return
     end
@@ -168,8 +174,6 @@ local function getServerId()
 end
 
 local _serverId = getServerId()
-print("服务器ID:", _serverId)
-
 local _serverStartTime = os.time()
 -- 启动注册协程
 task.spawn(function()
@@ -193,11 +197,12 @@ function SystemService:CheckMainServer()
         if success then
             print("IsLandOwners", ownersInfo)
             _IsLandOwners = ownersInfo or {}
+            if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                warn("岛屿信息为空")
+            end
             for i, v in pairs(_IsLandOwners) do
                 Knit.GetService("TowerService"):CreateTowersByLandName(i)
             end
-        else
-            warn('无法连接数据库: SystemStore')
         end
         print("IsLandOwners", _IsLandOwners)
         return
@@ -217,8 +222,6 @@ function SystemService:CheckMainServer()
                 for i, v in pairs(_IsLandOwners) do
                     Knit.GetService("TowerService"):CreateTowersByLandName(i)
                 end
-            else
-                warn('无法连接数据库: SystemStore')
             end
             print("IsLandOwners", _IsLandOwners)
         end
@@ -226,7 +229,6 @@ function SystemService:CheckMainServer()
 end
 
 function SystemService:KnitInit()
-    print('SystemService initialized')
     -- 开启协程定时检查主服务器，防止主服务器崩溃
     task.spawn(function()
         self:CheckMainServer()
@@ -261,6 +263,9 @@ function SystemService:KnitInit()
             
             task.spawn(function()
                 pcall(function()
+                    if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                        warn("岛屿信息为空")
+                    end
                     return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                 end)
 
@@ -331,6 +336,9 @@ function SystemService:KnitInit()
             if _isMainServer then
                 task.spawn(function()
                     pcall(function()
+                        if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                            warn("岛屿信息为空")
+                        end
                         return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                     end)
             
@@ -347,7 +355,20 @@ function SystemService:KnitInit()
 end
 
 function SystemService:KnitStart()
-    print('SystemService started')
+    -- 在服务器关闭时保存岛屿所有者信息到数据库
+    game:BindToClose(function()
+        if _isMainServer then
+            print("主服务器关闭，保存岛屿所有者信息到数据库")
+            pcall(function()
+                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
+                    warn("岛屿信息为空，取消保存")
+                    return
+                end
+                SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+                print("岛屿所有者信息已保存到数据库")
+            end)
+        end
+    end)
 end
 
 return SystemService

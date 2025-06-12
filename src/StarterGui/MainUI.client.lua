@@ -6,7 +6,6 @@
 2024-02-20 创建基础UI框架
 2024-02-25 添加远程事件通信
 --]]
-print("MainUI.lua loaded")
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')

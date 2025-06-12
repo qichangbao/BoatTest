@@ -1,4 +1,3 @@
-print('InventoryService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 
@@ -156,11 +155,9 @@ function InventoryService.Client:GetInventory(player)
 end
 
 function InventoryService:KnitInit()
-    print('InventoryService initialized')
 end
 
 function InventoryService:KnitStart()
-    print('InventoryService started')
 end
 
 return InventoryService

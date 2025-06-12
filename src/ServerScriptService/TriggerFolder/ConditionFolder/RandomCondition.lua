@@ -1,4 +1,3 @@
-print("加载RandomCondition")
 local ConditionBase = require(script.Parent:WaitForChild("ConditionBase"))
 
 local RandomCondition = {}

@@ -370,8 +370,6 @@ function BuffService:HasBuff(player, buffId, buffType)
 end
 
 function BuffService:KnitInit()
-    print('BuffService initialized')
-    
     -- 玩家加入时初始化BUFF数据
     local function playerAdded(player)
         initPlayerBuffs(player)
@@ -392,7 +390,6 @@ function BuffService:KnitInit()
 end
 
 function BuffService:KnitStart()
-    print('BuffService started')
 end
 
 return BuffService

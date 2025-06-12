@@ -1,4 +1,3 @@
-print('GiftService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Players = game:GetService("Players")
@@ -43,6 +42,12 @@ function GiftService.Client:RequestSendGift(player, targetPlayerUserId, items)
     Knit.GetService("SystemService"):SendTip(targetPlayer, 10031, player.name)
 
     return 10028
+end
+
+function GiftService:KnitInit()
+end
+
+function GiftService:KnitStart()
 end
 
 return GiftService

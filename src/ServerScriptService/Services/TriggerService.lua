@@ -1,4 +1,3 @@
-print('TriggerService.lua loaded')
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
@@ -22,11 +21,9 @@ function TriggerService.Client:WaveHitBoat(player, changeHp)
 end
 
 function TriggerService:KnitInit()
-    print('TriggerService initialized')
 end
 
 function TriggerService:KnitStart()
-    print('TriggerService started')
 end
 
 return TriggerService

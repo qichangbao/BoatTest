@@ -100,4 +100,45 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     return cancelButton
 end
 
+local function CreateFrame(parent, title, frameSize)
+    local frame = UIConfig.CreateFrame(parent)
+    frame.Size = frameSize
+    UIConfig.CreateCorner(frame, UDim.new(0, 8))
+    
+    -- 标题栏
+    local titleBar = Instance.new("Frame")
+    titleBar.Name = "TitleBar"
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Position = UDim2.new(0.5, 0, 0, 0)
+    titleBar.AnchorPoint = Vector2.new(0.5, 1)
+    titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
+    titleBar.Parent = frame
+    UIConfig.CreateCorner(titleBar, UDim.new(0, 8))
+    
+    local titleText = Instance.new("TextLabel")
+    titleText.Name = "TitleText"
+    titleText.Size = UDim2.new(0.3, 0, 1, 0)
+    titleText.Position = UDim2.new(0.5, 0, 0, 0)
+    titleText.AnchorPoint = Vector2.new(0.5, 0)
+    titleText.Text = title
+    titleText.Font = UIConfig.Font
+    titleText.TextSize = 20
+    titleText.TextColor3 = Color3.new(1, 1, 1)
+    titleText.BackgroundTransparency = 1
+    titleText.TextXAlignment = Enum.TextXAlignment.Center
+    titleText.Parent = titleBar
+    
+    -- 关闭按钮
+    local closeButton = UIConfig.CreateCloseButton(titleBar, function()
+        parent.Enabled = false
+    end)
+    closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+
+    return frame
+end
+
+UIConfig.CreateBigFrame = function(parent, title)
+    return CreateFrame(parent, title, UDim2.new(0, 700, 0, 400))
+end
+
 return UIConfig

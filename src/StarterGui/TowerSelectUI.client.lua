@@ -42,7 +42,7 @@ local _titleLabel = Instance.new("TextLabel")
 _titleLabel.Name = "TitleLabel"
 _titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
 _titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = "选择箭塔类型"
+_titleLabel.Text = LanguageConfig.Get(10077)
 _titleLabel.Font = UIConfig.Font
 _titleLabel.TextSize = 20
 _titleLabel.TextColor3 = Color3.new(1, 1, 1)
@@ -97,7 +97,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
         towerStats.Size = UDim2.new(0.7, 0, 0, 25)
         towerStats.Position = UDim2.new(0, 15, 0, 50)
         towerStats.BackgroundTransparency = 1
-        towerStats.Text = string.format("伤害:%d", towerData.Damage)
+        towerStats.Text = LanguageConfig.Get(10073) .. string.format(":%d", towerData.Damage)
         towerStats.TextColor3 = Color3.fromRGB(200, 200, 200)
         towerStats.TextSize = 16
         towerStats.Font = UIConfig.Font

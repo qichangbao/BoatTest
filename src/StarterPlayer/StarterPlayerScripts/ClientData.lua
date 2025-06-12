@@ -1,4 +1,3 @@
-print('ClientData loaded')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Players = game:GetService('Players')
