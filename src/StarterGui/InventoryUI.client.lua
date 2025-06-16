@@ -27,8 +27,8 @@ local _frame = UIConfig.CreateBigFrame(_screenGui, LanguageConfig.Get(10025))
 
 -- 物品滚动区域
 local _scrollFrame = Instance.new("ScrollingFrame")
-_scrollFrame.Size = UDim2.new(0.94, 0, 0.94, 0) -- 调整高度，考虑标题栏占用的空间
-_scrollFrame.Position = UDim2.new(0.03, 0, 0.03, 0) -- 调整位置，避开标题栏
+_scrollFrame.Size = UDim2.new(1, -20, 1, -20) -- 调整高度，考虑标题栏占用的空间
+_scrollFrame.Position = UDim2.new(0, 10, 0, 10) -- 调整位置，避开标题栏
 _scrollFrame.BackgroundTransparency = 1
 _scrollFrame.ScrollBarThickness = 8
 _scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0) -- 初始化画布大小，将在更新UI时动态调整

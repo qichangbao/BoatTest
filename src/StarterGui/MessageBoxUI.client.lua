@@ -19,12 +19,6 @@ _screenGui.Enabled = false
 _screenGui.DisplayOrder = 100
 _screenGui.Parent = PlayerGui
 
-UIConfig.CreateBlock(_screenGui)
-
-local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0.4, 0, 0.3, 0)
-UIConfig.CreateCorner(_frame, UDim.new(0, 8))
-
 local _confirmCallFunc = nil
 local _cancelCallFunc = nil
 local function Hide()
@@ -33,26 +27,15 @@ local function Hide()
     _cancelCallFunc = nil
 end
 
--- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(_frame, function()
-    _screenGui.Enabled = false
-end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0, 0)
+UIConfig.CreateBlock(_screenGui)
 
--- 标题
-local _titleLabel = Instance.new('TextLabel')
-_titleLabel.Size = UDim2.new(0.8, 0, 0.2, 0)
-_titleLabel.Position = UDim2.new(0.1, 0, 0.1, 0)
-_titleLabel.Font = UIConfig.Font
-_titleLabel.TextSize = 22
-_titleLabel.TextColor3 = Color3.new(1, 1, 1)
-_titleLabel.BackgroundTransparency = 1
-_titleLabel.Parent = _frame
-UIConfig.CreateCorner(_titleLabel, UDim.new(0, 8))
+local _frame, _titleLabel = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10078), function()
+    Hide()
+end)
 
 -- 内容
 local _contentLabel = Instance.new('TextLabel')
-_contentLabel.Size = UDim2.new(0.8, 0, 0.5, 0)
+_contentLabel.Size = UDim2.new(1, -20, 0.5, 0)
 _contentLabel.Position = UDim2.new(0.1, 0, 0.3, 0)
 _contentLabel.Font = UIConfig.Font
 _contentLabel.TextSize = 18

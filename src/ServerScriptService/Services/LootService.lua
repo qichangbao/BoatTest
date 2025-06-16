@@ -25,7 +25,7 @@ local function getRandomParts(player)
         -- 添加主要部件（如果首次获取）
         local primaryPartName = ''
         for name, data in pairs(curBoatConfig) do
-            if data.isPrimaryPart then
+            if data.PartType == 'PrimaryPart' then
                 primaryPartName = name
                 break
             end

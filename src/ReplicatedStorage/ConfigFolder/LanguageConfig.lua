@@ -76,6 +76,7 @@ local Text = {
     [10075] = {zh_cn = "购买箭塔", en_us = "购买箭塔"},
     [10076] = {zh_cn = "你还没有拥有任何岛屿", en_us = "你还没有拥有任何岛屿"},
     [10077] = {zh_cn = "选择箭塔类型", en_us = "选择箭塔类型"},
+    [10078] = {zh_cn = "当前效果", en_us = "当前效果"},
 }
 
 local Players = game:GetService("Players")

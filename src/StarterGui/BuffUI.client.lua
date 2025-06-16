@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -13,60 +14,13 @@ _screenGui.ResetOnSpawn = false
 _screenGui.Enabled = false
 _screenGui.Parent = playerGui
 
--- 主框架
-local _frame = Instance.new("Frame")
-_frame.Name = "BuffFrame"
-_frame.Size = UDim2.new(0, 400, 0, 300)
-_frame.Position = UDim2.new(0.5, -200, 0.5, -150)
-_frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-_frame.BackgroundTransparency = 0.1
-_frame.BorderSizePixel = 0
-_frame.Parent = _screenGui
-UIConfig.CreateCorner(_frame, UDim.new(0, 8))
-
--- 标题栏
-local _titleBar = Instance.new('Frame')
-_titleBar.Size = UDim2.new(1, 0, 0.15, 0)
-_titleBar.Position = UDim2.new(0, 0, 0, 0)
-_titleBar.BackgroundColor3 = Color3.fromRGB(103, 80, 164)
-_titleBar.Parent = _frame
-UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
-
--- 标题
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "TitleLabel"
-titleLabel.Size = UDim2.new(1, -40, 0, 40)
-titleLabel.Position = UDim2.new(0, 10, 0, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "当前效果"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextScaled = true
-titleLabel.Font = UIConfig.Font
-titleLabel.Parent = _titleBar
-
--- 关闭按钮
-local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 5)
-closeButton.BackgroundColor3 = Color3.fromRGB(220, 53, 69)
-closeButton.Text = "×"
-closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeButton.TextScaled = true
-closeButton.Font = UIConfig.Font
-closeButton.Parent = _frame
-UIConfig.CreateCorner(closeButton)
-
--- 关闭按钮点击事件
-closeButton.MouseButton1Click:Connect(function()
-    _screenGui.Enabled = false
-end)
+local _frame = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10078))
 
 -- BUFF列表容器
 local _buffList = Instance.new("ScrollingFrame")
 _buffList.Name = "BuffList"
-_buffList.Size = UDim2.new(1, -20, 1, -60)
-_buffList.Position = UDim2.new(0, 10, 0, 50)
+_buffList.Size = UDim2.new(1, -20, 1, -20)
+_buffList.Position = UDim2.new(0, 10, 0, 10)
 _buffList.BackgroundTransparency = 1
 _buffList.BorderSizePixel = 0
 _buffList.ScrollBarThickness = 6

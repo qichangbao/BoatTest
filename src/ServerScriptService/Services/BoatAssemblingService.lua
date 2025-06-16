@@ -47,7 +47,7 @@ function BoatAssemblingService:CreateBoat(player)
     local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
     local primaryPartName = ''
     for name, data in pairs(curBoatConfig) do
-        if data.isPrimaryPart then
+        if data.PartType == 'PrimaryPart' then
             primaryPartName = name
             break
         end
@@ -110,6 +110,7 @@ function BoatAssemblingService:CreateBoat(player)
         end
         -- 移除主船体关联
         self.Client.UpdateMainUI:Fire(player, {explore = false})
+        Knit.GetService('BoatWeaponService'):Active(player, false)
         Knit.GetService('BoatMovementService'):OnBoat(player, false)
         CollectionService:RemoveTag(boat, "Boat")
     end)
@@ -131,6 +132,7 @@ function BoatAssemblingService:CreateBoat(player)
         Knit.GetService('BoatAttributeService'):ChangeBoatSpeed(player, speed, maxSpeed)
     end)
 
+    local weapons = {}
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
         if partInfo.Name ~= primaryPartName then
@@ -287,6 +289,7 @@ function BoatAssemblingService.Client:AssembleBoat(player)
 
     -- 设置船的初始位置
     Interface.InitBoatWaterPos(player, boat)
+    Knit.GetService('BoatWeaponService'):Active(player, true)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     Knit.GetService('InventoryService'):BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     -- 触发客户端事件更新主界面UI
@@ -313,7 +316,7 @@ function BoatAssemblingService:AttachPartToBoat(boat, partType)
     local curBoatConfig = BoatConfig.GetBoatConfig(modelName)
     local primaryPartName = ''
     for name, data in pairs(curBoatConfig) do
-        if data.isPrimaryPart then
+        if data.PartType == 'PrimaryPart' then
             primaryPartName = name
             break
         end
@@ -380,6 +383,8 @@ end
 function BoatAssemblingService:DestroyBoat(player)
     local boat = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface")).GetBoatByPlayerUserId(player.UserId)
     boat:SetAttribute('Destroying', true)
+    Knit.GetService('BoatWeaponService'):Active(player, false)
+    Knit.GetService('BoatMovementService'):OnBoat(player, false)
     -- 断开所有焊接约束
     for _, part in ipairs(boat:GetDescendants()) do
         if part:IsA('WeldConstraint') or part:IsA('VehicleSeat') then

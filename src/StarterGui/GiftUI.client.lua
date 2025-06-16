@@ -18,43 +18,18 @@ _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
 
-local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0.35, 0, 0.45, 0)
-UIConfig.CreateCorner(_frame, UDim.new(0, 8))
-
--- 物品选择列表
-local _scrollFrame = Instance.new('ScrollingFrame')
-_scrollFrame.Size = UDim2.new(0.9, 0, 0.7, 0)
-_scrollFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-_scrollFrame.BackgroundTransparency = 1
-_scrollFrame.ScrollBarThickness = 8
-_scrollFrame.Parent = _frame
-
--- 标题栏
-local _titleBar = Instance.new('Frame')
-_titleBar.Size = UDim2.new(1, 0, 0.1, 0)
-_titleBar.Position = UDim2.new(0, 0, 0, 0)
-_titleBar.BackgroundColor3 = Color3.fromRGB(103, 80, 164)
-_titleBar.Parent = _frame
-UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
-
-local _titleLabel = Instance.new('TextLabel')
-_titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-_titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig.Get(10027)
-_titleLabel.Font = UIConfig.Font
-_titleLabel.TextSize = 20
-_titleLabel.TextColor3 = Color3.new(1, 1, 1)
-_titleLabel.BackgroundTransparency = 1
-_titleLabel.Parent = _titleBar
-
--- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
-    _screenGui.Enabled = false
+local _frame = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10027), function()
     _playerUserId = 0
     Knit.GetController('UIController').GiftUIClose:Fire()
 end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+
+-- 物品选择列表
+local _scrollFrame = Instance.new('ScrollingFrame')
+_scrollFrame.Size = UDim2.new(1, -20, 1, -20)
+_scrollFrame.Position = UDim2.new(0, 10, 0, 10)
+_scrollFrame.BackgroundTransparency = 1
+_scrollFrame.ScrollBarThickness = 8
+_scrollFrame.Parent = _frame
 
 -- 确认按钮
 local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
@@ -86,15 +61,15 @@ _confirmButton.Position = UDim2.new(0.5, 0, 0.85, 0)
 
 -- 网格布局
 local _gridLayout = Instance.new("UIGridLayout")
-_gridLayout.CellSize = UDim2.new(0.2, 0, 0.2, 0)
-_gridLayout.CellPadding = UDim2.new(0.02, 0, 0.02, 0)
+_gridLayout.CellSize = UDim2.new(0.22, 0, 0.22, 0)
+_gridLayout.CellPadding = UDim2.new(0.03, 0, 0.03, 0)
 _gridLayout.FillDirectionMaxCells = 4
 _gridLayout.Parent = _scrollFrame
 
 -- 创建物品模板
 local _itemTemplate = Instance.new("ImageButton")
 _itemTemplate.Name = "ItemTemplate"
-_itemTemplate.Size = UDim2.new(0.2, 0, 0.2, 0)
+_itemTemplate.Size = UDim2.new(0.22, 0, 0.22, 0)
 _itemTemplate.BackgroundColor3 = Color3.fromRGB(255, 251, 251)
 _itemTemplate.BackgroundTransparency = 0.7
 _itemTemplate.Visible = false

@@ -17,51 +17,15 @@ _screenGui.Parent = playerGui
 
 UIConfig.CreateBlock(_screenGui)
 
--- 弹窗主框架
-local _dialogFrame = Instance.new("Frame")
-_dialogFrame.Name = "DialogFrame"
-_dialogFrame.Size = UDim2.new(0, 500, 0, 350)
-_dialogFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-_dialogFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-_dialogFrame.BackgroundColor3 = Color3.fromRGB(52, 58, 64)
-_dialogFrame.BorderSizePixel = 0
-_dialogFrame.Parent = _screenGui
-UIConfig.CreateCorner(_dialogFrame, UDim.new(0, 12))
-
--- 标题栏
-local _titleBar = Instance.new("Frame")
-_titleBar.Name = "TitleBar"
-_titleBar.Size = UDim2.new(1, 0, 0, 50)
-_titleBar.Position = UDim2.new(0, 0, 0, 0)
-_titleBar.BackgroundColor3 = Color3.fromRGB(147, 51, 234)
-_titleBar.Parent = _dialogFrame
-UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
-
--- 标题文字
-local _titleLabel = Instance.new("TextLabel")
-_titleLabel.Name = "TitleLabel"
-_titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-_titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig.Get(10077)
-_titleLabel.Font = UIConfig.Font
-_titleLabel.TextSize = 20
-_titleLabel.TextColor3 = Color3.new(1, 1, 1)
-_titleLabel.BackgroundTransparency = 1
-_titleLabel.Parent = _titleBar
-
--- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
-    _screenGui.Enabled = false
-end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+local _frame = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10077))
 
 -- 箭塔选择区域
 local _selectionArea = Instance.new("Frame")
 _selectionArea.Name = "SelectionArea"
-_selectionArea.Size = UDim2.new(1, -20, 1, -70)
-_selectionArea.Position = UDim2.new(0, 10, 0, 55)
+_selectionArea.Size = UDim2.new(1, -20, 1, -20)
+_selectionArea.Position = UDim2.new(0, 10, 0, 10)
 _selectionArea.BackgroundTransparency = 1
-_selectionArea.Parent = _dialogFrame
+_selectionArea.Parent = _frame
 
 -- 创建箭塔选项
 local function createSelectItem(selectedIsland, index, callFunc)
@@ -152,7 +116,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
 
     -- 如果内容超出对话框高度，调整对话框大小
     if _yOffset > 240 then
-        _dialogFrame.Size = UDim2.new(0, 500, 0, math.min(_yOffset + 110, 500))
+        _frame.Size = UDim2.new(0, 500, 0, math.min(_yOffset + 110, 500))
     end
 end
 

@@ -70,25 +70,24 @@ function SystemService:ChangeIsLandOwnerData(isLandOwners, changeInfo)
                 if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
                     warn("岛屿信息为空")
                 end
+                print("岛屿数据已保存", _IsLandOwners)
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
+        end)
 
-            MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
-                jobId = game.JobId,
-                isLandOwners = isLandOwners,
-                islandId = islandId,
-                isLandData = isLandData
-            })
-        end)
+        MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
+            jobId = game.JobId,
+            isLandOwners = isLandOwners,
+            islandId = islandId,
+            isLandData = isLandData
+        })
     else
-        task.spawn(function()
-            MessagingService:PublishAsync(ChangeIsLandDataTag, {
-                jobId = game.JobId,
-                isLandOwners = isLandOwners,
-                islandId = islandId,
-                isLandData = isLandData
-            })
-        end)
+        MessagingService:PublishAsync(ChangeIsLandDataTag, {
+            jobId = game.JobId,
+            isLandOwners = isLandOwners,
+            islandId = islandId,
+            isLandData = isLandData
+        })
     end
 end
 
@@ -103,28 +102,27 @@ function SystemService:UpdateIsLandOwner(player, landName)
                 if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
                     warn("岛屿信息为空")
                 end
+                print("岛屿数据已保存", _IsLandOwners)
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
+        end)
 
-            -- 跨服发送土地更新领主消息
-            MessagingService:PublishAsync(IsLandOwnerMainServeTag, {
-                jobId = game.JobId,
-                IsLandOwners = _IsLandOwners,
-                landName = landName,
-                userId = player.UserId,
-                playerName = player.Name,
-            })
-        end)
+        -- 跨服发送土地更新领主消息
+        MessagingService:PublishAsync(IsLandOwnerMainServeTag, {
+            jobId = game.JobId,
+            IsLandOwners = _IsLandOwners,
+            landName = landName,
+            userId = player.UserId,
+            playerName = player.Name,
+        })
     else
-        task.spawn(function()
-            -- 跨服发送土地更新领主消息
-            MessagingService:PublishAsync(IsLandOwnerTag, {
-                jobId = game.JobId,
-                landName = landName,
-                userId = player.UserId,
-                playerName = player.Name,
-            })
-        end)
+        -- 跨服发送土地更新领主消息
+        MessagingService:PublishAsync(IsLandOwnerTag, {
+            jobId = game.JobId,
+            landName = landName,
+            userId = player.UserId,
+            playerName = player.Name,
+        })
     end
 end
 
@@ -144,21 +142,19 @@ function SystemService:AddGoldFromIsLandPay(payPlayerName, landName, price)
         return
     end
 
-    task.spawn(function()
-        local success, playerSystemData = pcall(function()
-            return Knit.GetService('DBService'):GetPlayerSystemData(data.userId)
-        end)
-        if success then
-            playerSystemData = playerSystemData or {}
-            -- 跨服发送土地付费消息
-            MessagingService:PublishAsync(IsLandPayTag, {
-                jobId = playerSystemData.JobId or "",
-                userId = data.userId,
-                login = playerSystemData.Login or false,
-                data = {payPlayerName = payPlayerName, landName = landName, price = price}
-            })
-        end
+    local success, playerSystemData = pcall(function()
+        return Knit.GetService('DBService'):GetPlayerSystemData(data.userId)
     end)
+    if success then
+        playerSystemData = playerSystemData or {}
+        -- 跨服发送土地付费消息
+        MessagingService:PublishAsync(IsLandPayTag, {
+            jobId = playerSystemData.JobId or "",
+            userId = data.userId,
+            login = playerSystemData.Login or false,
+            data = {payPlayerName = payPlayerName, landName = landName, price = price}
+        })
+    end
 end
 
 -- 获取服务器ID的兼容性写法
@@ -266,21 +262,22 @@ function SystemService:KnitInit()
                     if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
                         warn("岛屿信息为空")
                     end
+                    print("岛屿数据已保存", _IsLandOwners)
                     return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                 end)
-
-                -- 跨服发送土地更新领主消息
-                MessagingService:PublishAsync(
-                    IsLandOwnerMainServeTag,
-                    {
-                        jobId = jobId,
-                        IsLandOwners = _IsLandOwners,
-                        landName = message.Data.landName,
-                        userId = message.Data.userId,
-                        playerName = message.Data.playerName,
-                    }
-                )
             end)
+
+            -- 跨服发送土地更新领主消息
+            MessagingService:PublishAsync(
+                IsLandOwnerMainServeTag,
+                {
+                    jobId = jobId,
+                    IsLandOwners = _IsLandOwners,
+                    landName = message.Data.landName,
+                    userId = message.Data.userId,
+                    playerName = message.Data.playerName,
+                }
+            )
         end
     end)
     -- 跨服接收土地付费消息
@@ -339,16 +336,17 @@ function SystemService:KnitInit()
                         if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
                             warn("岛屿信息为空")
                         end
+                        print("岛屿数据已保存", _IsLandOwners)
                         return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                     end)
-            
-                    MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
-                        jobId = jobId,
-                        isLandOwners = _IsLandOwners,
-                        islandId = message.Data.islandId,
-                        isLandData = message.Data.isLandData
-                    })
                 end)
+            
+                MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
+                    jobId = jobId,
+                    isLandOwners = _IsLandOwners,
+                    islandId = message.Data.islandId,
+                    isLandData = message.Data.isLandData
+                })
             end
         end
     end)
@@ -364,8 +362,8 @@ function SystemService:KnitStart()
                     warn("岛屿信息为空，取消保存")
                     return
                 end
+                print("岛屿数据已保存", _IsLandOwners)
                 SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
-                print("岛屿所有者信息已保存到数据库")
             end)
         end
     end)

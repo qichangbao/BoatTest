@@ -31,8 +31,8 @@ local _frame = UIConfig.CreateBigFrame(_screenGui, LanguageConfig.Get(10066))
 -- 左侧岛屿列表框架
 local _leftFrame = Instance.new("Frame")
 _leftFrame.Name = "LeftFrame"
-_leftFrame.Size = UDim2.new(0.35, -15, 1, -60)
-_leftFrame.Position = UDim2.new(0, 10, 0, 50)
+_leftFrame.Size = UDim2.new(0.35, -15, 1, -20)
+_leftFrame.Position = UDim2.new(0, 10, 0, 10)
 _leftFrame.BackgroundColor3 = Color3.fromRGB(52, 58, 64)
 _leftFrame.BorderSizePixel = 0
 _leftFrame.Parent = _frame
@@ -72,8 +72,8 @@ islandListLayout.Parent = _islandList
 -- 右侧详情框架
 local _rightFrame = Instance.new("Frame")
 _rightFrame.Name = "RightFrame"
-_rightFrame.Size = UDim2.new(0.65, -15, 1, -60)
-_rightFrame.Position = UDim2.new(0.35, 5, 0, 50)
+_rightFrame.Size = UDim2.new(0.65, -15, 1, -20)
+_rightFrame.Position = UDim2.new(0.35, 5, 0, 10)
 _rightFrame.BackgroundColor3 = Color3.fromRGB(52, 58, 64)
 _rightFrame.BorderSizePixel = 0
 _rightFrame.Parent = _frame

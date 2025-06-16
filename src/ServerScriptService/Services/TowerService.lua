@@ -95,9 +95,17 @@ function TowerService:SetIslandActive(islandName, isActive, occupierUserId)
         islandData.attackConnection = RunService.Heartbeat:Connect(function()
             self:IslandAttackTick(islandName)
         end)
+
+        -- 岛屿箭塔激活的同时激活玩家的船炮系统
+        local player = Players:GetPlayerByUserId(occupierUserId)
+        Knit.GetService("BoatWeaponService"):Active(player, true, islandName)
         
         print("岛屿被激活，所有箭塔开始攻击:", islandName, "占领者:", occupierUserId)
     else
+        -- 岛屿箭塔取消激活的同时取消激活玩家的船炮系统
+        local player = Players:GetPlayerByUserId(occupierUserId)
+        Knit.GetService("BoatWeaponService"):Active(player, false)
+
         -- 取消激活岛屿
         local islandData = _activeIslands[islandName]
         local previousUserId = islandData and islandData.occupierUserId
@@ -163,12 +171,12 @@ function TowerService:TowerAttackTick(islandName, towerKey)
         local distance = (occupierBoat.PrimaryPart.Position - towerData.model.PrimaryPart.Position).Magnitude
         if distance > 100 then
             -- 占领者船只超出100距离，取消岛屿激活状态
-            self:SetIslandActive(towerData.islandName, false, nil)
+            self:SetIslandActive(towerData.islandName, false, islandData.occupierUserId)
             return
         end
     else
         -- 占领者船只不存在，取消岛屿激活状态
-        self:SetIslandActive(towerData.islandName, false, nil)
+        self:SetIslandActive(towerData.islandName, false, islandData.occupierUserId)
         return
     end
     
@@ -554,7 +562,7 @@ function TowerService:RemoveTowersByLandName(islandName)
     
     -- 取消岛屿激活状态
     if _activeIslands[islandName] then
-        self:SetIslandActive(islandName, false, nil)
+        self:SetIslandActive(islandName, false, _activeIslands[islandName].occupierUserId)
     end
     
     -- 移除箭塔

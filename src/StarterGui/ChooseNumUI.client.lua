@@ -19,34 +19,7 @@ _screenGui.Parent = PlayerGui
 
 UIConfig.CreateBlock(_screenGui)
 
-local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0.3, 0, 0.15, 0)
-UIConfig.CreateCorner(_frame, UDim.new(0, 8))
-
--- 标题栏
-local _titleBar = Instance.new('Frame')
-_titleBar.Size = UDim2.new(1, 0, 0.15, 0)
-_titleBar.Position = UDim2.new(0, 0, 0, 0)
-_titleBar.BackgroundColor3 = Color3.fromRGB(103, 80, 164)
-_titleBar.Parent = _frame
-UIConfig.CreateCorner(_titleBar, UDim.new(0, 8))
-
-local _titleLabel = Instance.new('TextLabel')
-_titleLabel.Size = UDim2.new(0.8, 0, 1, 0)
-_titleLabel.Position = UDim2.new(0.1, 0, 0, 0)
-_titleLabel.Text = LanguageConfig.Get(10029)
-_titleLabel.Font = UIConfig.Font
-_titleLabel.TextSize = 20
-_titleLabel.TextColor3 = Color3.new(1, 1, 1)
-_titleLabel.BackgroundTransparency = 1
-_titleLabel.Parent = _titleBar
-
--- 关闭按钮
-local _closeButton = UIConfig.CreateCloseButton(_titleBar, function()
-    _screenGui.Enabled = false
-    _callback = nil
-end)
-_closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
+local _frame = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10029))
 
 -- 加减按钮
 local _minusButton = Instance.new('TextButton')

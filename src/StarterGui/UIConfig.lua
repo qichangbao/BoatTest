@@ -100,7 +100,7 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     return cancelButton
 end
 
-local function CreateFrame(parent, title, frameSize)
+local function CreateFrame(parent, title, frameSize, closeCallFunc)
     local frame = UIConfig.CreateFrame(parent)
     frame.Size = frameSize
     UIConfig.CreateCorner(frame, UDim.new(0, 8))
@@ -131,14 +131,25 @@ local function CreateFrame(parent, title, frameSize)
     -- 关闭按钮
     local closeButton = UIConfig.CreateCloseButton(titleBar, function()
         parent.Enabled = false
+        if closeCallFunc then
+            closeCallFunc()
+        end
     end)
     closeButton.Position = UDim2.new(1, -UIConfig.CloseButtonSize.X.Offset / 2 + 20, 0.5, 0)
 
-    return frame
+    return frame, titleText
 end
 
-UIConfig.CreateBigFrame = function(parent, title)
-    return CreateFrame(parent, title, UDim2.new(0, 700, 0, 400))
+UIConfig.CreateBigFrame = function(parent, title, closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0, 700, 0, 400), closeCallFunc)
+end
+
+UIConfig.CreateMiddleFrame = function(parent, title, closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0, 550, 0, 320), closeCallFunc)
+end
+
+UIConfig.CreateSmallFrame = function(parent, title, closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0, 400, 0, 250), closeCallFunc)
 end
 
 return UIConfig

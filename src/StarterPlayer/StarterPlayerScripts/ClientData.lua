@@ -42,6 +42,9 @@ Knit:OnStart():andThen(function()
 
     local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
     PlayerAttributeService:GetLoginData():andThen(function(data)
+        ClientData.Gold = data.Gold
+        Knit.GetController('UIController').UpdateGoldUI:Fire()
+        
         ClientData.InventoryItems = {}
         for _, itemData in pairs(data.PlayerInventory) do
             table.insert(ClientData.InventoryItems, itemData)

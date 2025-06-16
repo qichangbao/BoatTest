@@ -426,8 +426,8 @@ local _islandManageButton = Instance.new('TextButton')
 _islandManageButton.Name = 'IslandManageButton'
 _islandManageButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _islandManageButton.Size = _buttonSize
-_islandManageButton.Position = UDim2.new(1, -60, 1, -160)
-_islandManageButton.Text = "岛屿管理"
+_islandManageButton.Position = UDim2.new(0, 60, 1, -240)
+_islandManageButton.Text = LanguageConfig.Get(10066)
 _islandManageButton.Font = UIConfig.Font
 _islandManageButton.TextSize = _buttonTextSize
 _islandManageButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)  -- 森林绿
@@ -479,7 +479,6 @@ Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui, Destroy)
     Knit.GetController('UIController').UpdateGoldUI:Connect(function()
         if not ClientData.Gold then
-            warn("ClientData.Gold is nil")
             return
         end
         _goldLabel.Text = LanguageConfig.Get(10007) .. ": " .. ClientData.Gold
