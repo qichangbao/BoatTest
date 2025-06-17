@@ -8,8 +8,6 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 local RunService = game:GetService("RunService")
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
-local _occupyTime = 10
-
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'WharfUI_GUI'
 _screenGui.IgnoreGuiInset = true
@@ -24,10 +22,6 @@ UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 local function Hide()
     _screenGui.Enabled = false
-    local progressTextButton = _screenGui:FindFirstChild("ProgressTextButton")
-    if progressTextButton then
-        progressTextButton:Destroy()
-    end
 end
 
 -- 关闭按钮
@@ -77,99 +71,9 @@ _occupyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _occupyButton.Parent = _frame
 UIConfig.CreateCorner(_occupyButton)
 _occupyButton.MouseButton1Click:Connect(function()
-    _frame.Visible = false
-    local progressTextButton = Instance.new("TextButton")
-    progressTextButton.Name = "ProgressTextButton"
-    progressTextButton.Size = UDim2.new(1, 0, 1, 0)
-    progressTextButton.BackgroundTransparency = 1
-    progressTextButton.Text = ""
-    progressTextButton.Parent = _screenGui
-
-    -- 创建进度条容器
-    local progressContainer = Instance.new("Frame")
-    progressContainer.Name = "ProgressContainer"
-    progressContainer.Size = UDim2.new(0.3, 0, 0.1, 0)
-    progressContainer.Position = UDim2.new(0.5, 0, 0.7, 0)
-    progressContainer.AnchorPoint = Vector2.new(0.5, 0.5)
-    progressContainer.BackgroundTransparency = 1
-    progressContainer.Parent = progressTextButton
-    
-    -- 添加提示文本
-    local tipText = Instance.new("TextLabel")
-    tipText.Name = "TipText"
-    tipText.Size = UDim2.new(1, 0, 0.3, 0)
-    tipText.Position = UDim2.new(0, 0, 0, 0)
-    tipText.Text = LanguageConfig.Get(10037)
-    tipText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    tipText.BackgroundTransparency = 1
-    tipText.Font = UIConfig.Font
-    tipText.TextSize = 20
-    tipText.Parent = progressContainer
-    
-    -- 创建进度条背景
-    local progressBg = Instance.new("Frame")
-    progressBg.Name = "ProgressBg"
-    progressBg.Size = UDim2.new(1, 0, 0.3, 0)
-    progressBg.Position = UDim2.new(0, 0, 0.4, 0)
-    progressBg.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-    progressBg.BorderSizePixel = 0
-    progressBg.Parent = progressContainer
-    
-    -- 创建进度条填充
-    local progressFill = Instance.new("Frame")
-    progressFill.Name = "ProgressFill"
-    progressFill.Size = UDim2.new(0, 0, 1, 0) -- 初始宽度为0
-    progressFill.BackgroundColor3 = Color3.fromRGB(76, 175, 80) -- 绿色
-    progressFill.BorderSizePixel = 0
-    progressFill.Parent = progressBg
-    
-    -- 倒计时文本
-    local countdownText = Instance.new("TextLabel")
-    countdownText.Name = "Countdown"
-    countdownText.Size = UDim2.new(1, 0, 0.3, 0)
-    countdownText.Position = UDim2.new(0, 0, 0.8, 0)
-    countdownText.Text = tostring(_occupyTime)
-    countdownText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    countdownText.BackgroundTransparency = 1
-    countdownText.Font = UIConfig.Font
-    countdownText.TextSize = 18
-    countdownText.Parent = progressContainer
-
+    _screenGui.Enabled = false
     Knit.GetService("LandService"):StartOccupy(_titleLabel.Text)
-    
-    -- 使用RenderStepped实现平滑动画
-    local startTime = tick()
-    local totalTime = _occupyTime
-    local connection
-    connection = RunService.Heartbeat:Connect(function()
-        local elapsedTime = tick() - startTime
-        local timeLeft = math.max(0, totalTime - elapsedTime)
-        local progress = math.min(1, elapsedTime / totalTime) -- 进度从0到1
-        
-        -- 更新倒计时文本（取整显示）
-        local secondsLeft = math.ceil(timeLeft)
-        countdownText.Text = tostring(secondsLeft)
-        
-        -- 更新进度条（平滑过渡）
-        progressFill.Size = UDim2.new(progress, 0, 1, 0)
-        
-        -- 检查是否完成
-        if elapsedTime >= totalTime then
-            Hide()
-            Knit.GetService("LandService"):Occupy(_titleLabel.Text):andThen(function(tipId)
-                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(tipId), _titleLabel.Text))
-            end)
-        end
-    end)
-    
-    -- 确保在UI销毁时断开连接
-    progressTextButton.AncestryChanged:Connect(function(_, parent)
-        if not parent then
-            if connection then
-                connection:Disconnect()
-            end
-        end
-    end)
+    Knit.GetController("UIController").ShowOccupingUI:Fire(true)
 end)
 
 -- 交费按钮

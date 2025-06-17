@@ -359,8 +359,7 @@ function SystemService:KnitStart()
             print("主服务器关闭，保存岛屿所有者信息到数据库")
             pcall(function()
                 if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                    warn("岛屿信息为空，取消保存")
-                    return
+                    warn("岛屿信息为空")
                 end
                 print("岛屿数据已保存", _IsLandOwners)
                 SystemStore:SetAsync("IsLandOwners", _IsLandOwners)

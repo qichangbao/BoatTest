@@ -35,21 +35,14 @@ end)
 
 -- 内容
 local _contentLabel = Instance.new('TextLabel')
-_contentLabel.Size = UDim2.new(1, -20, 0.5, 0)
-_contentLabel.Position = UDim2.new(0.1, 0, 0.3, 0)
+_contentLabel.Size = UDim2.new(1, -40, 0.6, 0)
+_contentLabel.Position = UDim2.new(0, 20, 0, 20)
 _contentLabel.Font = UIConfig.Font
 _contentLabel.TextSize = 18
 _contentLabel.TextWrapped = true
 _contentLabel.TextColor3 = Color3.new(1, 1, 1)
 _contentLabel.BackgroundTransparency = 1
 _contentLabel.Parent = _frame
-
--- 按钮容器
-local _buttonContainer = Instance.new('Frame')
-_buttonContainer.Size = UDim2.new(0.8, 0, 0.2, 0)
-_buttonContainer.Position = UDim2.new(0.1, 0, 0.8, 0)
-_buttonContainer.BackgroundTransparency = 1
-_buttonContainer.Parent = _frame
 
 -- 确认按钮
 local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
@@ -58,7 +51,7 @@ local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
     end
     Hide()
 end)
-_confirmButton.Position = UDim2.new(0.7, 0, 0.85, 0)
+_confirmButton.Position = UDim2.new(0.7, 0, 0.5, 0)
 
 -- 取消按钮
 local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
@@ -67,7 +60,7 @@ local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
     end
     Hide()
 end)
-_cancelButton.Position = UDim2.new(0.3, 0, 0.85, 0)
+_cancelButton.Position = UDim2.new(0.3, 0, 0.5, 0)
 
 local function Show(config)
     -- 设置基础属性

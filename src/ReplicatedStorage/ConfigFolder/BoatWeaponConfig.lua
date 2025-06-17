@@ -2,7 +2,7 @@ local BoatWeaponConfig = {
     -- 船炮配置
     ["船炮1"] = {
         Damage = 15,           -- 伤害值
-        AttackRange = 60,      -- 攻击范围
+        AttackRange = 160,      -- 攻击范围
         AttackSpeed = 1,       -- 每秒攻击次数
         AttackAngle = 45,      -- 攻击角度（度）
         ProjectileName = "船炮弹1", -- 炮弹模型名称
@@ -11,7 +11,7 @@ local BoatWeaponConfig = {
     },
     ["船炮2"] = {
         Damage = 20,
-        AttackRange = 70,
+        AttackRange = 170,
         AttackSpeed = 0.8,
         AttackAngle = 45,
         ProjectileName = "船炮弹1",
@@ -20,7 +20,7 @@ local BoatWeaponConfig = {
     },
     ["船炮3"] = {
         Damage = 25,
-        AttackRange = 80,
+        AttackRange = 180,
         AttackSpeed = 0.7,
         AttackAngle = 45,
         ProjectileName = "船炮弹1",
@@ -29,7 +29,7 @@ local BoatWeaponConfig = {
     },
     ["船炮4"] = {
         Damage = 30,
-        AttackRange = 90,
+        AttackRange = 190,
         AttackSpeed = 0.6,
         AttackAngle = 45,
         ProjectileName = "船炮弹1",

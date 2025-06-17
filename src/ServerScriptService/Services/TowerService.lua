@@ -108,12 +108,12 @@ function TowerService:SetIslandActive(islandName, isActive, occupierUserId)
 
         -- 取消激活岛屿
         local islandData = _activeIslands[islandName]
-        local previousUserId = islandData and islandData.occupierUserId
         _activeIslands[islandName] = nil
         
         -- 断开岛屿的攻击心跳连接
         if islandData.attackConnection then
             islandData.attackConnection:Disconnect()
+            islandData.attackConnection = nil
         end
         
         -- 恢复该岛屿上所有箭塔满血
@@ -127,13 +127,6 @@ function TowerService:SetIslandActive(islandName, isActive, occupierUserId)
             end
         end
         
-        if previousUserId then
-            local player = Players:GetPlayerByUserId(previousUserId)
-            if player then
-                Knit.GetService("SystemService"):SendTip(player, 10065)
-            end
-        end
-        
         print("岛屿激活状态取消，所有箭塔停止攻击并恢复满血:", islandName)
     end
 end
@@ -143,6 +136,29 @@ end
 function TowerService:IslandAttackTick(islandName)
     local islandData = _activeIslands[islandName]
     if not islandData or not islandData.towers then
+        return
+    end
+    
+    local landData = GameConfig.FindIsLand(islandName)
+    local islandPos = Vector3.new(
+        landData.Position.X + landData.WharfInOffsetPos.X,
+        landData.Position.Y,
+        landData.Position.Z + landData.WharfInOffsetPos.Z
+    )
+    -- 检查占领者船只是否在100距离内
+    local boat = Interface.GetBoatByPlayerUserId(islandData.occupierUserId)
+    if boat and boat.PrimaryPart then
+        local distance = (boat.PrimaryPart.Position - islandPos).Magnitude
+        if distance > GameConfig.OccupyMaxDis then
+            -- 占领者船只超出100距离，取消岛屿激活状态
+            self:SetIslandActive(islandName, false, islandData.occupierUserId)
+            
+            Knit.GetService("LandService"):OccupyFail(islandData.occupierUserId, islandName)
+            return
+        end
+    else
+        -- 占领者船只不存在，取消岛屿激活状态
+        self:SetIslandActive(islandName, false, islandData.occupierUserId)
         return
     end
     
@@ -162,21 +178,6 @@ function TowerService:TowerAttackTick(islandName, towerKey)
     
     local towerData = islandData.towers[towerKey]
     if not towerData then
-        return
-    end
-    
-    -- 检查占领者船只是否在100距离内
-    local occupierBoat = workspace:FindFirstChild("PlayerBoat_" .. islandData.occupierUserId)
-    if occupierBoat and occupierBoat.PrimaryPart then
-        local distance = (occupierBoat.PrimaryPart.Position - towerData.model.PrimaryPart.Position).Magnitude
-        if distance > 100 then
-            -- 占领者船只超出100距离，取消岛屿激活状态
-            self:SetIslandActive(towerData.islandName, false, islandData.occupierUserId)
-            return
-        end
-    else
-        -- 占领者船只不存在，取消岛屿激活状态
-        self:SetIslandActive(towerData.islandName, false, islandData.occupierUserId)
         return
     end
     
@@ -203,7 +204,7 @@ function TowerService:TowerAttackTick(islandName, towerKey)
     
     if targetBoat then
         -- 执行攻击
-        self:ExecuteTowerAttack(towerData, targetBoat)
+        self:ExecuteTowerAttack(towerData, targetBoat, islandData.occupierUserId, islandName)
         towerData.lastAttackTime = currentTime
         
         print("箭塔攻击占领者船只:", islandData.occupierUserId)
@@ -214,19 +215,19 @@ end
 -- 执行箭塔攻击
 -- @param towerData 箭塔数据
 -- @param targetBoat 目标船只
-function TowerService:ExecuteTowerAttack(towerData, targetBoat)
+function TowerService:ExecuteTowerAttack(towerData, targetBoat, occupierUserId, islandName)
     if not targetBoat or not targetBoat.PrimaryPart then
         return
     end
     
     -- 发射箭矢
-    self:FireArrow(towerData, targetBoat)
+    self:FireArrow(towerData, targetBoat, occupierUserId, islandName)
 end
 
 -- 发射箭矢
 -- @param towerData 箭塔数据
 -- @param targetBoat 目标船只
-function TowerService:FireArrow(towerData, targetBoat)
+function TowerService:FireArrow(towerData, targetBoat, occupierUserId, islandName)
     if not towerData.model or not towerData.model.PrimaryPart or not targetBoat.PrimaryPart then
         return
     end
@@ -298,9 +299,11 @@ function TowerService:FireArrow(towerData, targetBoat)
             -- 清理连接和临时对象
             if connection then
                 connection:Disconnect()
+                connection = nil
             end
             if cframeValue then
                 cframeValue:Destroy()
+                cframeValue = nil
             end
             
             -- 检查箭矢是否到达目标船只附近
@@ -312,7 +315,7 @@ function TowerService:FireArrow(towerData, targetBoat)
                 -- 如果箭矢在船只附近（容错范围10单位），认为击中
                 if hitDistance <= 10 then
                     -- 对船只造成伤害
-                    self:AttackBoat(targetBoat, towerData.config.Damage or 10)
+                    self:AttackBoat(targetBoat, towerData.config.Damage or 10, occupierUserId, islandName)
                 end
             end
             
@@ -328,7 +331,7 @@ end
 -- 箭矢攻击船只
 -- @param targetBoat 目标船只
 -- @param damage 伤害值
-function TowerService:AttackBoat(targetBoat, damage)
+function TowerService:AttackBoat(targetBoat, damage, occupierUserId, islandName)
     if not targetBoat then
         return
     end
@@ -343,7 +346,7 @@ function TowerService:AttackBoat(targetBoat, damage)
     -- 如果船只生命值为0，可以在这里添加船只被摧毁的逻辑
     if newHealth <= 0 then
         print("船只被摧毁!")
-        -- 这里可以添加船只被摧毁的特效和奖励逻辑
+        Knit.GetService("LandService"):OccupyFail(occupierUserId, islandName)
     end
 end
 
@@ -399,9 +402,11 @@ function TowerService:OnTowerDestroyed(towerKey)
     if connections then
         if connections.health then
             connections.health:Disconnect()
+            connections.health = nil
         end
         if connections.died then
             connections.died:Disconnect()
+            connections.died = nil
         end
         _towerConnections[towerKey] = nil
     end

@@ -1,12 +1,18 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local Players = game.Players
 
 local LandService = Knit.CreateService {
     Name = "LandService",
     Client = {
+        OccupyStart = Knit.CreateSignal(),
+        OccupyFinish = Knit.CreateSignal(),
+        OccupyFail = Knit.CreateSignal(),
     }
 }
+
+local _occupingIslandsHandle = {}
 
 -- 客户端调用，玩家开始占领岛屿
 function LandService.Client:StartOccupy(player, landName)
@@ -15,14 +21,35 @@ function LandService.Client:StartOccupy(player, landName)
         return
     end
 
+    self.OccupyStart:FireAll(player.Name, landName)
     Knit.GetService("TowerService"):SetIslandActive(landName, true, player.UserId)
+    if _occupingIslandsHandle[landName] then
+        pcall(task.cancel, _occupingIslandsHandle[landName])
+        _occupingIslandsHandle[landName] = nil
+    end
+    _occupingIslandsHandle[landName] = task.delay(GameConfig.OccupyTime, function()
+        self.Server:Occupy(player, landName)
+    end)
 end
 
--- 客户端调用，占领岛屿
-function LandService.Client:Occupy(player, landName)
+-- 占领岛屿
+function LandService:Occupy(player, landName)
     Knit.GetService("SystemService"):UpdateIsLandOwner(player, landName)
     self:IntoIsLand(player, landName)
-    return 10038
+    self.OccupyFinish:FireAll(player.UserId, player.Name, landName)
+end
+
+-- 占领失败
+function LandService:OccupyFail(userId, landName)
+    if _occupingIslandsHandle[landName] then
+        pcall(task.cancel, _occupingIslandsHandle[landName])
+        _occupingIslandsHandle[landName] = nil
+    end
+
+    local player = Players:GetPlayerByUserId(userId)
+    if player then
+        self.Client.OccupyFail:FireAll(userId, player.Name, landName)
+    end
 end
 
 -- 客户端调用，付费登岛

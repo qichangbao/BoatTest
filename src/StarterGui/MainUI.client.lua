@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
 local TweenService = game:GetService('TweenService')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
+local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
@@ -96,6 +97,13 @@ Knit.GetController('UIController').ShowAddBoatPartButton:Connect(function(isShow
     _addBoatPartButton.Visible = isShow
 end)
 
+-- 消息框自动隐藏相关变量
+local _messageHideTimer = nil
+local _fadeInTween = nil
+local _fadeOutTween = nil
+local _fadeOutConnection = nil
+local MESSAGE_DISPLAY_TIME = 5  -- 显示5秒
+
 local _messageFrame = Instance.new('Frame')
 _messageFrame.Name = 'MessageFrame'
 _messageFrame.AnchorPoint = Vector2.new(0, 0)
@@ -107,13 +115,6 @@ _messageFrame.BorderSizePixel = 0
 _messageFrame.Visible = false  -- 初始隐藏
 _messageFrame.Parent = _screenGui
 UIConfig.CreateCorner(_messageFrame, UDim.new(0, 8))
-
--- 消息框自动隐藏相关变量
-local _messageHideTimer = nil
-local _fadeInTween = nil
-local _fadeOutTween = nil
-local _fadeOutConnection = nil
-local MESSAGE_DISPLAY_TIME = 5  -- 显示5秒
 
 -- 滚动框
 local _scrollingFrame = Instance.new('ScrollingFrame')
@@ -198,7 +199,8 @@ local function showMessageFrame()
     
     -- 重置隐藏计时器
     if _messageHideTimer then
-        task.cancel(_messageHideTimer)
+        pcall(task.cancel, _messageHideTimer)
+        _messageHideTimer = nil
     end
     
     -- 显示消息框
@@ -281,6 +283,28 @@ local function addMessage(messageType, messageText)
     _scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
     _scrollingFrame.CanvasPosition = Vector2.new(0, math.max(0, totalHeight - _scrollingFrame.AbsoluteSize.Y))
 end
+
+-- 创建一个触发区域，用于鼠标滑过时显示消息框
+local _messageHoverTrigger = Instance.new('TextButton')
+_messageHoverTrigger.Name = 'MessageHoverTrigger'
+_messageHoverTrigger.Size = _messageFrame.Size
+_messageHoverTrigger.Position = _messageFrame.Position
+_messageHoverTrigger.Text = ""
+_messageHoverTrigger.BackgroundTransparency = 1
+_messageHoverTrigger.AutoButtonColor = false  -- 禁用按钮颜色变化
+_messageHoverTrigger.Parent = _screenGui
+
+-- 鼠标进入触发区域时显示消息框
+_messageHoverTrigger.MouseEnter:Connect(function()
+    showMessageFrame()
+    print("11111111111111111")
+end)
+
+-- 鼠标离开触发区域时，延迟隐藏消息框
+_messageHoverTrigger.MouseLeave:Connect(function()
+    hideMessageFrame()
+    print("22222222222222222")
+end)
 
 -- 金币显示标签
 local _goldLabel = Instance.new('TextLabel')
@@ -439,6 +463,95 @@ _islandManageButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_islandManageButton)
 
+local islandOccupyConnection = nil
+-- 岛屿占领进度条
+local _islandOccupyProgressContainer = Instance.new("Frame")
+_islandOccupyProgressContainer.Name = "IslandOccupyProgressContainer"
+_islandOccupyProgressContainer.Size = UDim2.new(0.3, 0, 0.1, 0)
+_islandOccupyProgressContainer.Position = UDim2.new(0.5, 0, 0.7, 0)
+_islandOccupyProgressContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+_islandOccupyProgressContainer.BackgroundTransparency = 1
+_islandOccupyProgressContainer.Visible = false
+_islandOccupyProgressContainer.Parent = _screenGui
+
+-- 添加提示文本
+local _islandOccupyTipText = Instance.new("TextLabel")
+_islandOccupyTipText.Name = "IslandOccupyTipText"
+_islandOccupyTipText.Size = UDim2.new(1, 0, 0.3, 0)
+_islandOccupyTipText.Position = UDim2.new(0, 0, 0, 0)
+_islandOccupyTipText.Text = LanguageConfig.Get(10037)
+_islandOccupyTipText.TextColor3 = Color3.fromRGB(255, 255, 255)
+_islandOccupyTipText.BackgroundTransparency = 1
+_islandOccupyTipText.Font = UIConfig.Font
+_islandOccupyTipText.TextSize = 20
+_islandOccupyTipText.Parent = _islandOccupyProgressContainer
+
+-- 创建进度条背景
+local _islandOccupyProgressBg = Instance.new("Frame")
+_islandOccupyProgressBg.Name = "ProgressBg"
+_islandOccupyProgressBg.Size = UDim2.new(1, 0, 0.3, 0)
+_islandOccupyProgressBg.Position = UDim2.new(0, 0, 0.4, 0)
+_islandOccupyProgressBg.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+_islandOccupyProgressBg.BorderSizePixel = 0
+_islandOccupyProgressBg.Parent = _islandOccupyProgressContainer
+
+-- 创建进度条填充
+local _islandOccupyProgressFill = Instance.new("Frame")
+_islandOccupyProgressFill.Name = "IslandOccupyProgressFill"
+_islandOccupyProgressFill.Size = UDim2.new(0, 0, 1, 0) -- 初始宽度为0
+_islandOccupyProgressFill.BackgroundColor3 = Color3.fromRGB(76, 175, 80) -- 绿色
+_islandOccupyProgressFill.BorderSizePixel = 0
+_islandOccupyProgressFill.Parent = _islandOccupyProgressBg
+
+-- 倒计时文本
+local _islandOccupyCountdownText = Instance.new("TextLabel")
+_islandOccupyCountdownText.Name = "IslandOccupyCountdownText"
+_islandOccupyCountdownText.Size = UDim2.new(1, 0, 0.3, 0)
+_islandOccupyCountdownText.Position = UDim2.new(0, 0, 0.8, 0)
+_islandOccupyCountdownText.Text = tostring(GameConfig.OccupyTime)
+_islandOccupyCountdownText.TextColor3 = Color3.fromRGB(255, 255, 255)
+_islandOccupyCountdownText.BackgroundTransparency = 1
+_islandOccupyCountdownText.Font = UIConfig.Font
+_islandOccupyCountdownText.TextSize = 18
+_islandOccupyCountdownText.Parent = _islandOccupyProgressContainer
+
+local function ShowOccupingLayer(isShow)
+    if islandOccupyConnection then
+        islandOccupyConnection:Disconnect()
+        islandOccupyConnection = nil
+    end
+    _islandOccupyProgressContainer.Visible = isShow
+    if not _islandOccupyProgressContainer.Visible then
+        return
+    end
+    
+    _islandOccupyProgressFill.Size = UDim2.new(0, 0, 1, 0) -- 初始宽度为0
+    _islandOccupyCountdownText.Text = tostring(GameConfig.OccupyTime)
+    -- 使用RenderStepped实现平滑动画
+    local startTime = tick()
+    local totalTime = GameConfig.OccupyTime
+    islandOccupyConnection = RunService.Heartbeat:Connect(function()
+        local endTime = tick() - startTime
+        -- 检查是否完成
+        if endTime >= totalTime then
+            if islandOccupyConnection then
+                islandOccupyConnection:Disconnect()
+                islandOccupyConnection = nil
+            end
+            return
+        end
+        local timeLeft = math.max(0, totalTime - endTime)
+        local progress = math.min(1, endTime / totalTime) -- 进度从0到1
+        
+        -- 更新倒计时文本（取整显示）
+        local secondsLeft = math.ceil(timeLeft)
+        _islandOccupyCountdownText.Text = tostring(secondsLeft)
+        
+        -- 更新进度条（平滑过渡）
+        _islandOccupyProgressFill.Size = UDim2.new(progress, 0, 1, 0)
+    end)
+end
+
 local function Destroy()
     print("MainUI Destroy")
     if _renderSteppedConnection then
@@ -448,7 +561,7 @@ local function Destroy()
     
     -- 清理消息框相关资源
     if _messageHideTimer then
-        task.cancel(_messageHideTimer)
+        pcall(task.cancel, _messageHideTimer)
         _messageHideTimer = nil
     end
     
@@ -504,17 +617,45 @@ Knit:OnStart():andThen(function()
             end)
         end
     end)
-    
+    -- 注册系统消息接口
+    Knit.GetController('UIController').ShowSystemMessage:Connect(function(messageText, messageType)
+        addMessage(messageText, messageType)
+    end)
+    -- 注册显示占领中接口
+    Knit.GetController('UIController').ShowOccupingUI:Connect(function(isShow)
+        ShowOccupingLayer(isShow)
+    end)
+    -- 注册系统消息接口
     local SystemService = Knit.GetService('SystemService')
     SystemService.SystemMessage:Connect(function(messageType, tipId, ...)
         local messageText = string.format(LanguageConfig.Get(tipId), ...)
         addMessage(messageType, messageText)
     end)
 
-    -- 注册系统消息接口
-    Knit.GetController('UIController').ShowSystemMessage:Connect(function(messageText, messageType)
-        addMessage(messageText, messageType)
+    Knit.GetService("LandService").OccupyStart:Connect(function(playerName, landName)
+        addMessage("info", string.format(LanguageConfig.Get(10081), playerName, landName))
     end)
+
+    -- 注册占领成功接口
+    Knit.GetService("LandService").OccupyFinish:Connect(function(userId, playerName, landName)
+        if userId == Players.LocalPlayer.UserId then
+            ShowOccupingLayer(false)
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10038), landName))
+        end
+
+        addMessage("info", string.format(LanguageConfig.Get(10080), playerName, landName))
+    end)
+
+    -- 注册占领失败接口
+    Knit.GetService("LandService").OccupyFail:Connect(function(userId, playerName, landName)
+        if userId == Players.LocalPlayer.UserId then
+            ShowOccupingLayer(false)
+            Knit.GetController('UIController').ShowTip:Fire(10065)
+        end
+        
+        addMessage("info", string.format(LanguageConfig.Get(10079), playerName, landName))
+    end)
+
     
     addMessage("system", LanguageConfig.Get(10050))
 end):catch(warn)

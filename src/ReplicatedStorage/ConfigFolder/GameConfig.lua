@@ -35,6 +35,9 @@ local GameConfig = {
             Price = 150,
         },
     },
+
+    OccupyTime = 30,        -- 占领时间
+    OccupyMaxDis = 100,     -- 占领最大距离
 }
 
 GameConfig.FindIsLand = function(name)
