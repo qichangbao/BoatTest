@@ -210,10 +210,12 @@ function CreateChestAction:Execute(data)
         end)
     end
 
-    task.delay(self.config.Lifetime, function()
-        chest:Destroy()
-        self.isToucheds[chest] = nil
-    end)
+    if self.config.Lifetime > 0 then
+        task.delay(self.config.Lifetime, function()
+            chest:Destroy()
+            self.isToucheds[chest] = nil
+        end)
+    end
 end
 
 return CreateChestAction

@@ -89,28 +89,120 @@ local function CreateIsLandOwnerModel(landName, playerName)
     end
 end
 
-local function CreateIslandBillboard()
-    for _, v in ipairs(GameConfig.IsLand) do
-        local isLand = workspace:WaitForChild(v.Name)
-        if not isLand then
-            continue
+-- 创建岛屿信息显示板，包含倒计时功能
+local function CreateIslandBillboard(landName, lifetime)
+    local isLand = workspace:FindFirstChild(landName)
+    if not isLand then
+        return
+    end
+    
+    -- 创建BillboardGui
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 300, 0, 100)
+    billboard.StudsOffset = Vector3.new(0, 100, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = isLand
+    billboard.MaxDistance = 600
+    billboard.Name = "IslandBillboard"
+    
+    -- 创建背景框架
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BackgroundTransparency = 0.3
+    frame.BorderSizePixel = 0
+    frame.Parent = billboard
+    
+    -- 添加圆角
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+    
+    -- 岛屿名称标签
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.Text = "无名岛"
+    nameLabel.Font = Enum.Font.ArialBold
+    nameLabel.TextSize = 24
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextStrokeTransparency = 0.5
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Parent = frame
+    
+    -- 倒计时标签
+    local countdownLabel = Instance.new("TextLabel")
+    countdownLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    countdownLabel.Position = UDim2.new(0, 0, 0.5, 0)
+    countdownLabel.Font = Enum.Font.Arial
+    countdownLabel.TextSize = 20
+    countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+    countdownLabel.BackgroundTransparency = 1
+    countdownLabel.TextStrokeTransparency = 0.5
+    countdownLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    countdownLabel.Parent = frame
+    
+    billboard.Parent = isLand
+    
+    -- 倒计时逻辑
+    local startTime = tick()
+    local connection
+    
+    -- 格式化时间显示（分:秒）
+    local function formatTime(seconds)
+        local minutes = math.floor(seconds / 60)
+        local secs = math.floor(seconds % 60)
+        return string.format("%02d:%02d", minutes, secs)
+    end
+    
+    -- 更新倒计时显示
+    local function updateCountdown()
+        -- 检测岛屿是否被销毁
+        if not isLand or not isLand.Parent then
+            -- 岛屿已被销毁，清理连接并销毁billboard
+            if connection then
+                connection:Disconnect()
+                connection = nil
+            end
+            return
         end
-        local billboard = Instance.new("BillboardGui")
-        billboard.Size = UDim2.new(0, 200, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 100, 0)
-        billboard.AlwaysOnTop = true
-        billboard.Adornee = isLand
-        billboard.MaxDistance = 600
         
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.Text = v.Name
-        textLabel.Font = Enum.Font.Arimo
-        textLabel.TextSize = 60
-        textLabel.BackgroundTransparency = 1
-        textLabel.Parent = billboard
+        local elapsed = tick() - startTime
+        local remaining = math.max(0, lifetime - elapsed)
         
-        billboard.Parent = isLand
+        if remaining > 0 then
+            countdownLabel.Text = "岛屿沉没剩余时间: " .. formatTime(remaining)
+            
+            -- 根据剩余时间改变颜色
+            if remaining <= 30 then
+                countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- 红色警告
+            elseif remaining <= 60 then
+                countdownLabel.TextColor3 = Color3.fromRGB(255, 165, 0) -- 橙色提醒
+            else
+                countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- 黄色正常
+            end
+        else
+            countdownLabel.Text = "即将沉没"
+            countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    end
+    
+    -- 开始倒计时更新
+    connection = game:GetService("RunService").Heartbeat:Connect(updateCountdown)
+    
+    -- 初始更新
+    updateCountdown()
+end
+
+local function RemoveIsland(islandName)
+    local island = workspace:FindFirstChild(islandName)
+    if not island then
+        return
+    end
+    local billboard = island:FindFirstChild("IslandBillboard")
+    if billboard then
+        billboard:Destroy()
     end
 end
 
@@ -125,6 +217,13 @@ Knit:OnStart():andThen(function()
         task.spawn(CreateIsLandOwnerModel, landName, playerName)
     end)
 
-    task.spawn(CreateIslandBillboard)
+    Knit.GetService("LandService").CreateIsland:Connect(function(landName, lifetime)
+        task.spawn(CreateIslandBillboard, landName, lifetime)
+    end)
+
+    Knit.GetService("LandService").RemoveIsland:Connect(function(landName)
+        task.spawn(RemoveIsland, landName)
+    end)
+
     game:GetService('RunService').RenderStepped:Connect(CheckPos)
 end):catch(warn)

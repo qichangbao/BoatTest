@@ -284,26 +284,16 @@ local function addMessage(messageType, messageText)
     _scrollingFrame.CanvasPosition = Vector2.new(0, math.max(0, totalHeight - _scrollingFrame.AbsoluteSize.Y))
 end
 
--- 创建一个触发区域，用于鼠标滑过时显示消息框
-local _messageHoverTrigger = Instance.new('TextButton')
-_messageHoverTrigger.Name = 'MessageHoverTrigger'
-_messageHoverTrigger.Size = _messageFrame.Size
-_messageHoverTrigger.Position = _messageFrame.Position
-_messageHoverTrigger.Text = ""
-_messageHoverTrigger.BackgroundTransparency = 1
-_messageHoverTrigger.AutoButtonColor = false  -- 禁用按钮颜色变化
-_messageHoverTrigger.Parent = _screenGui
+local _messageInputFrame = Instance.new('Frame')
+_messageInputFrame.AnchorPoint = _messageFrame.AnchorPoint
+_messageInputFrame.Size = _messageFrame.Size
+_messageInputFrame.Position = _messageFrame.Position
+_messageInputFrame.BackgroundTransparency = 1  -- 初始完全透明
+_messageInputFrame.Visible = true  -- 初始隐藏
+_messageInputFrame.Parent = _screenGui
 
--- 鼠标进入触发区域时显示消息框
-_messageHoverTrigger.MouseEnter:Connect(function()
+_messageInputFrame.MouseEnter:Connect(function()
     showMessageFrame()
-    print("11111111111111111")
-end)
-
--- 鼠标离开触发区域时，延迟隐藏消息框
-_messageHoverTrigger.MouseLeave:Connect(function()
-    hideMessageFrame()
-    print("22222222222222222")
 end)
 
 -- 金币显示标签

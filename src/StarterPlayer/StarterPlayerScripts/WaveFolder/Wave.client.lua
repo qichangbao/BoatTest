@@ -71,8 +71,10 @@ local function CreateWave(data)
 		wave:Destroy()
 	end)
 	
-	-- 使用Debris服务作为备用销毁机制
-	Debris:AddItem(wave, lifetime + 1)
+	if lifetime > 0 then
+		-- 使用Debris服务作为备用销毁机制
+		Debris:AddItem(wave, lifetime + 1)
+	end
 end
 
 Knit:OnStart():andThen(function()

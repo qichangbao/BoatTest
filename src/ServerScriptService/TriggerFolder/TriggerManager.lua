@@ -11,6 +11,7 @@ local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
 local WaveAction = require(ActionFolder:WaitForChild("WaveAction"))
 local CreateMonsterAction = require(ActionFolder:WaitForChild("CreateMonsterAction"))
+local CreateIslandAction = require(ActionFolder:WaitForChild("CreateIslandAction"))
 
 local TriggerManager = {}
 
@@ -96,6 +97,8 @@ function TriggerManager:InitAction(actionConfig, condition)
         action = WaveAction.new(actionConfig, condition)
     elseif actionConfig.ActionType == "CreateMonster" then
         action = CreateMonsterAction.new(actionConfig, condition)
+    elseif actionConfig.ActionType == "CreateIsland" then
+        action = CreateIslandAction.new(actionConfig, condition)
     else
         warn("未知的动作类型:", actionConfig.ActionType)
         return nil

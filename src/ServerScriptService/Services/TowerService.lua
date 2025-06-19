@@ -62,18 +62,9 @@ function TowerService:InitializeTower(towerModel, islandName, towerIndex, towerT
     
     -- 监听生命值变化
     if humanoid then
-        local healthConnection = humanoid.HealthChanged:Connect(function(health)
-            self:OnTowerHealthChanged(towerKey, health)
+        _towerConnections[towerKey] = humanoid.HealthChanged:Connect(function(health)
+            self:OnTowerHealthChanged(islandName, towerKey, health)
         end)
-        
-        local diedConnection = humanoid.Died:Connect(function()
-            self:OnTowerDestroyed(towerKey)
-        end)
-        
-        _towerConnections[towerKey] = {
-            health = healthConnection,
-            died = diedConnection
-        }
     end
 end
 
@@ -194,7 +185,7 @@ function TowerService:TowerAttackTick(islandName, towerKey)
     local minDistance = math.huge
 
     local boat = Interface.GetBoatByPlayerUserId(islandData.occupierUserId)
-    if boat and boat.PrimaryPart then
+    if boat and boat.PrimaryPart and boat:GetAttribute('Destroying') ~= true then
         local distance = (boat.PrimaryPart.Position - towerData.model.PrimaryPart.Position).Magnitude
         if distance <= (towerData.config.AttackRange or 50) and distance < minDistance then
             targetBoat = boat
@@ -351,13 +342,7 @@ function TowerService:AttackBoat(targetBoat, damage, occupierUserId, islandName)
 end
 
 -- 箭塔生命值变化处理
-function TowerService:OnTowerHealthChanged(towerKey, health)
-    -- 从towerKey中提取岛屿名称
-    local islandName = towerKey:match("^(.+)_%d+$")
-    if not islandName then
-        return
-    end
-    
+function TowerService:OnTowerHealthChanged(islandName, towerKey, health)
     local islandTowers = _islandTowers[islandName]
     if not islandTowers then
         return
@@ -368,65 +353,43 @@ function TowerService:OnTowerHealthChanged(towerKey, health)
         return
     end
     
-    -- 通知客户端箭塔受损
-    self.Client.TowerDamaged:FireAll({
-        islandName = towerData.islandName,
-        towerIndex = towerData.towerIndex,
-        health = health,
-        maxHealth = towerData.config.Health or 100
-    })
-end
+    if health == towerData.config.Health then
+        return
+    end
 
--- 箭塔被摧毁处理
-function TowerService:OnTowerDestroyed(towerKey)
-    -- 从towerKey中提取岛屿名称
-    local islandName = towerKey:match("^(.+)_%d+$")
-    if not islandName then
-        return
-    end
-    
-    local islandTowers = _islandTowers[islandName]
-    if not islandTowers then
-        return
-    end
-    
-    local towerData = islandTowers[towerKey]
-    if not towerData then
-        return
-    end
-    
-    print("箭塔被摧毁:", towerKey)
-    
-    -- 断开连接
-    local connections = _towerConnections[towerKey]
-    if connections then
-        if connections.health then
-            connections.health:Disconnect()
-            connections.health = nil
+    if health <= 0 then
+        -- 断开连接
+        local connections = _towerConnections[towerKey]
+        if connections then
+            connections:Disconnect()
+            _towerConnections[towerKey] = nil
         end
-        if connections.died then
-            connections.died:Disconnect()
-            connections.died = nil
+        
+        -- 从数据库中移除箭塔
+        self:RemoveTowerFromDatabase(towerData.islandName, towerData.towerIndex)
+        
+        -- 销毁箭塔模型
+        if towerData.model then
+            towerData.model:Destroy()
         end
-        _towerConnections[towerKey] = nil
+        
+        -- 移除箭塔数据
+        islandTowers[towerKey] = nil
+        
+        -- 通知客户端箭塔被摧毁
+        self.Client.TowerDestroyed:FireAll({
+            islandName = islandName,
+            towerName = towerKey
+        })
+    else
+        -- 通知客户端箭塔受损
+        self.Client.TowerDamaged:FireAll({
+            islandName = islandName,
+            towerName = towerKey,
+            health = health,
+            maxHealth = towerData.config.Health or 100
+        })
     end
-    
-    -- 从数据库中移除箭塔
-    self:RemoveTowerFromDatabase(towerData.islandName, towerData.towerIndex)
-    
-    -- 销毁箭塔模型
-    if towerData.model then
-        towerData.model:Destroy()
-    end
-    
-    -- 移除箭塔数据
-    islandTowers[towerKey] = nil
-    
-    -- 通知客户端箭塔被摧毁
-    self.Client.TowerDestroyed:FireAll({
-        islandName = towerData.islandName,
-        towerIndex = towerData.towerIndex
-    })
 end
 
 -- 从数据库中移除箭塔
@@ -439,7 +402,7 @@ function TowerService:RemoveTowerFromDatabase(islandName, towerIndex)
         islandData.towerData[towerIndex] = nil
         
         -- 通知SystemService更新数据
-        SystemService:ChangeIsLandOwnerData(islandName, islandData)
+        SystemService:ChangeIsLandOwnerData(islandOwners, {islandId = islandName, isLandData = islandData})
     end
 end
 

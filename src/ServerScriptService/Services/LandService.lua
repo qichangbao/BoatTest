@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local Players = game.Players
@@ -9,6 +10,8 @@ local LandService = Knit.CreateService {
         OccupyStart = Knit.CreateSignal(),
         OccupyFinish = Knit.CreateSignal(),
         OccupyFail = Knit.CreateSignal(),
+        CreateIsland = Knit.CreateSignal(),
+        RemoveIsland = Knit.CreateSignal(),
     }
 }
 
@@ -35,8 +38,8 @@ end
 -- 占领岛屿
 function LandService:Occupy(player, landName)
     Knit.GetService("SystemService"):UpdateIsLandOwner(player, landName)
-    self:IntoIsLand(player, landName)
-    self.OccupyFinish:FireAll(player.UserId, player.Name, landName)
+    self.Client:IntoIsLand(player, landName)
+    self.Client.OccupyFinish:FireAll(player.UserId, player.Name, landName)
 end
 
 -- 占领失败
@@ -76,6 +79,39 @@ end
 function LandService.Client:IntoIsLand(player, landName)
     player:SetAttribute("CurAreaTemplate", landName)
     Knit.GetService("BoatAssemblingService"):StopBoat(player)
+end
+
+-- 创建岛屿
+function LandService:CreateIsland(modelName, position, lifetime)
+    local islandTemplate = ServerStorage:FindFirstChild(modelName)
+    if not islandTemplate then
+        return
+    end
+    local island = islandTemplate:Clone()
+    island.Name = "无名岛"
+    island:PivotTo(CFrame.new(position))
+    island.Parent = workspace
+
+    self.Client.CreateIsland:FireAll(island.Name, lifetime)
+    return island
+end
+
+function LandService:RemoveIsland(landName)
+    local island = workspace:FindFirstChild(landName)
+    if not island then
+        return
+    end
+
+    for _, child in ipairs(island:GetDescendants()) do
+        if child:IsA("BasePart") then
+            child.Anchored = false
+        end
+    end
+
+    self.Client.RemoveIsland:FireAll(landName)
+    task.delay(3, function()
+        island:Destroy()
+    end)
 end
 
 function LandService:KnitInit()

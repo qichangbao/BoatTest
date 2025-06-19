@@ -19,10 +19,11 @@ local _IsLandOwners = {}
 local _isMainServer = false
 
 -- SystemStore:UpdateAsync("IsLandOwners", function(oldData)
---     oldData["阿卡迪亚"].towerData[1].towerType = "Tower1"
---     oldData["阿卡迪亚"].towerData[1].towerName = "基础箭塔"
---     oldData["阿卡迪亚"].towerData[2].towerType = "Tower1"
---     oldData["阿卡迪亚"].towerData[2].towerName = "基础箭塔"
+--     oldData = {}
+--     --oldData["阿卡迪亚"].towerData[1].towerType = "Tower1"
+--     -- oldData["阿卡迪亚"].towerData[1].towerName = "基础箭塔"
+--     -- oldData["阿卡迪亚"].towerData[2].towerType = "Tower1"
+--     -- oldData["阿卡迪亚"].towerData[2].towerName = "基础箭塔"
 --     return oldData
 -- end)
 
@@ -67,9 +68,6 @@ function SystemService:ChangeIsLandOwnerData(isLandOwners, changeInfo)
         _IsLandOwners = isLandOwners
         task.spawn(function()
             pcall(function()
-                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                    warn("岛屿信息为空")
-                end
                 print("岛屿数据已保存", _IsLandOwners)
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
@@ -99,9 +97,6 @@ function SystemService:UpdateIsLandOwner(player, landName)
     if _isMainServer then
         task.spawn(function()
             pcall(function()
-                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                    warn("岛屿信息为空")
-                end
                 print("岛屿数据已保存", _IsLandOwners)
                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
@@ -193,9 +188,6 @@ function SystemService:CheckMainServer()
         if success then
             print("IsLandOwners", ownersInfo)
             _IsLandOwners = ownersInfo or {}
-            if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                warn("岛屿信息为空")
-            end
             for i, v in pairs(_IsLandOwners) do
                 Knit.GetService("TowerService"):CreateTowersByLandName(i)
             end
@@ -259,9 +251,6 @@ function SystemService:KnitInit()
             
             task.spawn(function()
                 pcall(function()
-                    if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                        warn("岛屿信息为空")
-                    end
                     print("岛屿数据已保存", _IsLandOwners)
                     return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                 end)
@@ -333,9 +322,6 @@ function SystemService:KnitInit()
             if _isMainServer then
                 task.spawn(function()
                     pcall(function()
-                        if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                            warn("岛屿信息为空")
-                        end
                         print("岛屿数据已保存", _IsLandOwners)
                         return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
                     end)
@@ -358,9 +344,6 @@ function SystemService:KnitStart()
         if _isMainServer then
             print("主服务器关闭，保存岛屿所有者信息到数据库")
             pcall(function()
-                if _IsLandOwners == {} or _IsLandOwners["阿卡迪亚"].towerData == nil or _IsLandOwners["阿卡迪亚"].towerData == {} then
-                    warn("岛屿信息为空")
-                end
                 print("岛屿数据已保存", _IsLandOwners)
                 SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
             end)
