@@ -29,13 +29,13 @@ function CreateIslandAction:Execute(data)
         -- 添加小范围随机偏移 (-5到5米的随机范围)
         local randomX = math.random(-200, 200)
         local randomZ = math.random(-200, 200)
-        local randomOffset = Vector3.new(randomX, 90, randomZ)
+        local randomOffset = Vector3.new(randomX, 0, randomZ)
         
         position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
     end
 
-    local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
-    local islandData = GameConfig.GetRandomIsland()
+    local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
+    local islandData = IslandConfig.GetRandomIsland()
 
     local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
     local island = Knit.GetService("LandService"):CreateIsland(islandData.ModelName, position, self.config.Lifetime)

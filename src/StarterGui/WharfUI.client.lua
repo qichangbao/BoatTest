@@ -4,9 +4,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
-local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
-local RunService = game:GetService("RunService")
-local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'WharfUI_GUI'
@@ -117,52 +115,60 @@ _intoIsLandButton.Parent = _frame
 UIConfig.CreateCorner(_intoIsLandButton)
 _intoIsLandButton.MouseButton1Click:Connect(function()
     Hide()
-    Knit.GetService("LandService"):IntoIsLand(_titleLabel.Text)
+    Knit.GetService("LandService"):IntoIsLand(_titleLabel.Name)
 end)
 
 -- 连接Knit服务
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowWharfUI:Connect(function(landName)
-        local landData = GameConfig.FindIsLand(landName)
-        if not landData then
-            return
-        end
+        -- local landData = IslandConfig.FindIsLand(landName)
+        -- if not landData then
+        --     return
+        -- end
 
         _screenGui.Enabled = true
         _frame.Visible = true
-        _titleLabel.Text = landName
+        local name = landName
+        local start = name:find("_")
+        if start then
+            name = name.sub(1, start - 1)
+        end
+        _titleLabel.Text = name
+        _titleLabel.Name = landName
         _occupyButton.Visible = false
         _payButton.Visible = false
         _intoIsLandButton.Visible = false
         _contentLabel.Text = LanguageConfig.Get(10035)
-        _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
+        _intoIsLandButton.Visible = true
+        _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+        --_payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
 
-        if not landData.Price or landData.Price == 0 then
-            _intoIsLandButton.Visible = true
-            _occupyButton.Visible = false
-            _payButton.Visible = false
-            _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
-            return
-        end
+        -- if not landData.Price or landData.Price == 0 then
+        --     _intoIsLandButton.Visible = true
+        --     _occupyButton.Visible = false
+        --     _payButton.Visible = false
+        --     _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+        --     return
+        -- end
 
-        if ClientData.IsLandOwners[landName] then
-            if ClientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
-                _intoIsLandButton.Visible = true
-                _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
-            else
-                _contentLabel.Text = string.format(LanguageConfig.Get(10046), ClientData.IsLandOwners[landName].playerName)
-                _occupyButton.Visible = true
-                _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
-                _payButton.Visible = true
-                _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
-                _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
-            end
-        else
-            _occupyButton.Visible = true
-            _occupyButton.Position = UDim2.new(0.5, 0, 0.7, 0)
-        end
-        _occupyButton.Visible = true
+        -- if ClientData.IsLandOwners[landName] then
+        --     if ClientData.IsLandOwners[landName].userId == Players.LocalPlayer.UserId then
+        --         _intoIsLandButton.Visible = true
+        --         _intoIsLandButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+        --     else
+        --         _contentLabel.Text = string.format(LanguageConfig.Get(10046), ClientData.IsLandOwners[landName].playerName)
+        --         _occupyButton.Visible = true
+        --         _occupyButton.Position = UDim2.new(0.75, 0, 0.7, 0)
+        --         _payButton.Visible = true
+        --         _payButton.Text = string.format(LanguageConfig.Get(10041), landData.Price or 0)
+        --         _payButton.Position = UDim2.new(0.25, 0, 0.7, 0)
+        --     end
+        -- else
+        --     _occupyButton.Visible = true
+        --     _occupyButton.Position = UDim2.new(0.5, 0, 0.7, 0)
+        -- end
+        -- _occupyButton.Visible = true
     end)
 
     Knit.GetController('UIController').HideWharfUI:Connect(function()

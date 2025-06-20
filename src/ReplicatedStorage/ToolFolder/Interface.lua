@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
-local ServerStorage = game:GetService("ServerStorage")
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('GameConfig'))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 
 local Interface = {}
 
@@ -53,18 +53,26 @@ function Interface.InitBoatWaterPos(player, boat)
     player:SetAttribute("CurAreaTemplate", nil)
     if spawnLocation and player.Character then
         local land = spawnLocation.Parent
-        local landData = GameConfig.FindIsLand(land.Name)
-        if not landData then
-            landData = GameConfig.FindIsLand("奥林匹斯")
+        local landData = IslandConfig.FindIsLand(land.Name)
+        local newCFrame = CFrame.new()
+        if landData then
+            -- 获取原始CFrame的旋转部分
+            local rotation = landData.WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
+            newCFrame = CFrame.new(
+                landData.Position.X + landData.WharfOutOffsetPos.Position.X,
+                landData.WharfOutOffsetPos.Position.Y,
+                landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
+            ) * rotation
+        else
+            local WharfOutOffsetPos = area:FindFirstChild("WharfOutOffsetPos").Value
+            local rotation = WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
+            newCFrame = CFrame.new(
+                landData.Position.X + landData.WharfOutOffsetPos.Position.X,
+                landData.WharfOutOffsetPos.Position.Y,
+                landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
+            ) * rotation
         end
 
-        -- 获取原始CFrame的旋转部分
-        local rotation = landData.WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
-        local newCFrame = CFrame.new(
-            landData.Position.X + landData.WharfOutOffsetPos.Position.X,
-            landData.WharfOutOffsetPos.Position.Y,
-            landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
-        ) * rotation
         boat:PivotTo(newCFrame)
     
         -- 玩家自动入座
@@ -80,7 +88,7 @@ end
 
 -- 判断是否在陆地上
 function Interface.IsInLand(boat)
-    local landConfig = GameConfig.IsLand
+    local landConfig = IslandConfig.IsLand
     local pos = boat.PrimaryPart.Position
     for _, landData in ipairs(landConfig) do
         local land = workspace:WaitForChild(landData.Name):WaitForChild("Floor")
@@ -108,6 +116,33 @@ function Interface.CreateIsLandOwnerModel(userId)
         warn('无法创建玩家模型: ' .. tostring(model))
         return nil
     end
+end
+
+-- 获取模型底部位置
+function Interface.GetPartBottomPos(model, targetPosition)
+    -- 获取模型的包围盒
+    local cf, size
+    if model:IsA("Model") then
+        cf, size = model:GetBoundingBox()
+    elseif model:IsA("BasePart") then
+        size = model.Size
+    end
+    
+    if not size then
+        return
+    end
+    -- 计算模型底部到中心的距离
+    local bottomOffset = size.Y / 2
+    
+    -- 设置模型位置，Y坐标为地面高度加上底部偏移
+    local groundY = targetPosition.Y -- 岛屿地面的Y坐标
+    local newPosition = Vector3.new(
+        targetPosition.X,
+        groundY + bottomOffset,
+        targetPosition.Z
+    )
+    
+    return newPosition
 end
 
 return Interface

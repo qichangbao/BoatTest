@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 local TowerConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("TowerConfig"))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
@@ -39,7 +40,7 @@ function IslandManageService:GetPlayerIslands(player)
         if ownerData.userId == player.UserId then
             -- 获取岛屿配置
             local islandConfig = nil
-            for _, config in pairs(GameConfig.IsLand) do
+            for _, config in pairs(IslandConfig.IsLand) do
                 if config.Name == landName then
                     islandConfig = config
                     break
@@ -79,7 +80,7 @@ function IslandManageService:GetIslandData(player, islandId)
     
     -- 获取岛屿配置
     local islandConfig = nil
-    for _, config in pairs(GameConfig.IsLand) do
+    for _, config in pairs(IslandConfig.IsLand) do
         if config.Name == islandId then
             islandConfig = config
             break
@@ -119,7 +120,7 @@ function IslandManageService:BuyTower(player, islandId, towerType, index)
     
     -- 获取岛屿配置
     local islandConfig = nil
-    for _, config in pairs(GameConfig.IsLand) do
+    for _, config in pairs(IslandConfig.IsLand) do
         if config.Name == islandId then
             islandConfig = config
             break

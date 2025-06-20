@@ -2,6 +2,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local Players = game.Players
 
 local LandService = Knit.CreateService {
@@ -15,11 +18,12 @@ local LandService = Knit.CreateService {
     }
 }
 
+local _allLand = {} -- 所有岛屿
 local _occupingIslandsHandle = {}
 
 -- 客户端调用，玩家开始占领岛屿
 function LandService.Client:StartOccupy(player, landName)
-    local land = GameConfig.FindIsLand(landName)
+    local land = IslandConfig.FindIsLand(landName)
     if not land then
         return
     end
@@ -57,7 +61,7 @@ end
 
 -- 客户端调用，付费登岛
 function LandService.Client:Pay(player, landName)
-    local land = GameConfig.FindIsLand(landName)
+    local land = IslandConfig.FindIsLand(landName)
     if not land then
         return 10042, landName
     end
@@ -88,9 +92,11 @@ function LandService:CreateIsland(modelName, position, lifetime)
         return
     end
     local island = islandTemplate:Clone()
-    island.Name = "无名岛"
-    island:PivotTo(CFrame.new(position))
+    island.Name = string.format("%s_%s", LanguageConfig.Get(10082), tick())
+    local pos = Interface.GetPartBottomPos(island, position)
+    island:PivotTo(CFrame.new(pos))
     island.Parent = workspace
+    _allLand[island.Name] = island
 
     self.Client.CreateIsland:FireAll(island.Name, lifetime)
     return island
@@ -102,16 +108,19 @@ function LandService:RemoveIsland(landName)
         return
     end
 
+    _allLand[island.Name] = nil
+
     for _, child in ipairs(island:GetDescendants()) do
         if child:IsA("BasePart") then
             child.Anchored = false
         end
     end
 
-    self.Client.RemoveIsland:FireAll(landName)
     task.delay(3, function()
         island:Destroy()
     end)
+
+    self.Client.RemoveIsland:FireAll(landName)
 end
 
 function LandService:KnitInit()

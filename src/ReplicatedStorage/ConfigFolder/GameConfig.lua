@@ -6,52 +6,9 @@ local GameConfig = {
         WaveSpeed = 1,
         LoadDistance = 2,
     },
-    IsLand = {
-        [1] = {
-            Name = "奥林匹斯",
-            Position = Vector3.new(0, 90, 0),
-            ModelName = "岛屿1",
-            WharfInOffsetPos = Vector3.new(75, 20, 180),
-            WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-        },
-        -- [2] = {
-        --     Name = "阿卡迪亚",
-        --     Position = Vector3.new(400, 90, 400),
-        --     ModelName = "岛屿1",
-        --     WharfInOffsetPos = Vector3.new(75, 20, 180),
-        --     WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-        --     OwnerModelOffsetPos = CFrame.new(Vector3.new(0, 27, 65)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
-        --     TowerOffsetPos = {Vector3.new(100, 12, 140), Vector3.new(70, 12, 140)},
-        --     Price = 100,
-        -- },
-        -- [3] = {
-        --     Name = "埃尔多拉多",
-        --     Position = Vector3.new(800, 90, 800),
-        --     ModelName = "岛屿1",
-        --     WharfInOffsetPos = Vector3.new(75, 20, 180),
-        --     WharfOutOffsetPos = CFrame.new(Vector3.new(180, 20, 20)) * CFrame.fromOrientation(math.rad(90), math.rad(-100), math.rad(180)),
-        --     OwnerModelOffsetPos = CFrame.new(Vector3.new(0, 27, 65)) * CFrame.fromOrientation(math.rad(0), math.rad(180), math.rad(0)),
-        --     TowerOffsetPos = {Vector3.new(100, 12, 140), Vector3.new(70, 12, 140), Vector3.new(40, 12, 140)},
-        --     Price = 150,
-        -- },
-    },
 
     OccupyTime = 30,        -- 占领时间
     OccupyMaxDis = 100,     -- 占领最大距离
 }
-
-GameConfig.FindIsLand = function(name)
-    for _, v in ipairs(GameConfig.IsLand) do
-        if v.Name == name then
-            return v
-        end
-    end
-    return nil
-end
-
-GameConfig.GetRandomIsland = function()
-    local index = math.random(1, #GameConfig.IsLand)
-    return GameConfig.IsLand[index]
-end
 
 return GameConfig

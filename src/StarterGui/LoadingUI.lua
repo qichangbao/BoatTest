@@ -34,7 +34,7 @@ local function CreateLoadingUI()
     percentageText.Position = UDim2.new(0.5, 0, 0.6, 0)
     percentageText.Text = '0%'
     percentageText.TextColor3 = Color3.new(1, 1, 1)
-    percentageText.Font = Enum.Font.Arimo
+    percentageText.Font = Enum.Font.SourceSansBold
     percentageText.TextSize = 30
     
     return {

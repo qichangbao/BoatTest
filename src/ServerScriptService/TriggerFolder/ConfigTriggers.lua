@@ -146,7 +146,7 @@ return {
         IsGoodCondition = true,-- 是否好的条件，用于玩家的幸运值怎么影响
         Action = {
             ActionType = "CreateIsland",
-            Lifetime = 10,
+            Lifetime = 100,
             UsePlayerPosition = true, -- 使用玩家当前位置
             PositionOffset = 600, -- 相对于玩家位置的偏移
             DestroyToResetCondition = true, -- 销毁后重置条件

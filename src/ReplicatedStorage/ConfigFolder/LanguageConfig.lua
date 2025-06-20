@@ -80,6 +80,7 @@ local Text = {
     [10079] = {zh_cn = "%s占领%s失败", en_us = "%s占领%s失败"},
     [10080] = {zh_cn = "%s成功占领%s", en_us = "%s成功占领%s"},
     [10081] = {zh_cn = "%s开始攻打%s", en_us = "%s开始攻打%s"},
+    [10082] = {zh_cn = "无名岛", en_us = "无名岛"},
 }
 
 local Players = game:GetService("Players")

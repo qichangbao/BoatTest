@@ -31,6 +31,8 @@ local UIController = Knit.CreateController {
     ShowIslandManageUI = Signal.new(),
     ShowTowerSelectUI = Signal.new(),
     ShowOccupingUI = Signal.new(),
+    UpdateCompassIsland = Signal.new(),
+    RemoveCompassIsland = Signal.new(),
 }
 
 function UIController:KnitInit()

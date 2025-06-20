@@ -41,7 +41,7 @@ local function CreateDamageNumber(boatModel, damageValue)
     damageLabel.Text = "-" .. tostring(damageValue)
     damageLabel.TextColor3 = Color3.fromRGB(255, 100, 100) -- 淡红色
     damageLabel.TextScaled = true
-    damageLabel.Font = Enum.Font.GothamBold
+    damageLabel.Font = Enum.Font.SourceSansBold
     damageLabel.TextStrokeTransparency = 0
     damageLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     damageLabel.TextXAlignment = Enum.TextXAlignment.Center

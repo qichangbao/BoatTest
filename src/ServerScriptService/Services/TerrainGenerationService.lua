@@ -3,9 +3,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 
 -- -- 初始化岛屿
--- for _, landData in pairs(GameConfig.IsLand) do
+-- for _, landData in pairs(IslandConfig.IsLand) do
 --     if landData.Name == "奥林匹斯" then
 --         continue
 --     end

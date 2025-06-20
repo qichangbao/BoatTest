@@ -6,6 +6,8 @@ local Debris = game:GetService("Debris")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local TowerConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("TowerConfig"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
+
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local TowerService = Knit.CreateService({
@@ -130,7 +132,7 @@ function TowerService:IslandAttackTick(islandName)
         return
     end
     
-    local landData = GameConfig.FindIsLand(islandName)
+    local landData = IslandConfig.FindIsLand(islandName)
     local islandPos = Vector3.new(
         landData.Position.X + landData.WharfInOffsetPos.X,
         landData.Position.Y,
@@ -449,7 +451,7 @@ end
 
 function TowerService:CreateTower(landName, towerData)
     local index = towerData.index
-    local landData = GameConfig.FindIsLand(landName)
+    local landData = IslandConfig.FindIsLand(landName)
     if not landData then
         return
     end

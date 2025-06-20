@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 local TowerConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("TowerConfig"))
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
@@ -330,7 +331,7 @@ updateIslandDetails = function(islandData)
     end
     
     -- 获取岛屿配置
-    local islandConfig = GameConfig.FindIsLand(islandData.name)
+    local islandConfig = IslandConfig.FindIsLand(islandData.name)
     local maxTowers = islandConfig and islandConfig.TowerOffsetPos and #islandConfig.TowerOffsetPos or 0
     createTowerInfo(islandData, maxTowers)
     createTowerPosition(islandData, maxTowers)

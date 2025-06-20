@@ -10,6 +10,7 @@ local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local ConfigFolder = ReplicatedStorage:WaitForChild("ConfigFolder")
 local LanguageConfig = require(ConfigFolder:WaitForChild("LanguageConfig"))
 local GameConfig = require(ConfigFolder:WaitForChild('GameConfig'))
+local IslandConfig = require(ConfigFolder:WaitForChild('IslandConfig'))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild('Interface'))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
@@ -202,7 +203,7 @@ for _, dir in pairs(directions) do
 end
 
 -- 初始化陆地数据
-for _, landData in ipairs(GameConfig.IsLand) do
+for _, landData in ipairs(IslandConfig.IsLand) do
     local landLabel = Instance.new('TextLabel')
     landLabel.Name = landData.Name
     landLabel.TextSize = 16
@@ -280,8 +281,14 @@ local function UpdateCompass()
                 
                 -- 更新距离显示
                 local distance = offset.Magnitude
-                child.Visible = distance <= 2000
-                child.Text = string.format('%s\n%d', child.Name, math.floor(distance))
+                child.Visible = true -- distance <= 2000
+
+                local showName = child.Name
+                local start = child.Name:find("_")
+                if start then
+                    showName = child.Name:sub(1, start - 1)
+                end
+                child.Text = string.format('%s\n%d', showName, math.floor(distance))
             end
         end
     end
@@ -308,5 +315,34 @@ Knit:OnStart():andThen(function()
     local BoatMovementService = Knit.GetService("BoatMovementService")
     BoatMovementService.isOnBoat:Connect(function(isOnBoat)
         _screenGui.Enabled = isOnBoat
+    end)
+    
+    -- 监听指南针岛屿更新信号
+    local UIController = Knit.GetController('UIController')
+    UIController.UpdateCompassIsland:Connect(function(islandName, position)
+        -- 查找是否已存在该岛屿标签
+        local existingLabel = viewportFrame:FindFirstChild(islandName)
+        if existingLabel then
+            -- 更新现有标签的位置
+            existingLabel:SetAttribute('Position', position)
+        else
+            -- 创建新的岛屿标签
+            local landLabel = Instance.new('TextLabel')
+            landLabel.Name = islandName
+            landLabel.TextSize = 16
+            landLabel.BackgroundTransparency = 1
+            landLabel.TextTransparency = 0.3
+            landLabel.TextColor3 = Color3.new(1,1,1)
+            landLabel.Parent = viewportFrame
+            landLabel:SetAttribute('Position', position)
+        end
+    end)
+    
+    -- 监听指南针岛屿移除信号
+    UIController.RemoveCompassIsland:Connect(function(islandName)
+        local existingLabel = viewportFrame:FindFirstChild(islandName)
+        if existingLabel then
+            existingLabel:Destroy()
+        end
     end)
 end):catch(warn)
