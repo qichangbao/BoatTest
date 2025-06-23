@@ -35,6 +35,7 @@ function Interface.InitPlayerPos(player)
 end
 
 -- 初始化船的位置
+-- 初始化船只在水中的位置，让船头朝向海的方向
 function Interface.InitBoatWaterPos(player, boat)
     local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
     local area = nil
@@ -52,32 +53,67 @@ function Interface.InitBoatWaterPos(player, boat)
     end
     player:SetAttribute("CurAreaTemplate", nil)
     if spawnLocation and player.Character then
+        local oldCFrame = boat:GetPivot()
+        print("oldCFrame    ", oldCFrame)
         local land = spawnLocation.Parent
-        local landData = IslandConfig.FindIsLand(land.Name)
-        local newCFrame = CFrame.new()
-        if landData then
-            -- 获取原始CFrame的旋转部分
-            local rotation = landData.WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
-            newCFrame = CFrame.new(
-                landData.Position.X + landData.WharfOutOffsetPos.Position.X,
-                landData.WharfOutOffsetPos.Position.Y,
-                landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
-            ) * rotation
-        else
-            local WharfOutOffsetPos = area:FindFirstChild("WharfOutOffsetPos").Value
-            local rotation = WharfOutOffsetPos - landData.WharfOutOffsetPos.Position
-            newCFrame = CFrame.new(
-                landData.Position.X + landData.WharfOutOffsetPos.Position.X,
-                landData.WharfOutOffsetPos.Position.Y,
-                landData.Position.Z + landData.WharfOutOffsetPos.Position.Z
-            ) * rotation
+        local floor = land:FindFirstChild("Floor")
+        if not floor then
+            return
         end
+        local minPosX = floor.Position.X - floor.Size.X / 2
+        local maxPosX = floor.Position.X + floor.Size.X / 2
+        local minPosZ = floor.Position.Z - floor.Size.Z / 2
+        local maxPosZ = floor.Position.Z + floor.Size.Z / 2
+        local randomPosX = math.random(-GameConfig.LandWharfDis, GameConfig.LandWharfDis)
+        local randomPosZ = math.random(-GameConfig.LandWharfDis, GameConfig.LandWharfDis)
+        local x = 0
+        local z = 0
+        if randomPosX < 0 then
+            x = minPosX + randomPosX - 30
+        else
+            x = maxPosX + randomPosX + 30
+        end
+        if randomPosZ < 0 then
+            z = minPosZ + randomPosZ - 30
+        else
+            z = maxPosZ + randomPosZ + 30
+        end
+        -- 使用适当的水面高度，而不是0
+        local waterLevel = 20 -- 根据oldCFrame的Y坐标设置合适的水面高度
+        local newPos = Vector3.new(x, waterLevel, z)
+        print("newPos    ", newPos)
 
+        -- 计算从码头指向远离岛屿的方向向量（确保是水平方向）
+        local floorPosAtWaterLevel = Vector3.new(floor.Position.X, waterLevel, floor.Position.Z)
+        local directionToSea = (newPos - floorPosAtWaterLevel).Unit
+        print("directionToSea    ", directionToSea)
+        
+        -- 计算船只应该面向的角度（Y轴旋转）
+        local angle = math.atan2(directionToSea.X, directionToSea.Z)
+        print("angle    ", angle)
+        
+        -- 根据船只默认朝向重新计算旋转
+        -- 船只默认(0,0,0)时：船底朝向Z轴前方向，船头朝向Y轴下方向
+        -- 使用X轴旋转90度让船头从Y轴下转向Z轴前方，然后Y轴旋转调整朝向
+        local newCFrame = CFrame.new(newPos) * CFrame.Angles(math.rad(90), angle + math.rad(-90), 0)
+        print("newCFrame    ", newCFrame)
         boat:PivotTo(newCFrame)
     
-        -- 玩家自动入座
-        local driverSeat = boat:FindFirstChild('DriverSeat')
-        player.character:PivotTo(driverSeat.CFrame)
+        -- 玩家登船
+        Interface.PlayerToBoat(player, boat)
+    end
+end
+
+-- 玩家登船
+function Interface.PlayerToBoat(player, boat)
+    if not player or not player.Character or not boat then
+        return
+    end
+
+    -- 玩家入座
+    local driverSeat = boat:FindFirstChild('DriverSeat')
+    if driverSeat then
+        player.Character:PivotTo(driverSeat.CFrame)
     end
 end
 

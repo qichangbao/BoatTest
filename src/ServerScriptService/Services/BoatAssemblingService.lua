@@ -132,7 +132,6 @@ function BoatAssemblingService:CreateBoat(player)
         Knit.GetService('BoatAttributeService'):ChangeBoatSpeed(player, speed, maxSpeed)
     end)
 
-    local weapons = {}
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
         if partInfo.Name ~= primaryPartName then
@@ -409,6 +408,10 @@ function BoatAssemblingService:StopBoat(player)
     if not playerBoat then
         local landName = Interface.InitPlayerPos(player)
         if landName then
+            local start = landName:find("_")
+            if start then
+                landName = landName:sub(1, start - 1)
+            end
             Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
         end
         print("船不存在")
@@ -419,6 +422,10 @@ function BoatAssemblingService:StopBoat(player)
     print("船已销毁")
     local landName = Interface.InitPlayerPos(player)
     if landName then
+        local start = landName:find("_")
+        if start then
+            landName = landName:sub(1, start - 1)
+        end
         Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
     end
 end

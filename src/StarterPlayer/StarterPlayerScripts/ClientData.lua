@@ -10,6 +10,7 @@ ClientData.InventoryItems = {}   -- 玩家背包物品
 ClientData.IsAdmin = false  -- 是否为管理员
 ClientData.IsLandOwners = {}  -- 所有土地的拥有者
 ClientData.ActiveBuffs = {}  -- 当前激活的BUFF
+ClientData.IsBoatAssembling = false -- 是否正在组装船
 
 -- 更新buff剩余时间函数
 local function updateRemainingTimes()

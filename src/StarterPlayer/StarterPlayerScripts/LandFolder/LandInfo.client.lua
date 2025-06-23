@@ -9,41 +9,95 @@ local Players = game:GetService('Players')
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 local IsLandPart = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("IsLandPart")
 
-local RADIUS = 40
-local _isTriggered = {}
+local _isTriggeredPlayerToBoat = false
+local _isTriggeredBoatToLand = true
 local _allLand = {} -- 所有岛屿
-for i, data in ipairs(IslandConfig.IsLand) do
-    _allLand[data.Name] = data
-end
 
-local function CheckPos()
-    local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
-    if not boat then
-        _isTriggered = {}
-        return
-    end
-    
+local function CheckPosFromBoatToLand(boat)
     local boatPosition = boat:GetPivot().Position
     -- 初始化陆地数据
-    for _, landData in pairs(_allLand) do
-        local wharfPos = Vector3.new(
-            landData.Position.X + landData.WharfInOffsetPos.X,
+    for _, landData in ipairs(_allLand) do
+        local land = workspace:FindFirstChild(landData.Name)
+        if not land then
+            continue
+        end
+        local floor = land:FindFirstChild("Floor")
+        if not floor then
+            continue
+        end
+        local wharfMinPos = Vector3.new(
+            floor.Position.X - floor.Size.X / 2 - GameConfig.LandWharfDis,
             0,
-            landData.Position.Z + landData.WharfInOffsetPos.Z)
-        local offset = Vector3.new(wharfPos.X - boatPosition.X, 0, wharfPos.Z - boatPosition.Z)
-        local distance = offset.Magnitude
-        if distance <= RADIUS then
-            if _isTriggered[landData.Name] == true then
+            floor.Position.Z - floor.Size.Z / 2 - GameConfig.LandWharfDis)
+        local wharfMaxPos = Vector3.new(
+            floor.Position.X + floor.Size.X / 2 + GameConfig.LandWharfDis,
+            0,
+            floor.Position.Z + floor.Size.Z / 2 + GameConfig.LandWharfDis)
+        local isInWharf = false
+        if boatPosition.X >= wharfMinPos.X and boatPosition.X <= wharfMaxPos.X and boatPosition.Z >= wharfMinPos.Z and boatPosition.Z <= wharfMaxPos.Z then
+            isInWharf = true
+        end
+
+        if isInWharf then
+            if _isTriggeredBoatToLand then
                 break
             end
             Knit.GetController("UIController").ShowWharfUI:Fire(landData.Name)
-            _isTriggered[landData.Name] = true
+            _isTriggeredBoatToLand = true
             break
         else
-            if _isTriggered[landData.Name] then
+            if _isTriggeredBoatToLand then
                 Knit.GetController("UIController").HideWharfUI:Fire()
             end
-            _isTriggered[landData.Name] = nil
+            _isTriggeredBoatToLand = false
+        end
+    end
+end
+
+local function CheckPosFromPlayerToBoat(boat)
+    if _isTriggeredPlayerToBoat then
+        return
+    end
+    if not Players.LocalPlayer.Character then
+        _isTriggeredPlayerToBoat = false
+        return
+    end
+    local boatPosition = boat:GetPivot().Position
+    local playerPosition = Players.LocalPlayer.Character:GetPivot().Position
+    local dis = (Vector3.new(boatPosition.X - playerPosition.X, 0, boatPosition.Z - playerPosition.Z)).Magnitude
+    if dis <= GameConfig.PlayerToBoatDis then
+        _isTriggeredPlayerToBoat = true
+        Knit.GetController("UIController").ShowMessageBox:Fire({Content = LanguageConfig.Get(10083), OnConfirm = function()
+            Knit.GetService("LandService"):PlayerToBoat(Players.LocalPlayer)
+        end})
+    else
+        _isTriggeredPlayerToBoat = false
+    end
+end
+
+local function CheckPos()
+    if not Players.LocalPlayer.Character then
+        return
+    end
+    local humanoid = Players.LocalPlayer.Character:FindFirstChild('Humanoid')
+    if not humanoid then
+        return
+    end
+    -- 特殊处理，玩家点了启航按钮，正在组装船，不触发检测，当玩家sit后触发检测
+    if ClientData.IsBoatAssembling then
+        if not humanoid.Sit then
+            return
+        end
+        ClientData.IsBoatAssembling = false
+    end
+    local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
+    if boat then
+        if humanoid.Sit then
+            _isTriggeredPlayerToBoat = false
+            CheckPosFromBoatToLand(boat)
+        else
+            _isTriggeredBoatToLand = true
+            CheckPosFromPlayerToBoat(boat)
         end
     end
 end
@@ -95,6 +149,109 @@ local function CreateIsLandOwnerModel(landName, playerName)
     end
 end
 
+-- 创建岛屿信息板，倒计时
+local function CreateBillBoard(land, name, lifetime)
+    -- 创建岛屿信息显示板，包含倒计时功能
+    -- 创建BillboardGui
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 300, 0, 100)
+    billboard.StudsOffset = Vector3.new(0, 30, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Adornee = land
+    billboard.MaxDistance = 600
+    billboard.Name = "IslandBillboard"
+    billboard.Parent = land
+    
+    -- 创建背景框架
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BackgroundTransparency = 0.3
+    frame.BorderSizePixel = 0
+    frame.Parent = billboard
+    
+    -- 添加圆角
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+    
+    -- 岛屿名称标签
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    nameLabel.Position = UDim2.new(0, 0, 0, 0)
+    nameLabel.Text = name
+    nameLabel.Font = Enum.Font.SourceSansBold
+    nameLabel.TextSize = 24
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.TextStrokeTransparency = 0.5
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Parent = frame
+    
+    if lifetime > 0 then
+        -- 倒计时标签
+        local countdownLabel = Instance.new("TextLabel")
+        countdownLabel.Size = UDim2.new(1, 0, 0.5, 0)
+        countdownLabel.Position = UDim2.new(0, 0, 0.5, 0)
+        countdownLabel.Font = Enum.Font.SourceSansBold
+        countdownLabel.TextSize = 20
+        countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+        countdownLabel.BackgroundTransparency = 1
+        countdownLabel.TextStrokeTransparency = 0.5
+        countdownLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        countdownLabel.Parent = frame
+        
+        -- 倒计时逻辑
+        local startTime = tick()
+        local connection
+        
+        -- 格式化时间显示（分:秒）
+        local function formatTime(seconds)
+            local minutes = math.floor(seconds / 60)
+            local secs = math.floor(seconds % 60)
+            return string.format("%02d:%02d", minutes, secs)
+        end
+        
+        -- 更新倒计时显示
+        local function updateCountdown()
+            -- 检测岛屿是否被销毁
+            if not land or not land.Parent then
+                -- 岛屿已被销毁，清理连接并销毁billboard
+                if connection then
+                    connection:Disconnect()
+                    connection = nil
+                end
+                return
+            end
+            
+            local elapsed = tick() - startTime
+            local remaining = math.max(0, lifetime - elapsed)
+            
+            if remaining > 0 then
+                countdownLabel.Text = "岛屿沉没剩余时间: " .. formatTime(remaining)
+                
+                -- 根据剩余时间改变颜色
+                if remaining <= 30 then
+                    countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- 红色警告
+                elseif remaining <= 60 then
+                    countdownLabel.TextColor3 = Color3.fromRGB(255, 165, 0) -- 橙色提醒
+                else
+                    countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- 黄色正常
+                end
+            else
+                countdownLabel.Text = "即将沉没"
+                countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            end
+        end
+    
+        -- 开始倒计时更新
+        connection = game:GetService("RunService").Heartbeat:Connect(updateCountdown)
+        
+        -- 初始更新
+        updateCountdown()
+    end
+end
+
 -- 创建岛屿的部件，信息板，倒计时
 local function CreateIslandPart(landName, lifetime)
     local land = workspace:WaitForChild(landName)
@@ -105,15 +262,7 @@ local function CreateIslandPart(landName, lifetime)
     local landPos = land:GetPivot().Position
     
     -- 通知BoatAttributeUI更新指南针显示数据
-    local wharfPos = land:FindFirstChild("WharfPos")
-    if wharfPos then
-        local compassPosition = Vector3.new(
-            landPos.X + wharfPos.Value.X,
-            wharfPos.Value.Y,
-            landPos.Z + wharfPos.Value.Z
-        )
-        Knit.GetController("UIController").UpdateCompassIsland:Fire(landName, compassPosition)
-    end
+    Knit.GetController("UIController").UpdateCompassIsland:Fire(landName, landPos)
 
     local partPosTable = {}
     for i, v in pairs(land:GetChildren()) do
@@ -152,118 +301,26 @@ local function CreateIslandPart(landName, lifetime)
         end
     end
     
-    -- 创建岛屿信息显示板，包含倒计时功能
-    -- 创建BillboardGui
-    local billboard = Instance.new("BillboardGui")
-    billboard.Size = UDim2.new(0, 300, 0, 100)
-    billboard.StudsOffset = Vector3.new(0, 30, 0)
-    billboard.AlwaysOnTop = true
-    billboard.Adornee = land
-    billboard.MaxDistance = 600
-    billboard.Name = "IslandBillboard"
-    
-    -- 创建背景框架
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 1, 0)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    frame.BackgroundTransparency = 0.3
-    frame.BorderSizePixel = 0
-    frame.Parent = billboard
-    
-    -- 添加圆角
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = frame
-    
-    -- 岛屿名称标签
-    local nameLabel = Instance.new("TextLabel")
-    nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    nameLabel.Position = UDim2.new(0, 0, 0, 0)
-    nameLabel.Text = LanguageConfig.Get(10082)
-    nameLabel.Font = Enum.Font.SourceSansBold
-    nameLabel.TextSize = 24
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    nameLabel.BackgroundTransparency = 1
-    nameLabel.TextStrokeTransparency = 0.5
-    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    nameLabel.Parent = frame
-    
-    -- 倒计时标签
-    local countdownLabel = Instance.new("TextLabel")
-    countdownLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    countdownLabel.Position = UDim2.new(0, 0, 0.5, 0)
-    countdownLabel.Font = Enum.Font.SourceSansBold
-    countdownLabel.TextSize = 20
-    countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
-    countdownLabel.BackgroundTransparency = 1
-    countdownLabel.TextStrokeTransparency = 0.5
-    countdownLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-    countdownLabel.Parent = frame
-    
-    billboard.Parent = land
-    
-    -- 倒计时逻辑
-    local startTime = tick()
-    local connection
-    
-    -- 格式化时间显示（分:秒）
-    local function formatTime(seconds)
-        local minutes = math.floor(seconds / 60)
-        local secs = math.floor(seconds % 60)
-        return string.format("%02d:%02d", minutes, secs)
-    end
-    
-    -- 更新倒计时显示
-    local function updateCountdown()
-        -- 检测岛屿是否被销毁
-        if not land or not land.Parent then
-            -- 岛屿已被销毁，清理连接并销毁billboard
-            if connection then
-                connection:Disconnect()
-                connection = nil
-            end
-            return
-        end
-        
-        local elapsed = tick() - startTime
-        local remaining = math.max(0, lifetime - elapsed)
-        
-        if remaining > 0 then
-            countdownLabel.Text = "岛屿沉没剩余时间: " .. formatTime(remaining)
-            
-            -- 根据剩余时间改变颜色
-            if remaining <= 30 then
-                countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- 红色警告
-            elseif remaining <= 60 then
-                countdownLabel.TextColor3 = Color3.fromRGB(255, 165, 0) -- 橙色提醒
-            else
-                countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- 黄色正常
-            end
-        else
-            countdownLabel.Text = "即将沉没"
-            countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
-    end
-    
-    -- 开始倒计时更新
-    connection = game:GetService("RunService").Heartbeat:Connect(updateCountdown)
-    
-    -- 初始更新
-    updateCountdown()
+    CreateBillBoard(land, LanguageConfig.Get(10082), lifetime)
 
     local data = {
         Name = land.Name,
         Position = landPos,
-        WharfInOffsetPos = land:FindFirstChild("WharfPos").Value,
-        WharfOutOffsetPos = land:FindFirstChild("WharfPos").Value,
     }
-    _allLand[land.Name] = data
+
+    table.insert(_allLand, data)
 end
 
 -- 移除岛屿函数
 -- @param islandName: 岛屿名称
 local function RemoveIsland(islandName)
-    _allLand[islandName] = nil
+    for i, v in ipairs(_allLand) do
+        if v.Name == islandName then
+            table.remove(_allLand, i)
+            break
+        end
+    end
+
     local land = workspace:FindFirstChild(islandName)
     if not land then
         return
@@ -282,6 +339,14 @@ local function RemoveIsland(islandName)
     Knit.GetController("UIController").RemoveCompassIsland:Fire(islandName)
 end
 
+-- 初始化固定岛屿
+for _, data in ipairs(IslandConfig.IsLand) do
+    table.insert(_allLand, data)
+
+    local land = workspace:WaitForChild(data.Name)
+    CreateBillBoard(land, data.Name, -1)
+end
+
 Knit:OnStart():andThen(function()
     local UIController = Knit.GetController('UIController')
     UIController.IsLandOwner:Connect(function()
@@ -293,8 +358,8 @@ Knit:OnStart():andThen(function()
         task.spawn(CreateIsLandOwnerModel, landName, playerName)
     end)
 
-    Knit.GetService("LandService").CreateIsland:Connect(function(landName, id, lifetime)
-        CreateIslandPart(landName, id, lifetime)
+    Knit.GetService("LandService").CreateIsland:Connect(function(landName, lifetime)
+        CreateIslandPart(landName, lifetime)
     end)
 
     Knit.GetService("LandService").RemoveIsland:Connect(function(landName)

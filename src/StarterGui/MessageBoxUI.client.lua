@@ -51,7 +51,7 @@ local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
     end
     Hide()
 end)
-_confirmButton.Position = UDim2.new(0.7, 0, 0.5, 0)
+_confirmButton.Position = UDim2.new(0.7, 0, 0.8, 0)
 
 -- 取消按钮
 local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
@@ -60,7 +60,7 @@ local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
     end
     Hide()
 end)
-_cancelButton.Position = UDim2.new(0.3, 0, 0.5, 0)
+_cancelButton.Position = UDim2.new(0.3, 0, 0.8, 0)
 
 local function Show(config)
     -- 设置基础属性

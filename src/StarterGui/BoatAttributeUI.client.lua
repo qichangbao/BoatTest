@@ -211,12 +211,7 @@ for _, landData in ipairs(IslandConfig.IsLand) do
     landLabel.TextTransparency = 0.3
     landLabel.TextColor3 = Color3.new(1,1,1)
     landLabel.Parent = viewportFrame
-    landLabel:SetAttribute('Position',
-        Vector3.new(
-            landData.Position.X + landData.WharfInOffsetPos.X,
-            landData.Position.Y,
-            landData.Position.Z + landData.WharfInOffsetPos.Z)
-        )
+    landLabel:SetAttribute('Position', landData.Position)
 end
 
 -- 动态更新指南针

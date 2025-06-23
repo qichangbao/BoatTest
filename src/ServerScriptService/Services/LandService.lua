@@ -82,7 +82,30 @@ end
 -- 客户端调用，登岛
 function LandService.Client:IntoIsLand(player, landName)
     player:SetAttribute("CurAreaTemplate", landName)
-    Knit.GetService("BoatAssemblingService"):StopBoat(player)
+    
+    if not player.Character then
+        return
+    end
+    local humanoid = player.Character:FindFirstChild('Humanoid')
+    if humanoid then
+        humanoid.Sit = false
+    end
+    local start = landName:find("_")
+    if start then
+        landName = landName:sub(1, start - 1)
+    end
+    Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
+    Interface.InitPlayerPos(player)
+end
+
+-- 客户端调用，玩家登船
+function LandService.Client:PlayerToBoat(player)
+    local boat = Interface.GetBoatByPlayerUserId(player.UserId)
+    if not boat then
+        return
+    end
+
+    Interface.PlayerToBoat(player, boat)
 end
 
 -- 创建岛屿

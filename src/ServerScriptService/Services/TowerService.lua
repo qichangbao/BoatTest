@@ -132,16 +132,12 @@ function TowerService:IslandAttackTick(islandName)
         return
     end
     
-    local landData = IslandConfig.FindIsLand(islandName)
-    local islandPos = Vector3.new(
-        landData.Position.X + landData.WharfInOffsetPos.X,
-        landData.Position.Y,
-        landData.Position.Z + landData.WharfInOffsetPos.Z
-    )
+    local land = workspace:FindFirstChild(islandName)
+    local landPos = land:GetPivot().Position
     -- 检查占领者船只是否在100距离内
     local boat = Interface.GetBoatByPlayerUserId(islandData.occupierUserId)
     if boat and boat.PrimaryPart then
-        local distance = (boat.PrimaryPart.Position - islandPos).Magnitude
+        local distance = (boat.PrimaryPart.Position - landPos).Magnitude
         if distance > GameConfig.OccupyMaxDis then
             -- 占领者船只超出100距离，取消岛屿激活状态
             self:SetIslandActive(islandName, false, islandData.occupierUserId)

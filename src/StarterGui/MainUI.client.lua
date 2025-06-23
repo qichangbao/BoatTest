@@ -44,6 +44,7 @@ _startBoatButton.MouseButton1Click:Connect(function()
         boat:Destroy()
     end
 
+    ClientData.IsBoatAssembling = true
     Knit.GetService('BoatAssemblingService'):AssembleBoat():andThen(function(tipId)
         Knit.GetController('UIController').ShowTip:Fire(tipId)
     end)
