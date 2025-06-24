@@ -78,4 +78,5 @@ end
 Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowMessageBox:Connect(Show)
+    Knit.GetController('UIController').HideMessageBox:Connect(Hide)
 end)

@@ -121,6 +121,11 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     return true
 end
 
+-- 客户端调用，用于客户端自己创建的宝箱奖励
+function ChestService.Client:ProcessChestRewards(player, chestPosition)
+    return self.Server:ProcessChestRewards(player, chestPosition)
+end
+
 function ChestService:KnitInit()
 end
 

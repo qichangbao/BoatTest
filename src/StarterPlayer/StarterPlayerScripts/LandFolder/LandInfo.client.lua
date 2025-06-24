@@ -10,7 +10,7 @@ local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("Starte
 local IsLandPart = ReplicatedStorage:WaitForChild("Assets"):WaitForChild("IsLandPart")
 
 local _isTriggeredPlayerToBoat = false
-local _isTriggeredBoatToLand = true
+local _isTriggeredBoatToLand = {}
 local _allLand = {} -- 所有岛屿
 
 local function CheckPosFromBoatToLand(boat)
@@ -39,38 +39,50 @@ local function CheckPosFromBoatToLand(boat)
         end
 
         if isInWharf then
-            if _isTriggeredBoatToLand then
+            if _isTriggeredBoatToLand[landData.Name] then
                 break
             end
             Knit.GetController("UIController").ShowWharfUI:Fire(landData.Name)
-            _isTriggeredBoatToLand = true
+            _isTriggeredBoatToLand[landData.Name] = true
             break
         else
-            if _isTriggeredBoatToLand then
+            if _isTriggeredBoatToLand[landData.Name] then
                 Knit.GetController("UIController").HideWharfUI:Fire()
             end
-            _isTriggeredBoatToLand = false
+            _isTriggeredBoatToLand[landData.Name] = false
         end
     end
 end
 
 local function CheckPosFromPlayerToBoat(boat)
-    if _isTriggeredPlayerToBoat then
-        return
-    end
     if not Players.LocalPlayer.Character then
         _isTriggeredPlayerToBoat = false
         return
     end
+
     local boatPosition = boat:GetPivot().Position
     local playerPosition = Players.LocalPlayer.Character:GetPivot().Position
+    local size = boat:GetExtentsSize()
+    local boatMinPos = Vector3.new(boatPosition.X - size.X / 2, 0, boatPosition.Z - size.Z / 2)
+    local boatMaxPos = Vector3.new(boatPosition.X + size.X / 2, 0, boatPosition.Z + size.Z / 2)
+    -- 如果玩家在船上，不触发检测
+    if playerPosition.X >= boatMinPos.X and playerPosition.X <= boatMaxPos.X and playerPosition.Z >= boatMinPos.Z and playerPosition.Z <= boatMaxPos.Z then
+        _isTriggeredPlayerToBoat = true
+        return
+    end
     local dis = (Vector3.new(boatPosition.X - playerPosition.X, 0, boatPosition.Z - playerPosition.Z)).Magnitude
     if dis <= GameConfig.PlayerToBoatDis then
+        if _isTriggeredPlayerToBoat then
+            return
+        end
         _isTriggeredPlayerToBoat = true
         Knit.GetController("UIController").ShowMessageBox:Fire({Content = LanguageConfig.Get(10083), OnConfirm = function()
             Knit.GetService("LandService"):PlayerToBoat(Players.LocalPlayer)
         end})
     else
+        if _isTriggeredPlayerToBoat then
+            Knit.GetController("UIController").HideMessageBox:Fire()
+        end
         _isTriggeredPlayerToBoat = false
     end
 end
@@ -93,10 +105,8 @@ local function CheckPos()
     local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
     if boat then
         if humanoid.Sit then
-            _isTriggeredPlayerToBoat = false
             CheckPosFromBoatToLand(boat)
         else
-            _isTriggeredBoatToLand = true
             CheckPosFromPlayerToBoat(boat)
         end
     end
@@ -252,6 +262,49 @@ local function CreateBillBoard(land, name, lifetime)
     end
 end
 
+local function PlayOpenChestAni(chest, callback)
+    local chestTop = chest:FindFirstChild("ChestTop")
+    if not chestTop or not chestTop.PrimaryPart then
+        warn("找不到箱盖模型，请确保箱子中有名为 'ChestTop' 的模型")
+        return
+    end
+    
+    -- 解开箱盖和箱底的约束
+    local weld = chestTop.PrimaryPart:FindFirstChild("WeldConstraint")
+    weld:Destroy()
+
+    -- 获取当前位置和目标位置
+    local currentCFrame = chestTop:GetPivot()
+    local targetCFrame = currentCFrame * CFrame.Angles(0, 0, math.rad(-90))
+    
+    -- 创建动画
+    local tweenInfo = TweenInfo.new(
+        1.5, -- 持续时间
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+    
+    -- 创建一个NumberValue用于动画进度
+    local animationProgress = Instance.new("NumberValue")
+    animationProgress.Value = 0
+    
+    -- 创建Tween
+    local tween = game:GetService("TweenService"):Create(animationProgress, tweenInfo, {Value = 1})
+    -- 监听动画进度
+    animationProgress.Changed:Connect(function(alpha)
+        local lerpedCFrame = currentCFrame:Lerp(targetCFrame, alpha)
+        chestTop:PivotTo(lerpedCFrame)
+    end)
+    
+    -- 播放动画
+    tween:Play()
+    -- 清理
+    tween.Completed:Connect(function()
+        animationProgress:Destroy()
+        callback()
+    end)
+end
+
 -- 创建岛屿的部件，信息板，倒计时
 local function CreateIslandPart(landName, lifetime)
     local land = workspace:WaitForChild(landName)
@@ -297,6 +350,32 @@ local function CreateIslandPart(landName, lifetime)
                 pos += Vector3.new(math.random(-10, 10), 0, math.random(10, 10))
                 part:PivotTo(CFrame.new(landPos + pos))
                 part.Parent = land
+                if partData.partType == "Chest" then
+                    if part.PrimaryPart then
+                        -- 创建ProximityPrompt
+                        local proximityPrompt = Instance.new("ProximityPrompt")
+                        proximityPrompt.ActionText = "打开宝箱"
+                        proximityPrompt.ObjectText = "宝箱"
+                        proximityPrompt.KeyboardKeyCode = Enum.KeyCode.E
+                        proximityPrompt.HoldDuration = 0
+                        proximityPrompt.MaxActivationDistance = 15
+                        proximityPrompt.RequiresLineOfSight = false
+                        proximityPrompt.Enabled = true
+                        proximityPrompt.Style = Enum.ProximityPromptStyle.Default
+                        proximityPrompt.Parent = part.PrimaryPart
+                        
+                        print("为宝箱创建了ProximityPrompt:", part.Name)
+                        
+                        -- 连接触发事件
+                        proximityPrompt.Triggered:Connect(function(player)
+                            proximityPrompt.Enabled = false
+                            PlayOpenChestAni(part, function()
+                                -- 通知服务器处理宝箱奖励
+                                Knit.GetService("ChestService"):ProcessChestRewards(part.PrimaryPart.Position)
+                            end)
+                        end)
+                    end
+                end
             end
         end
     end

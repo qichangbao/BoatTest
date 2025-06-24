@@ -41,6 +41,14 @@ local IslandConfig = {
                 "stone3",
             },
         },
+        [3] = {
+            type = "Chest",
+            parts = {
+                "chest1",
+                "chest2",
+                "chest3",
+            }
+        }
     },
 }
 

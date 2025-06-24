@@ -16,8 +16,27 @@ end
 function CreateMonsterAction:Execute(data)
     ActionBase.Execute(self)
 
+    -- 确定宝箱生成位置
+    local position = self.position
+    if self.config.UsePlayerPosition and self.config.PositionOffset and data and data.Player and data.Player.Character then
+        local player = data.Player
+        local frame = player.Character:GetPivot()
+        position = frame.Position
+        local baseOffset = frame.LookVector * self.config.PositionOffset -- 船头前方偏移
+        
+        -- 添加小范围随机偏移 (-5到5米的随机范围)
+        local randomX = math.random(-100, 100)
+        local randomZ = math.random(-100, 100)
+        local randomOffset = Vector3.new(randomX, 1.5, randomZ)
+        
+        self.position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
+    end
+
     print("执行CreateMonsterAction")
-    local aiManager = AIManager.new(self.config.MonsterName, self.config.Position)
+    local aiManager = AIManager.new(self.config.MonsterName, self.position)
+    if not aiManager then
+        return
+    end
     aiManager:Start()
 
     local function MonsterDead()
@@ -33,15 +52,6 @@ function CreateMonsterAction:Execute(data)
         
         aiManager:SetState('Dead')
     end
-    local character = aiManager.NPC
-    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-    -- 监听部件移除事件
-    character.ChildRemoved:Connect(function(child)
-        if child == humanoidRootPart then
-            print("HumanoidRootPart被移除")
-            MonsterDead()
-        end
-    end)
 
     if aiManager.Humanoid then
         -- 监听死亡状态

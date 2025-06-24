@@ -1,6 +1,9 @@
 local ReplicatedStorage = game.ReplicatedStorage
 local ServerStorage = game.ServerStorage
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
+local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 
 local CreateIslandAction = {}
 setmetatable(CreateIslandAction, ActionBase)
@@ -31,13 +34,10 @@ function CreateIslandAction:Execute(data)
         local randomZ = math.random(-200, 200)
         local randomOffset = Vector3.new(randomX, 0, randomZ)
         
-        position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
+        self.position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
     end
-
-    local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
+    
     local islandData = IslandConfig.GetRandomIsland()
-
-    local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
     local island = Knit.GetService("LandService"):CreateIsland(islandData.ModelName, position, self.config.Lifetime)
     if island then
         if self.config.Lifetime > 0 then
@@ -46,6 +46,30 @@ function CreateIslandAction:Execute(data)
             end)
         end
     end
+end
+
+-- 检测指定位置范围内是否有岛屿
+-- @param position Vector3 检测位置
+-- @param radius number 检测半径
+-- @return boolean 是否有岛屿
+function CreateIslandAction:CheckIslandInRange(position, radius)
+    -- 遍历workspace中的所有岛屿模型
+    local allLand = Knit.GetService("LandService"):GetAllLand()
+    for landName, _ in pairs(allLand) do
+        local land = workspace:FindFirstChild(landName)
+        if land then
+            local islandPosition = land:GetPivot().Position
+            local distance = (position - islandPosition).Magnitude
+            
+            -- 如果距离小于指定半径，则认为范围内有岛屿
+            if distance < radius then
+                print(string.format("发现附近岛屿: %s, 距离: %.2f米", landName, distance))
+                return true
+            end
+        end
+    end
+    
+    return false
 end
 
 return CreateIslandAction

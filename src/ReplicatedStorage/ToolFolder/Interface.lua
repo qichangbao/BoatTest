@@ -53,8 +53,6 @@ function Interface.InitBoatWaterPos(player, boat)
     end
     player:SetAttribute("CurAreaTemplate", nil)
     if spawnLocation and player.Character then
-        local oldCFrame = boat:GetPivot()
-        print("oldCFrame    ", oldCFrame)
         local land = spawnLocation.Parent
         local floor = land:FindFirstChild("Floor")
         if not floor then
@@ -64,40 +62,23 @@ function Interface.InitBoatWaterPos(player, boat)
         local maxPosX = floor.Position.X + floor.Size.X / 2
         local minPosZ = floor.Position.Z - floor.Size.Z / 2
         local maxPosZ = floor.Position.Z + floor.Size.Z / 2
-        local randomPosX = math.random(-GameConfig.LandWharfDis, GameConfig.LandWharfDis)
-        local randomPosZ = math.random(-GameConfig.LandWharfDis, GameConfig.LandWharfDis)
+        local randomPosX = math.random(-10, 10)
+        local randomPosZ = math.random(-10, 10)
         local x = 0
         local z = 0
         if randomPosX < 0 then
-            x = minPosX + randomPosX - 30
+            x = minPosX + randomPosX - GameConfig.LandWharfDis
         else
-            x = maxPosX + randomPosX + 30
+            x = maxPosX + randomPosX + GameConfig.LandWharfDis
         end
         if randomPosZ < 0 then
-            z = minPosZ + randomPosZ - 30
+            z = minPosZ + randomPosZ - GameConfig.LandWharfDis
         else
-            z = maxPosZ + randomPosZ + 30
+            z = maxPosZ + randomPosZ + GameConfig.LandWharfDis
         end
         -- 使用适当的水面高度，而不是0
         local waterLevel = 20 -- 根据oldCFrame的Y坐标设置合适的水面高度
-        local newPos = Vector3.new(x, waterLevel, z)
-        print("newPos    ", newPos)
-
-        -- 计算从码头指向远离岛屿的方向向量（确保是水平方向）
-        local floorPosAtWaterLevel = Vector3.new(floor.Position.X, waterLevel, floor.Position.Z)
-        local directionToSea = (newPos - floorPosAtWaterLevel).Unit
-        print("directionToSea    ", directionToSea)
-        
-        -- 计算船只应该面向的角度（Y轴旋转）
-        local angle = math.atan2(directionToSea.X, directionToSea.Z)
-        print("angle    ", angle)
-        
-        -- 根据船只默认朝向重新计算旋转
-        -- 船只默认(0,0,0)时：船底朝向Z轴前方向，船头朝向Y轴下方向
-        -- 使用X轴旋转90度让船头从Y轴下转向Z轴前方，然后Y轴旋转调整朝向
-        local newCFrame = CFrame.new(newPos) * CFrame.Angles(math.rad(90), angle + math.rad(-90), 0)
-        print("newCFrame    ", newCFrame)
-        boat:PivotTo(newCFrame)
+        boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)) * CFrame.Angles(math.rad(90), 0, 0))
     
         -- 玩家登船
         Interface.PlayerToBoat(player, boat)
@@ -179,6 +160,84 @@ function Interface.GetPartBottomPos(model, targetPosition)
     )
     
     return newPosition
+end
+
+-- 检测指定位置和大小范围内是否有物体
+-- @param pos Vector3 检测区域的中心位置
+-- @param size Vector3 检测区域的大小
+-- @return boolean 如果范围内有物体返回true，否则返回false
+-- @return table 范围内找到的所有Part列表
+function Interface.CheckPosHasPart(pos, size)
+    -- 计算检测区域的边界
+    local halfSize = size / 2
+    local minPoint = pos - halfSize
+    local maxPoint = pos + halfSize
+    
+    -- 创建Region3用于检测
+    local region = Region3.new(minPoint, maxPoint)
+    
+    -- 扩展region以确保边界正确
+    region = region:ExpandToGrid(4)
+    
+    -- 存储找到的Part
+    local foundParts = {}
+    
+    -- 遍历workspace中的所有Part
+    local function checkDescendants(parent)
+        for _, child in pairs(parent:GetChildren()) do
+            if child:IsA("Folder") then
+                -- 递归检查子对象
+                checkDescendants(child)
+            else
+                local partPos
+                local partSize
+                if child:IsA("BasePart") then
+                    -- 检查Part是否在指定区域内
+                    partPos = child.Position
+                    partSize = child.Size
+                    
+                    -- 计算Part的边界
+                    local partMin = partPos - partSize / 2
+                    local partMax = partPos + partSize / 2
+                    
+                    -- 检查是否有重叠
+                    local hasOverlap = (
+                        partMax.X > minPoint.X and partMin.X < maxPoint.X and
+                        partMax.Y > minPoint.Y and partMin.Y < maxPoint.Y and
+                        partMax.Z > minPoint.Z and partMin.Z < maxPoint.Z
+                    )
+                    
+                    if hasOverlap then
+                        table.insert(foundParts, child)
+                    end
+                elseif child:IsA("Model")then
+                    partPos = child:GetPivot().Position
+                    partSize = child:GetExtentsSize()
+                    
+                    -- 计算Part的边界
+                    local partMin = partPos - partSize / 2
+                    local partMax = partPos + partSize / 2
+                    
+                    -- 检查是否有重叠
+                    local hasOverlap = (
+                        partMax.X > minPoint.X and partMin.X < maxPoint.X and
+                        partMax.Y > minPoint.Y and partMin.Y < maxPoint.Y and
+                        partMax.Z > minPoint.Z and partMin.Z < maxPoint.Z
+                    )
+                    
+                    if hasOverlap then
+                        table.insert(foundParts, child)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- 开始检测workspace
+    checkDescendants(workspace)
+    
+    -- 返回是否找到物体和找到的Part列表
+    return #foundParts > 0, foundParts
 end
 
 return Interface

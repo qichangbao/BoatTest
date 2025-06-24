@@ -1,6 +1,7 @@
-
+local ReplicatedStorage = game.ReplicatedStorage
 local ServerStorage = game:GetService("ServerStorage")
 local MonsterConfig = require(script.Parent:WaitForChild("MonsterConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local AIManager = {}
 AIManager.__index = AIManager
@@ -10,6 +11,12 @@ function AIManager.new(name, position)
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:FindFirstChild(name):Clone()
+    if not Interface.CheckPosHasPart(position, self.NPC:GetExtentsSize()) then
+        print("位置有物体，取消创建")
+        self.NPC:Destroy()
+        return
+    end
+
     self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
     for _, part in ipairs(self.NPC:GetDescendants()) do
         if part:IsA("BasePart") then

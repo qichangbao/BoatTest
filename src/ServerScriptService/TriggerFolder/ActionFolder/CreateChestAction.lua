@@ -1,4 +1,7 @@
+local ReplicatedStorage = game:WaitForChild("ReplicatedStorage")
 local ActionBase = require(script.Parent:WaitForChild("ActionBase"))
+local Knit = require(game.ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local CreateChestAction = {}
 setmetatable(CreateChestAction, ActionBase)
@@ -54,55 +57,6 @@ function CreateChestAction:CreateAnchor(chest)
     return anchor
 end
 
--- local function PlayOpenChestAni(chest, callback)
---     local TweenService = game:GetService("TweenService")
---     local chestTop = chest:FindFirstChild("ChestTop")
-    
---     if not chestTop then
---         warn("找不到箱盖模型，请确保箱子中有名为 'ChestTop' 的模型")
---         return
---     end
-    
---     -- 确保chestTop有PrimaryPart
---     if not chestTop.PrimaryPart then
---         warn("ChestTop模型没有设置PrimaryPart，请在Studio中设置")
---         return
---     end
-    
---     -- 获取当前位置和目标位置
---     local currentCFrame = chestTop:GetPivot()
---     local targetCFrame = currentCFrame * CFrame.Angles(0, 0, math.rad(-90))
-    
---     -- 创建动画
---     local tweenInfo = TweenInfo.new(
---         1.5, -- 持续时间
---         Enum.EasingStyle.Quad,
---         Enum.EasingDirection.Out
---     )
-    
---     -- 创建一个NumberValue用于动画进度
---     local animationProgress = Instance.new("NumberValue")
---     animationProgress.Value = 0
-    
---     -- 创建Tween
---     local tween = TweenService:Create(animationProgress, tweenInfo, {Value = 1})
-    
---     -- 监听动画进度
---     animationProgress.Changed:Connect(function(alpha)
---         local lerpedCFrame = currentCFrame:Lerp(targetCFrame, alpha)
---         chestTop:PivotTo(lerpedCFrame)
---     end)
-    
---     -- 播放动画
---     tween:Play()
-    
---     -- 清理
---     tween.Completed:Connect(function()
---         animationProgress:Destroy()
---         callback()
---     end)
--- end
-
 function CreateChestAction:Execute(data)
     ActionBase.Execute(self)
 
@@ -121,7 +75,7 @@ function CreateChestAction:Execute(data)
         local randomZ = math.random(-100, 100)
         local randomOffset = Vector3.new(randomX, 1.5, randomZ)
         
-        position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
+        self.position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
     end
 
     local function ChestTouched(player, chest, anchor)
@@ -154,7 +108,6 @@ function CreateChestAction:Execute(data)
         end
         
         -- 处理宝箱奖励
-        local Knit = require(game.ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
         local ChestService = Knit.GetService('ChestService')
         if ChestService and ChestService.ProcessChestRewards then
             local chestPosition = chest.PrimaryPart.Position
@@ -163,6 +116,12 @@ function CreateChestAction:Execute(data)
     end
 
     local chest = game.ServerStorage:WaitForChild("Chest"):Clone()
+    if not Interface.CheckPosHasPart(position, chest:GetExtentsSize()) then
+        print("位置有物体，取消创建")
+        chest:Destroy()
+        return
+    end
+
     table.insert(self.chests, chest)
     chest:PivotTo(CFrame.new(position))
     chest.Parent = workspace

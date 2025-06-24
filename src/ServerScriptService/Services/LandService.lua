@@ -21,6 +21,15 @@ local LandService = Knit.CreateService {
 local _allLand = {} -- 所有岛屿
 local _occupingIslandsHandle = {}
 
+-- 初始化固定岛屿
+for _, data in ipairs(IslandConfig.IsLand) do
+    _allLand[data.Name] = true
+end
+
+function LandService:GetAllLand()
+    return _allLand
+end
+
 -- 客户端调用，玩家开始占领岛屿
 function LandService.Client:StartOccupy(player, landName)
     local land = IslandConfig.FindIsLand(landName)
@@ -115,11 +124,17 @@ function LandService:CreateIsland(modelName, position, lifetime)
         return
     end
     local island = islandTemplate:Clone()
+    if not Interface.CheckPosHasPart(position, island:GetExtentsSize()) then
+        print("位置有物体，取消创建")
+        island:Destroy()
+        return
+    end
+
     island.Name = string.format("%s_%s", LanguageConfig.Get(10082), tick())
     local pos = Interface.GetPartBottomPos(island, position)
     island:PivotTo(CFrame.new(pos))
     island.Parent = workspace
-    _allLand[island.Name] = island
+    _allLand[island.Name] = true
 
     self.Client.CreateIsland:FireAll(island.Name, lifetime)
     return island
