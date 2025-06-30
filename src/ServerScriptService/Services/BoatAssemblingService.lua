@@ -161,49 +161,6 @@ function BoatAssemblingService:CreateBoat(player)
     return boat
 end
 
--- 创建船的驾驶座位
-function BoatAssemblingService:CreateVehicleSeat(boat)
-    local driverSeat = boat:FindFirstChild('DriverSeat')
-    if driverSeat then
-        return
-    end
-
-    local primaryPart = boat.PrimaryPart
-    -- 创建驾驶座位
-    local primaryCFrame = primaryPart.CFrame
-    driverSeat = Instance.new('VehicleSeat')
-    driverSeat.Name = 'DriverSeat'
-    driverSeat.Parent = boat
-    driverSeat.Anchored = false
-    
-    -- 设置座位权限，仅允许创建者坐下
-    driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
-        local occupant = driverSeat.Occupant
-        if occupant and occupant.Parent then
-            local humanoid = occupant.Parent:FindFirstChildOfClass('Humanoid')
-            if humanoid and humanoid.Parent:IsA('Model') then
-                local player = game.Players:GetPlayerFromCharacter(humanoid.Parent)
-                if player and player.UserId ~= tonumber(string.sub(boat.Name, 12)) then
-                    driverSeat.Disabled = false
-                    task.wait(0.1)
-                    driverSeat.Disabled = true
-                    humanoid.Jump = true
-                    return
-                end
-            end
-        end
-    end)
-
-    local currentCFrame = driverSeat:GetPivot()
-    driverSeat.CFrame = CFrame.new(primaryCFrame.X, primaryCFrame.Y + 6, primaryCFrame.Z + 5) * CFrame.Angles(currentCFrame:ToEulerAnglesXYZ())
-
-    -- 创建焊接约束
-    local weldConstraint = Instance.new('WeldConstraint')
-    weldConstraint.Part0 = primaryPart
-    weldConstraint.Part1 = driverSeat
-    weldConstraint.Parent = driverSeat
-end
-
 -- 创建船的移动性和旋转性
 function BoatAssemblingService:CreateMoveVelocity(primaryPart)
     local boatBodyVelocity = primaryPart:FindFirstChild("BoatBodyVelocity")
