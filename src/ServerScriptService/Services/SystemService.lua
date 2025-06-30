@@ -182,17 +182,17 @@ function SystemService:CheckMainServer()
     if isStudio then
         -- Studio环境下直接设为主服务器
         _isMainServer = true
-        local success, ownersInfo = pcall(function()
-            return SystemStore:GetAsync("IsLandOwners")
-        end)
-        if success then
-            print("IsLandOwners", ownersInfo)
-            _IsLandOwners = ownersInfo or {}
-            for i, v in pairs(_IsLandOwners) do
-                Knit.GetService("TowerService"):CreateTowersByLandName(i)
-            end
-        end
-        print("IsLandOwners", _IsLandOwners)
+        -- local success, ownersInfo = pcall(function()
+        --     return SystemStore:GetAsync("IsLandOwners")
+        -- end)
+        -- if success then
+        --     print("IsLandOwners", ownersInfo)
+        --     _IsLandOwners = ownersInfo or {}
+        --     for i, v in pairs(_IsLandOwners) do
+        --         Knit.GetService("TowerService"):CreateTowersByLandName(i)
+        --     end
+        -- end
+        -- print("IsLandOwners", _IsLandOwners)
         return
     end
 
@@ -201,17 +201,17 @@ function SystemService:CheckMainServer()
         if servers[1].key == _serverId then
             _isMainServer = true
 
-            -- 主服务器从数据库获取所有岛主数据
-            local success, ownersInfo = pcall(function()
-                return SystemStore:GetAsync("IsLandOwners")
-            end)
-            if success then
-                _IsLandOwners = ownersInfo or {}
-                for i, v in pairs(_IsLandOwners) do
-                    Knit.GetService("TowerService"):CreateTowersByLandName(i)
-                end
-            end
-            print("IsLandOwners", _IsLandOwners)
+            -- -- 主服务器从数据库获取所有岛主数据
+            -- local success, ownersInfo = pcall(function()
+            --     return SystemStore:GetAsync("IsLandOwners")
+            -- end)
+            -- if success then
+            --     _IsLandOwners = ownersInfo or {}
+            --     for i, v in pairs(_IsLandOwners) do
+            --         Knit.GetService("TowerService"):CreateTowersByLandName(i)
+            --     end
+            -- end
+            -- print("IsLandOwners", _IsLandOwners)
         end
     end
 end
@@ -223,119 +223,119 @@ function SystemService:KnitInit()
         task.wait(30)
     end)
     
-    -- 其他服务器接收主服务器土地更新领主消息
-    MessagingService:SubscribeAsync(IsLandOwnerMainServeTag, function(message)
-        print("Received message for IsLandOwnerMainServeTag",  message)
-        if message.Data.jobId == game.JobId then
-            return
-        end
+    -- -- 其他服务器接收主服务器土地更新领主消息
+    -- MessagingService:SubscribeAsync(IsLandOwnerMainServeTag, function(message)
+    --     print("Received message for IsLandOwnerMainServeTag",  message)
+    --     if message.Data.jobId == game.JobId then
+    --         return
+    --     end
 
-        -- 主服务器在发送这个消息的时候已经更新了数据库，所以这里只需要更新其他服务器的数据
-        if not _isMainServer then
-            Knit.GetService("TowerService"):RemoveTowersByLandName(message.Data.landName)
-            _IsLandOwners = message.Data.IsLandOwners
-        end
-        self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
-    end)
-    -- 主服务器更新领主消息
-    MessagingService:SubscribeAsync(IsLandOwnerTag, function(message)
-        print("Received message for IsLandOwnerTag",  message)
-        local jobId = message.Data.jobId
-        if jobId == game.JobId then
-            return
-        end
-        -- 如果是主服务器，则更新岛主数据库, 并发送消息给其他服务器
-        if _isMainServer then
-            Knit.GetService("TowerService"):RemoveTowersByLandName(message.Data.landName)
-            _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
+    --     -- 主服务器在发送这个消息的时候已经更新了数据库，所以这里只需要更新其他服务器的数据
+    --     if not _isMainServer then
+    --         Knit.GetService("TowerService"):RemoveTowersByLandName(message.Data.landName)
+    --         _IsLandOwners = message.Data.IsLandOwners
+    --     end
+    --     self:SendIsLandOwnerChanged({landName = message.Data.landName, userId = message.Data.userId, playerName = message.Data.playerName})
+    -- end)
+    -- -- 主服务器更新领主消息
+    -- MessagingService:SubscribeAsync(IsLandOwnerTag, function(message)
+    --     print("Received message for IsLandOwnerTag",  message)
+    --     local jobId = message.Data.jobId
+    --     if jobId == game.JobId then
+    --         return
+    --     end
+    --     -- 如果是主服务器，则更新岛主数据库, 并发送消息给其他服务器
+    --     if _isMainServer then
+    --         Knit.GetService("TowerService"):RemoveTowersByLandName(message.Data.landName)
+    --         _IsLandOwners[message.Data.landName] = {userId = message.Data.userId, playerName = message.Data.playerName}
             
-            task.spawn(function()
-                pcall(function()
-                    print("岛屿数据已保存", _IsLandOwners)
-                    return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
-                end)
-            end)
+    --         task.spawn(function()
+    --             pcall(function()
+    --                 print("岛屿数据已保存", _IsLandOwners)
+    --                 return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+    --             end)
+    --         end)
 
-            -- 跨服发送土地更新领主消息
-            MessagingService:PublishAsync(
-                IsLandOwnerMainServeTag,
-                {
-                    jobId = jobId,
-                    IsLandOwners = _IsLandOwners,
-                    landName = message.Data.landName,
-                    userId = message.Data.userId,
-                    playerName = message.Data.playerName,
-                }
-            )
-        end
-    end)
-    -- 跨服接收土地付费消息
-    MessagingService:SubscribeAsync(IsLandPayTag, function(message)
-        print("Received message for IsLandPayTag",  message)
-        local jobId = message.Data.jobId
-        local userId = message.Data.userId
-        local data = message.Data.data
-        local login = message.Data.login
-        -- 如果是本服玩家且在线，则直接更新玩家金币
-        if login and jobId == game.JobId then
-            local player = Players:GetPlayerByUserId(userId)
-            if player then
-                local gold = player:GetAttribute("Gold") + data.price
-                player:SetAttribute("Gold", gold)
-                self:SendSystemMessageToSinglePlayer(player, 'success', 10045, data.payPlayerName, data.landName, data.price)
-                return
-            end
-        end
+    --         -- 跨服发送土地更新领主消息
+    --         MessagingService:PublishAsync(
+    --             IsLandOwnerMainServeTag,
+    --             {
+    --                 jobId = jobId,
+    --                 IsLandOwners = _IsLandOwners,
+    --                 landName = message.Data.landName,
+    --                 userId = message.Data.userId,
+    --                 playerName = message.Data.playerName,
+    --             }
+    --         )
+    --     end
+    -- end)
+    -- -- 跨服接收土地付费消息
+    -- MessagingService:SubscribeAsync(IsLandPayTag, function(message)
+    --     print("Received message for IsLandPayTag",  message)
+    --     local jobId = message.Data.jobId
+    --     local userId = message.Data.userId
+    --     local data = message.Data.data
+    --     local login = message.Data.login
+    --     -- 如果是本服玩家且在线，则直接更新玩家金币
+    --     if login and jobId == game.JobId then
+    --         local player = Players:GetPlayerByUserId(userId)
+    --         if player then
+    --             local gold = player:GetAttribute("Gold") + data.price
+    --             player:SetAttribute("Gold", gold)
+    --             self:SendSystemMessageToSinglePlayer(player, 'success', 10045, data.payPlayerName, data.landName, data.price)
+    --             return
+    --         end
+    --     end
 
-        -- 如果玩家不在线且是主服务器，则将数据添加到主服务器数据库
-        if not login and _isMainServer then
-            Knit.GetService("DBService"):UpdatePayInfos(userId, function(oldData)
-                oldData = oldData or {}
-                table.insert(oldData, data)
-                return oldData
-            end)
-            return
-        end
-    end)
-    -- 跨服发送土地属性改变消息
-    MessagingService:SubscribeAsync(ChangeIsLandDataMainServeTag, function(message)
-        print("Received message for ChangeIsLandDataMainServeTag",  message)
-        if message.Data.jobId == game.JobId then
-            return
-        end
-        if not _isMainServer then
-            _IsLandOwners = message.Data.isLandOwners
-            self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
-        end
-    end)
-    -- 跨服发送土地属性改变消息
-    MessagingService:SubscribeAsync(ChangeIsLandDataTag, function(message)
-        print("Received message for ChangeIsLandDataTag",  message)
-        local jobId = message.Data.jobId
-        if jobId == game.JobId then
-            return
-        end
+    --     -- 如果玩家不在线且是主服务器，则将数据添加到主服务器数据库
+    --     if not login and _isMainServer then
+    --         Knit.GetService("DBService"):UpdatePayInfos(userId, function(oldData)
+    --             oldData = oldData or {}
+    --             table.insert(oldData, data)
+    --             return oldData
+    --         end)
+    --         return
+    --     end
+    -- end)
+    -- -- 跨服发送土地属性改变消息
+    -- MessagingService:SubscribeAsync(ChangeIsLandDataMainServeTag, function(message)
+    --     print("Received message for ChangeIsLandDataMainServeTag",  message)
+    --     if message.Data.jobId == game.JobId then
+    --         return
+    --     end
+    --     if not _isMainServer then
+    --         _IsLandOwners = message.Data.isLandOwners
+    --         self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
+    --     end
+    -- end)
+    -- -- 跨服发送土地属性改变消息
+    -- MessagingService:SubscribeAsync(ChangeIsLandDataTag, function(message)
+    --     print("Received message for ChangeIsLandDataTag",  message)
+    --     local jobId = message.Data.jobId
+    --     if jobId == game.JobId then
+    --         return
+    --     end
 
-        if _isMainServer then
-            _IsLandOwners[message.Data.islandId] = message.Data.isLandData
-            self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
-            if _isMainServer then
-                task.spawn(function()
-                    pcall(function()
-                        print("岛屿数据已保存", _IsLandOwners)
-                        return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
-                    end)
-                end)
+    --     if _isMainServer then
+    --         _IsLandOwners[message.Data.islandId] = message.Data.isLandData
+    --         self.Client.IsLandInfoChanged:FireAll({landName = message.Data.islandId, isLandData = message.Data.isLandData})
+    --         if _isMainServer then
+    --             task.spawn(function()
+    --                 pcall(function()
+    --                     print("岛屿数据已保存", _IsLandOwners)
+    --                     return SystemStore:SetAsync("IsLandOwners", _IsLandOwners)
+    --                 end)
+    --             end)
             
-                MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
-                    jobId = jobId,
-                    isLandOwners = _IsLandOwners,
-                    islandId = message.Data.islandId,
-                    isLandData = message.Data.isLandData
-                })
-            end
-        end
-    end)
+    --             MessagingService:PublishAsync(ChangeIsLandDataMainServeTag, {
+    --                 jobId = jobId,
+    --                 isLandOwners = _IsLandOwners,
+    --                 islandId = message.Data.islandId,
+    --                 isLandData = message.Data.isLandData
+    --             })
+    --         end
+    --     end
+    -- end)
 end
 
 function SystemService:KnitStart()

@@ -3,9 +3,8 @@ local ConfigTriggers = require(TriggerFolder:WaitForChild("ConfigTriggers"))
 
 local ConditionFolder = TriggerFolder:WaitForChild("ConditionFolder")
 local PositionCondition = require(ConditionFolder:WaitForChild("PositionCondition"))
-local PlayerActionCondition = require(ConditionFolder:WaitForChild("PlayerActionCondition"))
-local CompositeCondition = require(ConditionFolder:WaitForChild("CompositeCondition"))
 local SailingDistanceCondition = require(ConditionFolder:WaitForChild("SailingDistanceCondition"))
+local TimeCondition = require(ConditionFolder:WaitForChild("TimeCondition"))
 
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
@@ -15,6 +14,7 @@ local CreateIslandAction = require(ActionFolder:WaitForChild("CreateIslandAction
 
 local TriggerManager = {}
 
+local _allConditions = {}   -- 所有条件
 function TriggerManager.new()
     local self = setmetatable({}, { __index = TriggerManager })
 
@@ -22,7 +22,6 @@ function TriggerManager.new()
     return self
 end
 
-local _needHeartbeatConditions = {}
 -- 加载条件
 function TriggerManager:Init()
     -- 遍历所有触发器配置
@@ -32,20 +31,15 @@ function TriggerManager:Init()
         -- 根据触发器类型创建相应的触发器实例
         if triggerConfig.ConditionType == "Position" then
             condition = PositionCondition.new(triggerConfig)
-            table.insert(_needHeartbeatConditions, condition)
-        elseif triggerConfig.ConditionType == "PlayerAction" then
-            condition = PlayerActionCondition.new(triggerConfig)
-        elseif triggerConfig.ConditionType == "Composite" then
-            condition = CompositeCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "SailingDistance" then
             condition = SailingDistanceCondition.new(triggerConfig)
-            table.insert(_needHeartbeatConditions, condition)
+        elseif triggerConfig.ConditionType == "Time" then
+            condition = TimeCondition.new(triggerConfig)
         else
             warn("未知的触发器类型:", triggerConfig.ConditionType)
             continue
         end
-        -- 启动触发器监控
-        condition:StartMonitoring()
+        table.insert(_allConditions, condition)
 
         local action
         if triggerConfig.Action then
@@ -56,14 +50,12 @@ function TriggerManager:Init()
         condition:Connect(function(data)
             if triggerConfig.ConditionType == "Position" then
                 print("位置触发器被触发!", data.Player.Name, "在位置", data.Position)
-            elseif triggerConfig.ConditionType == "PlayerAction" then
-                print("玩家动作触发器被触发!", data.Player.Name)
             elseif triggerConfig.ConditionType == "Random" then
                 print("玩家随机触发器被触发!", data.Player.Name)
-            elseif triggerConfig.ConditionType == "Composite" then
-                print("组合触发器被触发!", "模式:", data.ConditionMode)
             elseif triggerConfig.ConditionType == "SailingDistance" then
                 print("玩家航行距离触发器被触发!", data.Player.Name)
+            elseif triggerConfig.ConditionType == "Time" then
+                print("时间触发器被处罚!", data.Player.Name)
             else
                 warn("未知的触发器类型:", triggerConfig.ConditionType)
                 return
@@ -77,9 +69,9 @@ function TriggerManager:Init()
     end
 
     game:GetService("RunService").Heartbeat:Connect(function()
-        for _, condition in ipairs(_needHeartbeatConditions) do
+        for _, condition in ipairs(_allConditions) do
             local conditionType = condition.config.ConditionType
-            if conditionType == "Position" or conditionType == "SailingDistance" then
+            if conditionType == "Position" or conditionType == "SailingDistance" or conditionType == "Time" then
                 for _, v in pairs(game.Players:GetPlayers()) do
                     condition:MonitorPlayer(v)
                 end
@@ -106,5 +98,17 @@ function TriggerManager:InitAction(actionConfig, condition)
 
     return action
 end
+
+game.Players.PlayerAdded:Connect(function(player)
+    for _, condition in ipairs(_allConditions) do
+        condition:StartMonitoring(player)
+    end
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+    for _, condition in ipairs(_allConditions) do
+        condition:StopMonitoring(player)
+    end
+end)
 
 return TriggerManager

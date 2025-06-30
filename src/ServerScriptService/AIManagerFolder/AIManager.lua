@@ -11,7 +11,8 @@ function AIManager.new(name, position)
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:FindFirstChild(name):Clone()
-    if not Interface.CheckPosHasPart(position, self.NPC:GetExtentsSize()) then
+    local isHasPart, foundParts = Interface.CheckPosHasPart(position, self.NPC:GetExtentsSize())
+    if isHasPart then
         print("位置有物体，取消创建")
         self.NPC:Destroy()
         return

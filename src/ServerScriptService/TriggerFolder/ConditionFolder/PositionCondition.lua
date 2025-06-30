@@ -13,18 +13,14 @@ function PositionCondition.new(config)
     return self
 end
 
-function PositionCondition:StartMonitoring()
-    ConditionBase.StartMonitoring(self)
-end
-
 function PositionCondition:MonitorPlayer(player)
     -- 检查是否超过最大触发次数
-    if self:IsReachingMaxConditions() then
+    if self:IsReachingMaxConditions(player) then
         return
     end
 
     -- 检查冷却时间
-    if self:IsReachingCooldown() then
+    if self:IsReachingCooldown(player) then
         return
     end
 

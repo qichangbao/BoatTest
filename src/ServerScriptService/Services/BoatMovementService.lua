@@ -85,7 +85,7 @@ function BoatMovementService:OnBoat(player, isOnBoat)
     if isOnBoat then
         self.Boats[player.UserId] = {direction = Vector3.new(), angular = Vector3.new(), hasPlayer = true}
         local boat = workspace:FindFirstChild("PlayerBoat_"..player.UserId)
-        local driverSeat = boat:FindFirstChild('DriverSeat')
+        local driverSeat = boat:FindFirstChild('VehicleSeat')
         local handle
         handle = driverSeat:GetPropertyChangedSignal('Occupant'):Connect(function()
             if not self.Boats[player.UserId] then

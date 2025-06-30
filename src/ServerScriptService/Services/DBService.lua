@@ -7,8 +7,12 @@ local SystemStore = DataStoreService:GetDataStore("SystemStore")
 
 local _dataTemplate = {
 	Gold = 50,	-- 金币
-	PlayerInventory = {},	-- 背包
-	SpawnLocation = "奥林匹斯",	-- 出生地
+	PlayerInventory = {},			-- 背包
+	SpawnLocation = "奥林匹斯",		 -- 出生地
+	TotalSailingTime = 0,			-- 总航行时长
+	MaxSailingTime = 0,				-- 最大航行时长
+	TotalSailingDistance = 0,		-- 总航行距离
+	MaxSingleSailingDistance = 0,	-- 单次最大航行距离
 }
 
 local ProfileStore = ProfileService.GetProfileStore(
@@ -78,23 +82,23 @@ function DBService:ProcessAdminRequest(player, action, userId, ...)
 	end
 end
 
-function DBService:SetPayInfos(userId, payInfos)
-	task.spawn(function()
-		local profileKey = "PayInfos_"..userId
-		pcall(function()
-			return SystemStore:SetAsync(profileKey, payInfos)
-		end)
-	end)
-end
+-- function DBService:SetPayInfos(userId, payInfos)
+-- 	task.spawn(function()
+-- 		local profileKey = "PayInfos_"..userId
+-- 		pcall(function()
+-- 			return SystemStore:SetAsync(profileKey, payInfos)
+-- 		end)
+-- 	end)
+-- end
 
-function DBService:UpdatePayInfos(userId, callback)
-	task.spawn(function()
-		local profileKey = "PayInfos_"..userId
-		SystemStore:UpdateAsync(profileKey, function(oldData)
-			return callback(oldData or {})
-		end)
-	end)
-end
+-- function DBService:UpdatePayInfos(userId, callback)
+-- 	task.spawn(function()
+-- 		local profileKey = "PayInfos_"..userId
+-- 		SystemStore:UpdateAsync(profileKey, function(oldData)
+-- 			return callback(oldData or {})
+-- 		end)
+-- 	end)
+-- end
 
 function DBService:PlayerAdded(player)
 	local userId = player.UserId

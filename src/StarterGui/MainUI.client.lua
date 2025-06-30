@@ -587,7 +587,7 @@ Knit:OnStart():andThen(function()
         end
         _goldLabel.Text = LanguageConfig.Get(10007) .. ": " .. ClientData.Gold
     end)
-    Knit.GetController('UIController').IsAdmin:Connect(function()
+    local function updateAdminButton()
         if ClientData.IsAdmin then
             -- 用户控制按钮
             local _adminButton = Instance.new('TextButton')
@@ -607,7 +607,11 @@ Knit:OnStart():andThen(function()
                 Knit.GetController('UIController').ShowAdminUI:Fire()
             end)
         end
+    end
+    Knit.GetController('UIController').IsAdmin:Connect(function()
+        updateAdminButton()
     end)
+    updateAdminButton()
     -- 注册系统消息接口
     Knit.GetController('UIController').ShowSystemMessage:Connect(function(messageText, messageType)
         addMessage(messageText, messageType)

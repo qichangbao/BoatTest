@@ -15,18 +15,14 @@ function SailingDistanceCondition.new(config)
     return self
 end
 
-function SailingDistanceCondition:StartMonitoring()
-    ConditionBase.StartMonitoring(self)
-end
-
 function SailingDistanceCondition:MonitorPlayer(player)
     -- 检查是否超过最大触发次数
-    if self:IsReachingMaxConditions() then
+    if self:IsReachingMaxConditions(player) then
         return
     end
 
     -- 检查冷却时间
-    if self:IsReachingCooldown() then
+    if self:IsReachingCooldown(player) then
         return
     end
 
@@ -72,17 +68,12 @@ function SailingDistanceCondition:MonitorPlayer(player)
     end
 end
 
-function SailingDistanceCondition:Reset()
-    ConditionBase.Reset(self)
+function SailingDistanceCondition:Reset(player)
+    ConditionBase.Reset(self, player)
     
-    -- 重置所有玩家的距离记录
-    self.playerDistances = {}
-    self.playerLastPositions = {}
-end
-
-function SailingDistanceCondition:Destroy()
-    self.playerDistances = {}
-    self.playerLastPositions = {}
+    -- 重置该玩家的距离记录
+    self.playerDistances[player.UserId] = nil
+    self.playerLastPositions[player.UserId] = nil
 end
 
 return SailingDistanceCondition

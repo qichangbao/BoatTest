@@ -45,7 +45,7 @@ function CreateMonsterAction:Execute(data)
             if self.ResetConditionDelayTime[1] > 0 and self.ResetConditionDelayTime[2] > 0 then
                 local delay = math.random(self.ResetConditionDelayTime[1], self.ResetConditionDelayTime[2])
                 task.delay(delay, function()
-                    self.condition:Reset()
+                    self.condition:Reset(data.Player)
                 end)
             end
         end

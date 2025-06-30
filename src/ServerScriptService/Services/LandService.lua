@@ -124,7 +124,8 @@ function LandService:CreateIsland(modelName, position, lifetime)
         return
     end
     local island = islandTemplate:Clone()
-    if not Interface.CheckPosHasPart(position, island:GetExtentsSize()) then
+    local isHasPart, foundParts = Interface.CheckPosHasPart(position, island:GetExtentsSize())
+    if isHasPart then
         print("位置有物体，取消创建")
         island:Destroy()
         return

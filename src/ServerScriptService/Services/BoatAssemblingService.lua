@@ -5,7 +5,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
-local BOAT_PARTS_FOLDER_NAME = '船'
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('ItemConfig'))
 
 local BoatAssemblingService = Knit.CreateService({
     Name = 'BoatAssemblingService',
@@ -25,34 +25,54 @@ function BoatAssemblingService:CreateBoat(player)
     -- 获取玩家库存中的船部件
     local inventory = InventoryService:Inventory(player, 'GetInventory')
     -- 检查库存有效性并收集船部件
-    local boatParts = {}
+    local boats = {}
+    local boatCount = 0
     for itemName, itemData in pairs(inventory) do
-        table.insert(boatParts, {
-            Name = itemName,
-            Data = itemData
-        })
+        if itemData.itemType == ItemConfig.BoatTag then
+            if not boats[itemData.modelName] then
+                boats[itemData.modelName] = {}
+                boatCount += 1
+            end
+            table.insert(boats[itemData.modelName], {
+                Name = itemName,
+                Data = itemData
+            })
+        end
     end
 
-    if #boatParts == 0 then
+    if boatCount == 0 then
         return
     end
 
+    if boatCount > 1 then
+        return
+    end
+
+    local boatName = ""
+    local boatParts = {}
+    for i, v in pairs(boats) do
+        boatName = i
+        boatParts = v
+    end
+
     -- 确保ServerStorage中存在船舶模板
-    local boatTemplate = ServerStorage:FindFirstChild(BOAT_PARTS_FOLDER_NAME)
+    local boatTemplate = ServerStorage:FindFirstChild(boatName)
     -- 校验服务器预置的船只模板是否存在
     if not boatTemplate then
         return
     end
 
-    local curBoatConfig = BoatConfig.GetBoatConfig(BOAT_PARTS_FOLDER_NAME)
+    local curBoatConfig = BoatConfig.GetBoatConfig(boatName)
     local primaryPartName = ''
+    local seatPartName = ''
     for name, data in pairs(curBoatConfig) do
         if data.PartType == 'PrimaryPart' then
             primaryPartName = name
-            break
+        elseif data.PartType == 'SeatPart' then
+            seatPartName = name
         end
     end
-    if primaryPartName == '' then
+    if primaryPartName == '' or seatPartName == '' then
         return
     end
 
@@ -108,6 +128,10 @@ function BoatAssemblingService:CreateBoat(player)
         if not player or not player.Character or not player.Character.Humanoid then
             return
         end
+        
+        -- 停止追踪玩家航行距离（全服排行榜）
+        Knit.GetService('RankService'):StopTrackingPlayer(player)
+        
         -- 移除主船体关联
         self.Client.UpdateMainUI:Fire(player, {explore = false})
         Knit.GetService('BoatWeaponService'):Active(player, false)
@@ -132,6 +156,45 @@ function BoatAssemblingService:CreateBoat(player)
         Knit.GetService('BoatAttributeService'):ChangeBoatSpeed(player, speed, maxSpeed)
     end)
 
+    -- 创建座位
+    local templateSeatPart = boatTemplate:FindFirstChild("VehicleSeat")
+    local offsetCFrame = templatePrimaryPart.CFrame:ToObjectSpace(templateSeatPart.CFrame)
+    local seatPart = templateSeatPart:Clone()
+    seatPart.CFrame = primaryPart.CFrame * offsetCFrame
+    seatPart.Parent = boat
+    seatPart.Anchored = false
+    
+    -- 设置座位权限，仅允许创建者坐下
+    seatPart:GetPropertyChangedSignal('Occupant'):Connect(function()
+        local occupant = seatPart.Occupant
+        if occupant and occupant.Parent then
+            local humanoid = occupant.Parent:FindFirstChildOfClass('Humanoid')
+            if humanoid and humanoid.Parent:IsA('Model') then
+                local playerTest = game.Players:GetPlayerFromCharacter(humanoid.Parent)
+                if playerTest then
+                    local start = string.find(boat.Name, tostring(playerTest.UserId))
+                    if not start then
+                        seatPart.Disabled = false
+                        task.wait(0.1)
+                        seatPart.Disabled = true
+                        humanoid.Jump = true
+                        return
+                    end
+                end
+            end
+        end
+    end)
+
+    -- 创建焊接约束
+    local function createWeldConstraint(parent, part0, part1)
+        local weldConstraint = Instance.new('WeldConstraint')
+        weldConstraint.Part0 = part0
+        weldConstraint.Part1 = part1
+        weldConstraint.Parent = parent
+    end
+
+    createWeldConstraint(seatPart, primaryPart, seatPart)
+
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
         if partInfo.Name ~= primaryPartName then
@@ -145,11 +208,7 @@ function BoatAssemblingService:CreateBoat(player)
                 boatHP += curBoatConfig[partInfo.Name].HP
                 boatSpeed += curBoatConfig[partInfo.Name].speed
 
-                -- 创建焊接约束
-                local weldConstraint = Instance.new('WeldConstraint')
-                weldConstraint.Part0 = primaryPart
-                weldConstraint.Part1 = partClone
-                weldConstraint.Parent = partClone
+                createWeldConstraint(partClone, primaryPart, partClone)
             end
         end
     end
@@ -187,8 +246,40 @@ function BoatAssemblingService:CreateMoveVelocity(primaryPart)
 end
 
 -- 创建船的稳定器
+-- @param boat Model 船只模型
 function BoatAssemblingService:CreateStabilizer(boat)
-    local function createPart(name, size, cFrame)
+    if not boat or not boat.PrimaryPart then
+        warn("CreateStabilizer: 船只或PrimaryPart不存在")
+        return
+    end
+    
+    -- 获取船只的尺寸信息
+    local boatSize = boat.PrimaryPart.Size
+    local boatPosition = boat.PrimaryPart.Position
+    
+    -- 根据船只大小计算稳定器参数
+    local stabilizerConfig = {
+        -- 左右稳定器配置
+        side = {
+            width = math.max(boatSize.X * 0.3, 1), -- 宽度为船宽的30%，最小5
+            height = math.max(boatSize.Y * 0.2, 1), -- 高度为船高的40%，最小3
+            length = math.max(boatSize.Z * 0.8, 3), -- 长度为船长的80%，最小15
+            offset = 0 -- 距离船体的偏移量
+        },
+        -- 前后稳定器配置
+        frontBack = {
+            width = math.max(boatSize.X * 0.8, 3), -- 宽度为船宽的80%，最小15
+            height = math.max(boatSize.Y * 0.2, 1), -- 高度为船高的40%，最小3
+            length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小5
+            offset = 0 -- 距离船体的偏移量
+        }
+    }
+    
+    -- 创建稳定器Part的通用函数
+    -- @param name string 稳定器名称
+    -- @param size Vector3 稳定器大小
+    -- @param position Vector3 稳定器位置
+    local function createStabilizerPart(name, size, position)
         local part = Instance.new("Part")
         part.Name = name
         part.Size = size
@@ -196,36 +287,78 @@ function BoatAssemblingService:CreateStabilizer(boat)
         part.Anchored = false
         part.CanCollide = true
         part.Transparency = 1
-        local offsetCFrame = boat.PrimaryPart.CFrame:ToObjectSpace(cFrame)
-        part.CFrame = boat.PrimaryPart.CFrame * offsetCFrame
+        part.Position = position
         part.Parent = boat
-        -- 创建焊接约束
+        
+        -- 创建焊接约束连接到船体
         local weldConstraint = Instance.new('WeldConstraint')
         weldConstraint.Part0 = boat.PrimaryPart
         weldConstraint.Part1 = part
         weldConstraint.Parent = part
-
+        
+        -- 设置碰撞组
         part.CollisionGroup = "BoatStabilizerCollisionGroup"
+        
+        return part
     end
-
-    local size = Vector3.new(10, 5, 20)
-    createPart("BoatStabilizerPart1", size,
-        CFrame.new(boat.PrimaryPart.Position.X + boat.PrimaryPart.Size.X / 2 + 5,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z))
-    createPart("BoatStabilizerPart2", size,
-        CFrame.new(boat.PrimaryPart.Position.X - boat.PrimaryPart.Size.X / 2 - 5,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z))
-    size = Vector3.new(20, 5, 10)
-    createPart("BoatStabilizerPart3", size,
-        CFrame.new(boat.PrimaryPart.Position.X,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z - boat.PrimaryPart.Size.Z / 2 + 12))
-    createPart("BoatStabilizerPart4", size,
-        CFrame.new(boat.PrimaryPart.Position.X,
-            boat.PrimaryPart.Position.Y - boat.PrimaryPart.Size.Y / 2,
-            boat.PrimaryPart.Position.Z + boat.PrimaryPart.Size.Z / 2 - 12))
+    
+    -- 计算稳定器的Y位置（船底下方）
+    local stabilizerY = boatPosition.Y - boatSize.Y / 2 - stabilizerConfig.side.height / 2
+    
+    -- 创建左侧稳定器
+    local leftSize = Vector3.new(
+        stabilizerConfig.side.width,
+        stabilizerConfig.side.height,
+        stabilizerConfig.side.length
+    )
+    local leftPosition = Vector3.new(
+        boatPosition.X - boatSize.X / 2 - stabilizerConfig.side.offset,
+        stabilizerY,
+        boatPosition.Z
+    )
+    createStabilizerPart("BoatStabilizerLeft", leftSize, leftPosition)
+    
+    -- 创建右侧稳定器
+    local rightSize = Vector3.new(
+        stabilizerConfig.side.width,
+        stabilizerConfig.side.height,
+        stabilizerConfig.side.length
+    )
+    local rightPosition = Vector3.new(
+        boatPosition.X + boatSize.X / 2 + stabilizerConfig.side.offset,
+        stabilizerY,
+        boatPosition.Z
+    )
+    createStabilizerPart("BoatStabilizerRight", rightSize, rightPosition)
+    
+    -- 创建前方稳定器
+    local frontSize = Vector3.new(
+        stabilizerConfig.frontBack.width,
+        stabilizerConfig.frontBack.height,
+        stabilizerConfig.frontBack.length
+    )
+    local frontPosition = Vector3.new(
+        boatPosition.X,
+        stabilizerY,
+        boatPosition.Z - boatSize.Z / 2 - stabilizerConfig.frontBack.offset
+    )
+    createStabilizerPart("BoatStabilizerFront", frontSize, frontPosition)
+    
+    -- 创建后方稳定器
+    local backSize = Vector3.new(
+        stabilizerConfig.frontBack.width,
+        stabilizerConfig.frontBack.height,
+        stabilizerConfig.frontBack.length
+    )
+    local backPosition = Vector3.new(
+        boatPosition.X,
+        stabilizerY,
+        boatPosition.Z + boatSize.Z / 2 + stabilizerConfig.frontBack.offset
+    )
+    createStabilizerPart("BoatStabilizerBack", backSize, backPosition)
+    
+    print(string.format("为船只创建了4个稳定器，船只尺寸: %.1fx%.1fx%.1f", 
+        boatSize.X, boatSize.Y, boatSize.Z))
 end
 
 function BoatAssemblingService.Client:AssembleBoat(player)
@@ -239,7 +372,6 @@ function BoatAssemblingService.Client:AssembleBoat(player)
         return 10021
     end
 
-    self.Server:CreateVehicleSeat(boat)
     self.Server:CreateStabilizer(boat)
     self.Server:CreateMoveVelocity(boat.primaryPart)
 
@@ -248,6 +380,10 @@ function BoatAssemblingService.Client:AssembleBoat(player)
     Knit.GetService('BoatWeaponService'):Active(player, true)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     Knit.GetService('InventoryService'):BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
+    
+    -- 开始追踪玩家航行距离（全服排行榜）
+    Knit.GetService('RankService'):StartTrackingPlayer(player)
+    
     -- 触发客户端事件更新主界面UI
     self.UpdateMainUI:Fire(player, {explore = true})
     self.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
@@ -320,7 +456,7 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
         boatMaxSpeed += curBoatConfig[partInfo.itemName].speed
     end
     boat:SetAttribute('Health', math.max(boatHP, 0))
-    boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
+    boat:SetAttribute('MaxHealth', math.max(boatMaxHP, 0))
     boat:SetAttribute('Speed', math.max(boatSpeed, 0))
     boat:SetAttribute('MaxSpeed', math.max(boatMaxSpeed, 0))
     InventoryService:BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))

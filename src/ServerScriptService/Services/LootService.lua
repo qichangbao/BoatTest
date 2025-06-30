@@ -12,15 +12,13 @@ local LootService = Knit.CreateService({
 })
 
 -- 配件生成配置
-local BOAT_PARTS_FOLDER_NAME = '船'
 local LOOT_COOLDOWN = 3.6
 local _playerCoolDown = {}
 
 local function getRandomParts(player)
     local itemData = ItemConfig.GetRandomItem()
-    if itemData.modelName == BOAT_PARTS_FOLDER_NAME then
+    if itemData.itemType == ItemConfig.BoatTag then
         local curBoatConfig = BoatConfig.GetBoatConfig(itemData.modelName)
-        local InventoryService = Knit.GetService("InventoryService")
         
         -- 添加主要部件（如果首次获取）
         local primaryPartName = ''
@@ -31,31 +29,31 @@ local function getRandomParts(player)
             end
         end
         
-        local isFirstLoot = InventoryService:Inventory(player, 'CheckExists', primaryPartName)
+        local isFirstLoot = Knit.GetService("InventoryService"):Inventory(player, 'CheckExists', primaryPartName)
         if not isFirstLoot and primaryPartName ~= '' then
-            return primaryPartName, itemData.modelName
+            return itemData.itemType,primaryPartName, itemData.modelName
         end
 
         local randomItem = ItemConfig.GetRandomItem()
         for name, data in pairs(curBoatConfig) do
             if name == randomItem.itemName then
-                return name, itemData.modelName
+                return itemData.itemType, name, itemData.modelName
             end
         end
     else
-        return itemData.itemName, itemData.modelName
+        return itemData.itemType, itemData.itemName, itemData.modelName
     end
 end
 
 function LootService.Client:Loot(player)
     -- 获取玩家数据组件
-    if _playerCoolDown[player.UserId] > 0 then
+    if _playerCoolDown[player.UserId] and _playerCoolDown[player.UserId] > 0 then
         return 10015
     end
     _playerCoolDown[player.UserId] = LOOT_COOLDOWN
     
     -- 获取随机配件
-    local partName, modelName = getRandomParts(player)
+    local itemType, partName, modelName = getRandomParts(player)
     local InventoryService = Knit.GetService("InventoryService")
     if InventoryService:Inventory(player, 'CheckExists', partName) then
         local itemConfig = ItemConfig.GetItemConfig(partName)
@@ -65,7 +63,7 @@ function LootService.Client:Loot(player)
         return 10016, partName
     else
         -- 调用背包管理器添加物品
-        InventoryService:Inventory(player, 'AddItem', partName, modelName)
+        InventoryService:Inventory(player, 'AddItem', itemType, partName, modelName)
     end
 
     return

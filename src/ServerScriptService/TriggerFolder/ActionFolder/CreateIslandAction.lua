@@ -38,7 +38,7 @@ function CreateIslandAction:Execute(data)
     end
     
     local islandData = IslandConfig.GetRandomIsland()
-    local island = Knit.GetService("LandService"):CreateIsland(islandData.ModelName, position, self.config.Lifetime)
+    local island = Knit.GetService("LandService"):CreateIsland(islandData.ModelName, self.position, self.config.Lifetime)
     if island then
         if self.config.Lifetime > 0 then
             task.delay(self.config.Lifetime, function()

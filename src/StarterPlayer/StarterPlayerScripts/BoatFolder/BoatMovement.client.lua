@@ -12,7 +12,7 @@ local function CanInput()
     if not boat then
         return false
     end
-    local driverSeat = boat:FindFirstChild('DriverSeat')
+    local driverSeat = boat:FindFirstChild('VehicleSeat')
     if not driverSeat or not driverSeat.Occupant then
         return false
     end
@@ -27,12 +27,12 @@ UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.W then
         if _activeKeys.W then return end
         _activeKeys.W = true
-        _moveDirection = Vector3.new(0, 0, -1)
+        _moveDirection = Vector3.new(0, 0, 1)
         BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.S then
         if _activeKeys.S then return end
         _activeKeys.S = true
-        _moveDirection = Vector3.new(0, 0, 1)
+        _moveDirection = Vector3.new(0, 0, -1)
         BoatMovementService:UpdateMovement(_moveDirection, _moveAngular)
     elseif input.KeyCode == Enum.KeyCode.A then
         if _activeKeys.A then return end

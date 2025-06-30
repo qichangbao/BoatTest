@@ -4,6 +4,7 @@ local Players = game:GetService("Players")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local BuffConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BuffConfig"))
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
+local ChestConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ChestConfig"))
 
 local ChestService = Knit.CreateService({
     Name = 'ChestService',
@@ -12,29 +13,9 @@ local ChestService = Knit.CreateService({
     },
 })
 
--- 宝箱奖励配置
-local CHEST_REWARDS = {
-    -- 金币奖励配置
-    gold = {
-        chance = 0.6, -- 60%概率获得金币
-        minAmount = 10,
-        maxAmount = 50,
-    },
-    
-    -- Buff奖励配置
-    buff = {
-        chance = 0.3, -- 30%概率获得Buff
-    },
-    
-    -- 物品奖励配置
-    item = {
-        chance = 0.4, -- 40%概率获得物品
-    }
-}
-
 -- 生成随机金币数量
 local function generateRandomGold()
-    return math.random(CHEST_REWARDS.gold.minAmount, CHEST_REWARDS.gold.maxAmount)
+    return math.random(ChestConfig.gold.minAmount, ChestConfig.gold.maxAmount)
 end
 
 -- 生成随机Buff
@@ -64,7 +45,7 @@ end
 -- 给玩家添加物品
 local function addItemToPlayer(player, itemData)
     local InventoryService = Knit.GetService('InventoryService')
-    return InventoryService:Inventory(player, "AddItem", itemData.itemName, itemData.modelName)
+    return InventoryService:Inventory(player, "AddItem", itemData.itemType, itemData.itemName, itemData.modelName)
 end
 
 -- 发送奖励通知给客户端
@@ -85,7 +66,7 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     
     local isReward = false
     -- 检查金币奖励
-    if math.random() < CHEST_REWARDS.gold.chance then
+    if math.random() < ChestConfig.gold.chance then
         local goldAmount = generateRandomGold()
         if addGoldToPlayer(player, goldAmount) then
             sendRewardNotification(player, "Gold", {amount = goldAmount, chestPosition = chestPosition})
@@ -95,7 +76,7 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     end
     
     -- 检查Buff奖励
-    if math.random() < CHEST_REWARDS.buff.chance then
+    if math.random() < ChestConfig.buff.chance then
         local buffData = generateRandomBuff()
         if addBuffToPlayer(player, buffData) then
             sendRewardNotification(player, "Buff", {displayName = buffData.displayName, chestPosition = chestPosition})
@@ -105,7 +86,7 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     end
     
     -- 检查物品奖励
-    if math.random() < CHEST_REWARDS.item.chance then
+    if math.random() < ChestConfig.item.chance then
         local itemData = generateRandomItem()
         if itemData and addItemToPlayer(player, itemData) then
             sendRewardNotification(player, "Item", {itemName = itemData.itemName, chestPosition = chestPosition})

@@ -103,8 +103,8 @@ local function MonitorBoatHealth()
         _lastBoatHealth[boatName] = currentHealth
         
         -- 监听血量属性变化
-        if not boat:GetAttribute("_healthMonitored") then
-            boat:SetAttribute("_healthMonitored", true)
+        if not boat:GetAttribute("HealthMonitored") then
+            boat:SetAttribute("HealthMonitored", true)
             
             boat:GetAttributeChangedSignal("Health"):Connect(function()
                 local newHealth = boat:GetAttribute("Health") or 0

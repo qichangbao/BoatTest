@@ -26,7 +26,7 @@ function DeadState:Enter()
     self.AIManager.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
     self.AIManager.Humanoid.WalkSpeed = 0
 
-    task.delay(10, function()
+    task.delay(3, function()
         self.AIManager:Destroy()
         self.AIManager = nil
     end)

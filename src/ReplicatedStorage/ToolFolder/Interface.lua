@@ -77,8 +77,8 @@ function Interface.InitBoatWaterPos(player, boat)
             z = maxPosZ + randomPosZ + GameConfig.LandWharfDis
         end
         -- 使用适当的水面高度，而不是0
-        local waterLevel = 20 -- 根据oldCFrame的Y坐标设置合适的水面高度
-        boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)) * CFrame.Angles(math.rad(90), 0, 0))
+        local waterLevel = 0 -- 根据oldCFrame的Y坐标设置合适的水面高度
+        boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)))
     
         -- 玩家登船
         Interface.PlayerToBoat(player, boat)
@@ -92,7 +92,7 @@ function Interface.PlayerToBoat(player, boat)
     end
 
     -- 玩家入座
-    local driverSeat = boat:FindFirstChild('DriverSeat')
+    local driverSeat = boat:FindFirstChild('VehicleSeat')
     if driverSeat then
         player.Character:PivotTo(driverSeat.CFrame)
     end
@@ -191,6 +191,10 @@ function Interface.CheckPosHasPart(pos, size)
             else
                 local partPos
                 local partSize
+                if child.Name == "Terrain" then
+                    continue
+                end
+                
                 if child:IsA("BasePart") then
                     -- 检查Part是否在指定区域内
                     partPos = child.Position

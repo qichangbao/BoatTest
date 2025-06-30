@@ -101,7 +101,7 @@ function CreateChestAction:Execute(data)
                 local delay = math.random(self.ResetConditionDelayTime[1], self.ResetConditionDelayTime[2])
                 task.delay(delay, function()
                     if self.condition then
-                        self.condition:Reset()
+                        self.condition:Reset(player)
                     end
                 end)
             end
@@ -116,14 +116,15 @@ function CreateChestAction:Execute(data)
     end
 
     local chest = game.ServerStorage:WaitForChild("Chest"):Clone()
-    if not Interface.CheckPosHasPart(position, chest:GetExtentsSize()) then
+    local isHasPart, foundParts = Interface.CheckPosHasPart(self.position, chest:GetExtentsSize())
+    if isHasPart then
         print("位置有物体，取消创建")
         chest:Destroy()
         return
     end
 
     table.insert(self.chests, chest)
-    chest:PivotTo(CFrame.new(position))
+    chest:PivotTo(CFrame.new(self.position))
     chest.Parent = workspace
     chest.PrimaryPart.Anchored = true
     local anchor = self:CreateAnchor(chest)

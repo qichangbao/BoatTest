@@ -34,7 +34,13 @@ function GiftService.Client:RequestSendGift(player, targetPlayerUserId, items)
         if targetInventory[itemData.itemName] then
             targetInventory[itemData.itemName].num += itemData.itemNum
         else
-            targetInventory[itemData.itemName] = InventoryService:AddSingleItem(targetPlayerUserId, itemData.itemName, itemData.modelName, itemData.itemNum)
+            targetInventory[itemData.itemName] = InventoryService:Inventory(
+                targetPlayer, 
+                'AddItem', 
+                itemData.itemType, 
+                itemData.itemName, 
+                itemData.modelName, 
+                itemData.itemNum)
         end
     end
     InventoryService:ResetPlayerInventory(player, curInventory)

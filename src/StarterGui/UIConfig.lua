@@ -55,6 +55,7 @@ UIConfig.CreateCloseButton = function(parent, callfunc)
     closeBtn.TextSize = 24
     closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     closeBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    closeBtn.TextScaled = true
     closeBtn.Parent = parent
 
     UIConfig.CreateCorner(closeBtn)
@@ -74,6 +75,7 @@ UIConfig.CreateConfirmButton = function(parent, callfunc)
     confirmButton.TextSize = 18
     confirmButton.TextColor3 = Color3.new(1, 1, 1)
     confirmButton.BackgroundColor3 = Color3.fromRGB(76, 175, 80)
+    confirmButton.TextScaled = true
     confirmButton.Parent = parent
     UIConfig.CreateCorner(confirmButton)
 
@@ -92,6 +94,7 @@ UIConfig.CreateCancelButton = function(parent, callfunc)
     cancelButton.TextSize = 18
     cancelButton.TextColor3 = Color3.new(1, 1, 1)
     cancelButton.BackgroundColor3 = Color3.fromRGB(244, 67, 54)
+    cancelButton.TextScaled = true
     cancelButton.Parent = parent
     UIConfig.CreateCorner(cancelButton)
 
@@ -126,6 +129,7 @@ local function CreateFrame(parent, title, frameSize, closeCallFunc)
     titleText.TextColor3 = Color3.new(1, 1, 1)
     titleText.BackgroundTransparency = 1
     titleText.TextXAlignment = Enum.TextXAlignment.Center
+    titleText.TextScaled = true
     titleText.Parent = titleBar
     
     -- 关闭按钮

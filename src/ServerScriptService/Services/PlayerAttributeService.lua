@@ -94,6 +94,7 @@ function PlayerAttributeService:KnitInit()
 
         local DBService = Knit.GetService('DBService')
         DBService:PlayerAdded(player)
+        Knit.GetService("RankService"):InitPlayerSailingData(player)
         -- 初始化重生点
         local areaName = DBService:Get(player.UserId, "SpawnLocation")
         local area = workspace:FindFirstChild(areaName) or workspace:FindFirstChild("奥林匹斯")
@@ -104,12 +105,12 @@ function PlayerAttributeService:KnitInit()
         -- 玩家登录时，查找是否有其他玩家支付的登岛费用，将其添加到玩家金币中
         local gold = DBService:Get(player.UserId, "Gold")
         local curGold = gold
-        DBService:UpdatePayInfos(player.UserId, function(payInfos)
-            for _, data in ipairs(payInfos) do
-                curGold += data.price
-            end
-            return {}
-        end)
+        -- DBService:UpdatePayInfos(player.UserId, function(payInfos)
+        --     for _, data in ipairs(payInfos) do
+        --         curGold += data.price
+        --     end
+        --     return {}
+        -- end)
         player:SetAttribute("Gold", curGold)
         if gold ~= curGold then
             DBService:Set(player.UserId, "Gold", curGold)
@@ -126,6 +127,7 @@ function PlayerAttributeService:KnitInit()
 
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
+        Knit.GetService("RankService"):RemovePlayerSailingData(player)
         local DBService = Knit.GetService('DBService')
         DBService:PlayerRemoving(player)
     end
