@@ -1,16 +1,43 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local BuffConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BuffConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local ClientData = {}
-ClientData.Gold = 0  -- 玩家金币
-ClientData.InventoryItems = {}   -- 玩家背包物品
-ClientData.IsAdmin = false  -- 是否为管理员
-ClientData.IsLandOwners = {}  -- 所有土地的拥有者
-ClientData.ActiveBuffs = {}  -- 当前激活的BUFF
+ClientData.Gold = 0                 -- 玩家金币
+ClientData.InventoryItems = {}      -- 玩家背包物品
+ClientData.IsAdmin = false          -- 是否为管理员
+ClientData.IsLandOwners = {}        -- 所有土地的拥有者
+ClientData.ActiveBuffs = {}         -- 当前激活的BUFF
 ClientData.IsBoatAssembling = false -- 是否正在组装船
+ClientData.IsOnBoat = false         -- 是否在船上
+
+ClientData.RankData = {}
+-- 排行榜个人数据
+ClientData.PersonRankData = {
+    -- 服务器同步的历史数据
+    serverData = {
+        totalDistance = 0,          -- 总航行距离
+        maxSingleDistance = 0,      -- 单次最大距离
+        totalSailingTime = 0,       -- 总航行时间（秒）
+        maxSailingTime = 0,         -- 单次最长时间（秒）
+        totalDisRank = 0,           -- 总航行距离排名
+        maxDisRank = 0,             -- 单次最大距离排名
+        totalTimeRank = 0,          -- 总航行时间排名
+        maxTimeRank = 0,            -- 单次最长时间排名
+    },
+    -- 当前航行数据（客户端实时计算）
+    currentData = {
+        distance = 0,               -- 当前航行距离
+        sailingTime = 0,            -- 当前航行时间（秒）
+        startTime = 0,              -- 开始航行时间
+        lastPosition = nil,         -- 上次位置
+        isOnBoat = false            -- 是否在船上
+    }
+}
 
 -- 更新buff剩余时间函数
 local function updateRemainingTimes()
@@ -27,6 +54,63 @@ local function updateRemainingTimes()
             -- 重置开始时间以避免累积误差
             buffData.startTime = currentTime
             buffData.remainingTime = newRemainingTime
+        end
+    end
+end
+
+local function updatePersonalRanKData(personalData)
+    if personalData then
+        local serverData = ClientData.PersonRankData.serverData
+        serverData.totalDistance = personalData.totalDistance or 0
+        serverData.maxSingleDistance = personalData.maxSingleDistance or 0
+        serverData.totalSailingTime = personalData.totalSailingTime or 0
+        serverData.maxSailingTime = personalData.maxSailingTime or 0
+        serverData.totalDisRank = personalData.totalDisRank or 0
+        serverData.maxDisRank = personalData.maxDisRank or 0
+        serverData.totalTimeRank = personalData.totalTimeRank or 0
+        serverData.maxTimeRank = personalData.maxTimeRank or 0
+    end
+end
+
+-- 更新排行榜数据函数
+local function updateRankData()
+    local currentTime = tick()
+    local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
+    if not boat or boat:GetAttribute("Destroying") then return end
+    
+    local currentData = ClientData.PersonRankData.currentData
+    
+    -- 如果刚上船，初始化数据
+    if ClientData.IsOnBoat and not currentData.isOnBoat then
+        currentData.isOnBoat = true
+        currentData.startTime = currentTime
+        currentData.distance = 0
+        currentData.sailingTime = 0
+        currentData.lastPosition = boat:GetPivot().Position
+    
+        -- 初始化排行榜数据同步
+        Knit.GetService('RankService'):GetPersonalData():andThen(function(personalData)
+            updatePersonalRanKData(personalData)
+        end):catch(warn)
+    -- 如果刚下船，重置数据
+    elseif not ClientData.IsOnBoat and currentData.isOnBoat then
+        currentData.isOnBoat = false
+        currentData.distance = 0
+        currentData.sailingTime = 0
+        currentData.lastPosition = nil
+    -- 如果在船上，更新数据
+    elseif ClientData.IsOnBoat and currentData.isOnBoat then
+        -- 更新航行时间
+        currentData.sailingTime = currentTime - currentData.startTime
+        
+        -- 更新航行距离
+        if currentData.lastPosition then
+            local currentPosition = boat:GetPivot().Position
+            local distance = Vector3.new(currentPosition.X - currentData.lastPosition.X, 0, currentPosition.Z - currentData.lastPosition.Z).Magnitude
+            currentData.distance = currentData.distance + distance
+            currentData.lastPosition = currentPosition
+        else
+            currentData.lastPosition = boat:GetPivot().Position
         end
     end
 end
@@ -59,7 +143,7 @@ Knit:OnStart():andThen(function()
 
         ClientData.IsLandOwners = data.IsLandOwners
         Knit.GetController('UIController').IsLandOwner:Fire()
-    end)
+    end):catch(warn)
 
     local SystemService = Knit.GetService('SystemService')
     SystemService.IsLandOwnerChanged:Connect(function(data)
@@ -180,10 +264,46 @@ Knit:OnStart():andThen(function()
         end
     end)
     
-    -- 启动时间更新循环
-    game:GetService("RunService").Heartbeat:Connect(function()
-        updateRemainingTimes()
+    -- 监听排行榜更新信号
+    Knit.GetService('RankService').GetLeaderboard("totalDis"):andThen(function(leaderboardData)
+        ClientData.RankData.totalDis = leaderboardData
+    end):catch(warn)
+    Knit.GetService('RankService').GetLeaderboard("maxDis"):andThen(function(leaderboardData)
+        ClientData.RankData.maxDis = leaderboardData
+    end):catch(warn)
+    Knit.GetService('RankService').GetLeaderboard("totalTime"):andThen(function(leaderboardData)
+        ClientData.RankData.totalTime = leaderboardData
+    end):catch(warn)
+    Knit.GetService('RankService').GetLeaderboard("maxTime"):andThen(function(leaderboardData)
+        ClientData.RankData.maxTime = leaderboardData
+    end):catch(warn)
+    Knit.GetService('RankService').UpdateLeaderboard:Connect(function(leaderboardData)
+        ClientData.RankData = leaderboardData
     end)
+    -- 初始化排行榜数据同步
+    Knit.GetService("RankService").InitPlayerSailingData:Connect(function(personalData)
+        updatePersonalRanKData(personalData)
+    end)
+    
+    -- 启动时间更新循环
+    RunService.Heartbeat:Connect(function()
+        updateRemainingTimes()
+        updateRankData()  -- 每帧更新排行榜数据
+    end)
+
+    local success = false
+    while true do
+        Knit.GetService('RankService'):GetPersonalData():andThen(function(personalData)
+            if personalData then
+                updatePersonalRanKData(personalData)
+                success = true
+            end
+        end):catch(warn)
+        if success then
+            break
+        end
+        task.wait(3)
+    end
 end):catch(warn)
 
 return ClientData

@@ -1,7 +1,9 @@
 local Players = game:GetService('Players')
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local StarterPlayer = game:GetService('StarterPlayer')
 local UserInputService = game:GetService('UserInputService')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
+local ClientData = require(StarterPlayer:WaitForChild('StarterPlayerScripts'):WaitForChild("ClientData"))
 
 local _moveDirection = Vector3.new()
 local _moveAngular = Vector3.new()
@@ -73,6 +75,7 @@ end)
 Knit:OnStart():andThen(function()
     local BoatMovementService = Knit.GetService('BoatMovementService')
     BoatMovementService.isOnBoat:Connect(function(isOnBoat)
+        ClientData.IsOnBoat = isOnBoat
         _activeKeys = {}
         _moveDirection = Vector3.new()
         _moveAngular = Vector3.new()

@@ -436,9 +436,27 @@ _backpackButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_backpackButton)
 
+-- 排行榜按钮
+local _rankButton = Instance.new('TextButton')
+_rankButton.Name = 'RankButton'
+_rankButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_rankButton.Size = _buttonSize
+_rankButton.Position = UDim2.new(1, -60, 0, 60)
+_rankButton.Text = LanguageConfig.Get(10084)
+_rankButton.Font = UIConfig.Font
+_rankButton.TextSize = _buttonTextSize
+_rankButton.BackgroundColor3 = Color3.fromRGB(182, 109, 250)  -- 柔和紫罗兰色
+_rankButton.Parent = _screenGui
+-- 背包按钮点击事件
+_rankButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowRankUI:Fire()
+end)
+UIConfig.CreateCorner(_rankButton)
+
 -- 岛屿管理按钮
 local _islandManageButton = Instance.new('TextButton')
 _islandManageButton.Name = 'IslandManageButton'
+_islandManageButton.Visible = false
 _islandManageButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _islandManageButton.Size = _buttonSize
 _islandManageButton.Position = UDim2.new(0, 60, 1, -240)
@@ -572,9 +590,120 @@ local function Destroy()
     end
 end
 
+-- 创建个人排行榜数据显示组件
+local function createPersonalRankDisplay()
+    -- 个人排行榜数据容器（竖直布局，无底框）
+    local _personalRankFrame = Instance.new('Frame')
+    _personalRankFrame.Name = 'PersonalRankFrame'
+    _personalRankFrame.Size = UDim2.new(0, 200, 0, 120)
+    _personalRankFrame.Position = UDim2.new(0, 10, 0.5, -60)
+    _personalRankFrame.BackgroundTransparency = 1  -- 完全透明，无底框
+    _personalRankFrame.BorderSizePixel = 0
+    _personalRankFrame.Parent = _screenGui
+    
+    -- 主布局（垂直）
+    local _mainLayout = Instance.new('UIListLayout')
+    _mainLayout.FillDirection = Enum.FillDirection.Vertical
+    _mainLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    _mainLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    _mainLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    _mainLayout.Padding = UDim.new(0, 5)
+    _mainLayout.Parent = _personalRankFrame
+    
+    -- 总航行距离标签
+    local _totalDistanceLabel = Instance.new('TextLabel')
+    _totalDistanceLabel.Name = 'TotalDistanceLabel'
+    _totalDistanceLabel.Size = UDim2.new(1, 0, 0, 25)
+    _totalDistanceLabel.BackgroundTransparency = 1
+    _totalDistanceLabel.Text = ''
+    _totalDistanceLabel.TextColor3 = Color3.fromRGB(100, 150, 255)  -- 蓝色
+    _totalDistanceLabel.TextScaled = true
+    _totalDistanceLabel.Font = UIConfig.Font
+    _totalDistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+    _totalDistanceLabel.LayoutOrder = 1
+    _totalDistanceLabel.Parent = _personalRankFrame
+    
+    -- 最大航行距离标签
+    local _maxDistanceLabel = Instance.new('TextLabel')
+    _maxDistanceLabel.Name = 'MaxDistanceLabel'
+    _maxDistanceLabel.Size = UDim2.new(1, 0, 0, 25)
+    _maxDistanceLabel.BackgroundTransparency = 1
+    _maxDistanceLabel.Text = ''
+    _maxDistanceLabel.TextColor3 = Color3.fromRGB(255, 150, 100)  -- 橙色
+    _maxDistanceLabel.TextScaled = true
+    _maxDistanceLabel.Font = UIConfig.Font
+    _maxDistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+    _maxDistanceLabel.LayoutOrder = 2
+    _maxDistanceLabel.Parent = _personalRankFrame
+    
+    -- 总航行时间标签
+    local _totalDaysLabel = Instance.new('TextLabel')
+    _totalDaysLabel.Name = 'TotalDaysLabel'
+    _totalDaysLabel.Size = UDim2.new(1, 0, 0, 25)
+    _totalDaysLabel.BackgroundTransparency = 1
+    _totalDaysLabel.Text = ''
+    _totalDaysLabel.TextColor3 = Color3.fromRGB(100, 255, 150)  -- 绿色
+    _totalDaysLabel.TextScaled = true
+    _totalDaysLabel.Font = UIConfig.Font
+    _totalDaysLabel.TextXAlignment = Enum.TextXAlignment.Left
+    _totalDaysLabel.LayoutOrder = 3
+    _totalDaysLabel.Parent = _personalRankFrame
+    
+    -- 最大航行时间标签
+    local _maxDaysLabel = Instance.new('TextLabel')
+    _maxDaysLabel.Name = 'MaxDaysLabel'
+    _maxDaysLabel.Size = UDim2.new(1, 0, 0, 25)
+    _maxDaysLabel.BackgroundTransparency = 1
+    _maxDaysLabel.Text = ''
+    _maxDaysLabel.TextColor3 = Color3.fromRGB(255, 150, 255)  -- 粉色
+    _maxDaysLabel.TextScaled = true
+    _maxDaysLabel.Font = UIConfig.Font
+    _maxDaysLabel.TextXAlignment = Enum.TextXAlignment.Left
+    _maxDaysLabel.LayoutOrder = 4
+    _maxDaysLabel.Parent = _personalRankFrame
+    
+    -- 获取当前航行数据的函数
+     local function getCurrentSailingData()
+         local currentData = ClientData.PersonRankData.currentData
+         return currentData.distance or 0, (currentData.sailingTime or 0) * GameConfig.Real_To_Game_Second
+     end
+    
+    -- 更新显示数据的函数
+    local function updateDisplayData()
+        local currentDistance, currentTime = getCurrentSailingData()
+        local currentTimeDays = currentTime / (24 * 3600)
+        local serverData = ClientData.PersonRankData.serverData
+        
+        -- 更新总航行距离（服务器历史数据 + 当前航行距离）
+        local totalDistance = (serverData.totalDistance or 0) + currentDistance
+        _totalDistanceLabel.Text = LanguageConfig.Get(10085) .. ": " ..  math.floor(totalDistance)
+        
+        -- 更新最大航行距离（当前/最大）
+        _maxDistanceLabel.Text = LanguageConfig.Get(10086) .. ": " .. string.format("%d/%d",
+            math.floor(currentDistance), math.floor(serverData.maxSingleDistance or 0))
+        
+        -- 更新总航行时间（服务器历史数据 + 当前航行时间）
+        local totalSailingTime = (serverData.totalSailingTime or 0) + currentTime
+        _totalDaysLabel.Text = LanguageConfig.Get(10090) .. ": " .. string.format("%.2f", totalSailingTime / (24 * 3600))
+        
+        -- 更新最大航行时间（当前/最大）
+        _maxDaysLabel.Text = LanguageConfig.Get(10087) .. ": " .. string.format("%.2f/%.2f",
+            currentTimeDays, (serverData.maxSailingTime or 0) / (24 * 3600))
+    end
+    
+    -- 高频更新显示数据（每1秒）
+    task.spawn(function()
+        while _personalRankFrame.Parent do
+            task.wait(1)
+            updateDisplayData()
+        end
+    end)
+    
+    return _personalRankFrame
+end
+
 Knit:OnStart():andThen(function()
-    local BoatAssemblingService = Knit.GetService('BoatAssemblingService')
-    BoatAssemblingService.UpdateMainUI:Connect(function(data)
+    Knit.GetService('BoatAssemblingService').UpdateMainUI:Connect(function(data)
         _startBoatButton.Visible = not data.explore
         _stopBoatButton.Visible = data.explore
         _addBoatPartButton.Visible = false
@@ -594,7 +723,7 @@ Knit:OnStart():andThen(function()
             _adminButton.Name = 'AdminButton'
             _adminButton.AnchorPoint = Vector2.new(0.5, 0.5)
             _adminButton.Size = _buttonSize
-            _adminButton.Position = UDim2.new(1, -60, 0, 60) -- 右侧5%位置
+            _adminButton.Position = UDim2.new(0, 60, 0, 60)
             _adminButton.Text = '数据库'
             _adminButton.Font = UIConfig.Font
             _adminButton.TextSize = _buttonTextSize
@@ -621,16 +750,13 @@ Knit:OnStart():andThen(function()
         ShowOccupingLayer(isShow)
     end)
     -- 注册系统消息接口
-    local SystemService = Knit.GetService('SystemService')
-    SystemService.SystemMessage:Connect(function(messageType, tipId, ...)
+    Knit.GetService('SystemService').SystemMessage:Connect(function(messageType, tipId, ...)
         local messageText = string.format(LanguageConfig.Get(tipId), ...)
         addMessage(messageType, messageText)
     end)
-
     Knit.GetService("LandService").OccupyStart:Connect(function(playerName, landName)
         addMessage("info", string.format(LanguageConfig.Get(10081), playerName, landName))
     end)
-
     -- 注册占领成功接口
     Knit.GetService("LandService").OccupyFinish:Connect(function(userId, playerName, landName)
         if userId == Players.LocalPlayer.UserId then
@@ -640,7 +766,6 @@ Knit:OnStart():andThen(function()
 
         addMessage("info", string.format(LanguageConfig.Get(10080), playerName, landName))
     end)
-
     -- 注册占领失败接口
     Knit.GetService("LandService").OccupyFail:Connect(function(userId, playerName, landName)
         if userId == Players.LocalPlayer.UserId then
@@ -651,6 +776,7 @@ Knit:OnStart():andThen(function()
         addMessage("info", string.format(LanguageConfig.Get(10079), playerName, landName))
     end)
 
-    
+    -- 创建个人排行榜显示组件
+    createPersonalRankDisplay()
     addMessage("system", LanguageConfig.Get(10050))
 end):catch(warn)

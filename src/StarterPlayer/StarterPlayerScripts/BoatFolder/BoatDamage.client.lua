@@ -11,6 +11,7 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
+local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
 -- 存储上次船只血量，用于计算伤害值
 local _lastBoatHealth = {}
@@ -115,6 +116,10 @@ local function MonitorBoatHealth()
                     if damage > 0 then
                         CreateDamageNumber(boat, damage)
                     end
+                end
+
+                if newHealth <= 0 then
+                    ClientData.PersonRankData.currentData.isOnBoat = false
                 end
                 
                 _lastBoatHealth[boatName] = newHealth

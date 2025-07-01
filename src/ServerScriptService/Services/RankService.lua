@@ -18,16 +18,14 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 -- 创建OrderedDataStore用于排行榜
 local TotalDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalDistance")
-TotalDistanceLeaderboard:RemoveAsync(7689724124)
+--TotalDistanceLeaderboard:RemoveAsync(7689724124)
 local MaxSingleDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxSingleDistance")
-MaxSingleDistanceLeaderboard:RemoveAsync(7689724124)
 local TotalSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalTime")
-TotalSailingTimeLeaderboard:RemoveAsync(7689724124)
 local MaxSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxTime")
-MaxSailingTimeLeaderboard:RemoveAsync(7689724124)
 
 -- 创建普通DataStore用于玩家名称映射
 local PlayerNameStore = DataStoreService:GetDataStore("PlayerNames")
@@ -36,6 +34,7 @@ local RankService = Knit.CreateService({
     Name = 'RankService',
     Client = {
         UpdateLeaderboard = Knit.CreateSignal(),
+        InitPlayerSailingData = Knit.CreateSignal(),
     },
     
     -- 服务器端数据
@@ -90,10 +89,14 @@ function RankService:InitPlayerSailingData(player)
             maxSailingTime = maxSailingTime,
             playerName = player.Name
         }
-        print("📤 已将现有数据添加到待更新队列:", player.Name, "总距离:", math.floor(totalDistance), "最大单次:", math.floor(maxSingleDistance), "总航行天数:", totalSailingTime / (24 * 3600), "航行天数:", maxSailingTime / (24 * 3600))
     end
-    
-    print("🏃 初始化玩家航行数据:", player.Name, "总距离:", totalDistance, "最大单次:", maxSingleDistance, "总航行天数:", totalSailingTime / (24 * 3600), "航行天数:", maxSailingTime / (24 * 3600))
+
+    self.Client.InitPlayerSailingData:Fire(player, {
+        totalDistance = math.floor(totalDistance),
+        maxSingleDistance = math.floor(maxSingleDistance),
+        totalSailingTime = totalSailingTime,
+        maxSailingTime = maxSailingTime,
+    })
 end
 
 function RankService:RemovePlayerSailingData(player)
@@ -167,8 +170,6 @@ function RankService:StartTrackingPlayer(player)
     if player.Character and player.Character.PrimaryPart then
         data.lastPosition = player.Character.PrimaryPart.Position
     end
-    
-    print("🚢 开始追踪玩家航行:", player.Name)
 end
 
 -- 停止追踪玩家航行距离
@@ -217,14 +218,6 @@ function RankService:StopTrackingPlayer(player)
         playerName = player.Name
     }
     
-    print("🏁 停止追踪玩家航行:", player.Name, 
-          "本次距离:", math.floor(data.currentSailingDistance), 
-          "总距离:", math.floor(data.totalDistance),
-          "最大单次:", math.floor(data.maxSingleDistance),
-          "总航行天数:", string.format("%.2f天", data.totalSailingTime / (24 * 3600)),
-          "航行天数:", string.format("%.2f天", data.maxSailingTime / (24 * 3600))
-        )
-    
     -- 重置当前航行数据
     data.currentSailingDistance = 0
     data.currentSailingTime = 0
@@ -249,23 +242,22 @@ function RankService:UpdatePlayerDistance(player)
     
     data.lastUpdateTime = currentTime
     
+    local boat = Interface.GetBoatByPlayerUserId(userId)
     -- 获取玩家当前位置
-    if not player.Character or not player.Character.PrimaryPart then
+    if not boat or boat:GetAttribute("Destroying") then
         return
     end
     
-    local currentPosition = player.Character.PrimaryPart.Position
-    
+    local currentPosition = boat:GetPivot().Position
     -- 如果有上次位置，计算距离
     if data.lastPosition then
-        local distance = (currentPosition - data.lastPosition).Magnitude
+        local distance = Vector3.new(currentPosition.X - data.lastPosition.X, 0, currentPosition.Z - data.lastPosition.Z).Magnitude
         
         -- 防止传送等异常移动（距离过大）
         if distance < 1000 and distance > 0.1 then
             data.currentSailingDistance = data.currentSailingDistance + distance
         end
     end
-    
     -- 更新位置
     data.lastPosition = currentPosition
 end
@@ -276,38 +268,27 @@ function RankService:BatchUpdateGlobalLeaderboard()
         return
     end
     
-    local updateCount = 0
-    for _ in pairs(self.pendingUpdates) do
-        updateCount = updateCount + 1
-    end
-    
     for userId, updateData in pairs(self.pendingUpdates) do
         task.spawn(function()
-            -- 更新总距离排行榜（确保数据为整数类型）
-            local success1, err1 = pcall(function()
+            -- 更新总距离排行榜
+            pcall(function()
                 TotalDistanceLeaderboard:SetAsync(userId, math.floor(updateData.totalDistance))
             end)
             
-            -- 更新最大单次距离排行榜（确保数据为整数类型）
-            local success2, err2 = pcall(function()
+            -- 更新最大单次距离排行榜
+            pcall(function()
                 MaxSingleDistanceLeaderboard:SetAsync(userId, math.floor(updateData.maxSingleDistance))
             end)
 
-            -- 更新航行时间排行榜（将小数乘以100存储为整数以保留精度）
-            local success3, err3 = pcall(function()
+            -- 更新总航行时间排行榜
+            pcall(function()
                 TotalSailingTimeLeaderboard:SetAsync(userId, math.floor(updateData.totalSailingTime))
             end)
             
-            -- 更新航行时间排行榜（将小数乘以100存储为整数以保留精度）
-            local success4, err4 = pcall(function()
+            -- 更新最大航行时间排行榜
+            pcall(function()
                 MaxSailingTimeLeaderboard:SetAsync(userId, math.floor(updateData.maxSailingTime))
             end)
-            
-            if success1 and success2 and success3 and success4 then
-                print("✅ 更新全服排行榜成功:", updateData.playerName, "总距离:", math.floor(updateData.totalDistance), "最大单次:", math.floor(updateData.maxSingleDistance), "总航行天数:", updateData.totalSailingTime / (24 * 3600), "航行天数:", updateData.maxSailingTime / (24 * 3600))
-            else
-                warn("❌ 更新全服排行榜失败:", updateData.playerName, "错误:", err1 or err2 or err3 or err4)
-            end
         end)
     end
     
@@ -339,7 +320,7 @@ function RankService:GetGlobalLeaderboardData(leaderboardType, limit)
     end)
     
     if not success then
-        warn("❌ 获取全服排行榜失败:", leaderboardType, pages)
+        warn("获取全服排行榜失败:", leaderboardType, pages)
         return {leaderboard = {}, lastUpdate = tick()}
     end
     
@@ -352,7 +333,7 @@ function RankService:GetGlobalLeaderboardData(leaderboardType, limit)
         end)
         
         if not success2 or not data then
-            print("❌ 获取当前页面失败:", leaderboardType, data)
+            print("获取当前页面失败:", leaderboardType, data)
             break
         end
         
@@ -388,7 +369,7 @@ function RankService:GetGlobalLeaderboardData(leaderboardType, limit)
         end)
         
         if not success3 then
-            print("❌ 翻页失败:", leaderboardType)
+            print("翻页失败:", leaderboardType)
             break
         end
     end
@@ -428,8 +409,6 @@ function RankService:UpdateLeaderboardCache()
         
         -- 通知所有客户端更新排行榜
         self.Client.UpdateLeaderboard:FireAll(self.leaderboardCache)
-        
-        print("📊 全服排行榜缓存已更新")
     end)
 end
 
@@ -441,24 +420,7 @@ function RankService:GetPersonalDataWithRank(player)
     local data = self.playerSailingData[userId]
     
     if not data then
-        self:InitPlayerSailingData(player)
-        data = self.playerSailingData[userId]
-    end
-    
-    if not data then
-        return {
-            totalDistance = 0,
-            maxSingleDistance = 0,
-            currentSailingDistance = 0,
-            totalSailingTime = 0,
-            maxSailingTime = 0,
-            currentSailingTime = 0,
-            totalDisRank = 0,
-            maxDisRank = 0,
-            totalTimeRank = 0,
-            maxTimeRank = 0,
-            isTracking = false
-        }
+        return
     end
     
     -- 获取排名（同步等待）
@@ -619,20 +581,15 @@ function RankService:GetPersonalDataWithRank(player)
         end
     end
     
-    print("🏆 获取玩家排名:", player.Name, "总距离排名:", totalDisRank, "最大单次排名:", maxDisRank, "总航行天数排名:", totalTimeRank, "航行天数排名:", maxTimeRank)
-    
     return {
         totalDistance = data.totalDistance + data.currentSailingDistance,
         maxSingleDistance = math.max(data.maxSingleDistance, data.currentSailingDistance),
-        currentSailingDistance = data.currentSailingDistance,
         totalSailingTime = data.totalSailingTime,
         maxSailingTime = math.max(data.maxSailingTime, data.currentSailingTime),
-        currentSailingTime = data.currentSailingTime,
         totalDisRank = totalDisRank,
         maxDisRank = maxDisRank,
         totalTimeRank = totalTimeRank,
         maxTimeRank = maxTimeRank,
-        isTracking = data.isTracking
     }
 end
 
@@ -664,7 +621,8 @@ function RankService:KnitStart()
     end)
     
     -- 定期批量更新全服排行榜
-    task.spawn(function()
+    local handler1
+    handler1 = task.spawn(function()
         while true do
             task.wait(BATCH_UPDATE_INTERVAL)
             self:BatchUpdateGlobalLeaderboard()
@@ -672,7 +630,8 @@ function RankService:KnitStart()
     end)
     
     -- 定期更新排行榜缓存
-    task.spawn(function()
+    local handler2
+    handler2 = task.spawn(function()
         while true do
             task.wait(CACHE_UPDATE_INTERVAL)
             self:UpdateLeaderboardCache()
@@ -680,10 +639,14 @@ function RankService:KnitStart()
     end)
     
     -- 初始化排行榜缓存
-    task.wait(2)
     self:UpdateLeaderboardCache()
-    
-    print("🌍 全服航行距离排行榜服务已启动")
+
+    -- 在服务器关闭时保存排行榜数据
+    game:BindToClose(function()
+        task.cancel(handler1)
+        task.cancel(handler2)
+        self:BatchUpdateGlobalLeaderboard()
+    end)
 end
 
 return RankService
