@@ -117,10 +117,6 @@ local function MonitorBoatHealth()
                         CreateDamageNumber(boat, damage)
                     end
                 end
-
-                if newHealth <= 0 then
-                    ClientData.PersonRankData.currentData.isOnBoat = false
-                end
                 
                 _lastBoatHealth[boatName] = newHealth
             end)

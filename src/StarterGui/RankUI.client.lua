@@ -340,27 +340,27 @@ local function updateLeaderboard()
     end
     
     -- 获取个人数据
-    local totalDisRank = ClientData.PersonRankData.serverData.totalDisRank
+    local totalDisRank = ClientData.PersonRankData.totalDisRank
     if not totalDisRank or totalDisRank == GameConfig.TotalDistanceRank then
         totalDisRank = LanguageConfig.Get(10088)
     end
-    local maxDisRank = ClientData.PersonRankData.serverData.maxDisRank
+    local maxDisRank = ClientData.PersonRankData.maxDisRank
     if not maxDisRank or maxDisRank == GameConfig.MaxDistanceRank then
         maxDisRank = LanguageConfig.Get(10088)
     end
-    local totalTimeRank = ClientData.PersonRankData.serverData.totalTimeRank
+    local totalTimeRank = ClientData.PersonRankData.totalTimeRank
     if not totalTimeRank or totalTimeRank == GameConfig.TotalTimeRank then
         totalTimeRank = LanguageConfig.Get(10088)
     end
-    local maxTimeRank = ClientData.PersonRankData.serverData.maxTimeRank
+    local maxTimeRank = ClientData.PersonRankData.maxTimeRank
     if not maxTimeRank or maxTimeRank == GameConfig.MaxTimeRank then
         maxTimeRank = LanguageConfig.Get(10088)
     end
 
-    local totalDis = ClientData.PersonRankData.serverData.totalDistance or 0
-    local maxDis = ClientData.PersonRankData.serverData.maxSingleDistance or 0
-    local totalTime = string.format("%.2f", ClientData.PersonRankData.serverData.totalSailingTime / (24 * 3600))
-    local maxTime = string.format("%.2f", ClientData.PersonRankData.serverData.maxSailingTime / (24 * 3600))
+    local totalDis = ClientData.PersonRankData.totalDistance or 0
+    local maxDis = ClientData.PersonRankData.maxSailingDistance or 0
+    local totalTime = string.format("%.2f", ClientData.PersonRankData.totalSailingTime / (24 * 3600))
+    local maxTime = string.format("%.2f", ClientData.PersonRankData.maxSailingTime / (24 * 3600))
     
     -- 更新各个标签的文本
     _totalDistanceLabel.Text = LanguageConfig.Get(10085) .. ": " .. math.floor(totalDis) .. "    " .. LanguageConfig.Get(10091) .. ": " .. totalDisRank

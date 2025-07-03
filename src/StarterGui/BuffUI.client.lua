@@ -10,9 +10,11 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local _screenGui = Instance.new("ScreenGui")
 _screenGui.Name = "BuffUI_GUI"
-_screenGui.ResetOnSpawn = false
+_screenGui.IgnoreGuiInset = true
 _screenGui.Enabled = false
 _screenGui.Parent = playerGui
+
+UIConfig.CreateBlock(_screenGui)
 
 local _frame = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10078))
 

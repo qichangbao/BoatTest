@@ -127,7 +127,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
         label.Text = tostring(key)
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = entryFrame
-        label.TextSize = 16
+        label.TextScaled = true
         
         if type(value) == 'table' then
             local toggleButton = Instance.new('TextButton')
@@ -155,7 +155,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             keyLabel.Text = tostring(key)
             keyLabel.TextXAlignment = Enum.TextXAlignment.Left
             keyLabel.Parent = entryFrame
-            keyLabel.TextSize = 16
+            keyLabel.TextScaled = true
 
             -- 添加增加按钮
             local addBtn = Instance.new('TextButton')
@@ -164,7 +164,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             addBtn.AnchorPoint = Vector2.new(1, 0)
             addBtn.Position = UDim2.new(0.9, 0, 0, 0)
             addBtn.Text = "增加"
-            addBtn.TextSize = 16
+            addBtn.TextScaled = true
             addBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             addBtn.BackgroundColor3 = Theme.Secondary
             addBtn.TextColor3 = Theme.TextBottonPrimary
@@ -265,7 +265,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             valueBox.Text = tostring(value)
             valueBox.PlaceholderText = valueBox.Text
             valueBox.ClearTextOnFocus = false
-            valueBox.TextSize = 16
+            valueBox.TextScaled = true
             valueBox.TextColor3 = Theme.TextBoxPrimary
             valueBox.BackgroundColor3 = Theme.InputFieldBG
             valueBox.TextXAlignment = Enum.TextXAlignment.Left
@@ -278,7 +278,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
             saveBtn.AnchorPoint = Vector2.new(1, 0)
             saveBtn.Position = UDim2.new(0.9, 0, 0, 0)
             saveBtn.Text = "保存"
-            saveBtn.TextSize = 16
+            saveBtn.TextScaled = true
             saveBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
             saveBtn.BackgroundColor3 = Theme.Secondary
             saveBtn.TextColor3 = Theme.TextBottonPrimary
@@ -340,7 +340,7 @@ local function UpdateDataDisplay(parent, userIdInputText, data, depth, parentPat
         deleteBtn.AnchorPoint = Vector2.new(1, 0)
         deleteBtn.Position = UDim2.new(1, 0, 0, 0)
         deleteBtn.Text = "删除"
-        deleteBtn.TextSize = 16
+        deleteBtn.TextScaled = true
         deleteBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         deleteBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
         deleteBtn.Parent = entryFrame
@@ -418,7 +418,7 @@ _userIdBox.Position = UDim2.new(0.5, -50, 0.5, 0)
 _userIdBox.Text = "输入用户ID"
 _userIdBox.PlaceholderText = _userIdBox.Text
 _userIdBox.TextColor3 = Theme.TextBoxPrimary
-_userIdBox.TextSize = 16
+_userIdBox.TextScaled = true
 _userIdBox.BackgroundColor3 = Theme.InputFieldBG
 _userIdBox.Parent = _controlFrame
 
@@ -428,9 +428,8 @@ _fetchBtn.Size = UDim2.new(0.3, 0, 1, 0)
 _fetchBtn.AnchorPoint = Vector2.new(0, 0.5)
 _fetchBtn.Position = UDim2.new(0.5, 50, 0.5, 0)
 _fetchBtn.Text = "获取数据"
-_fetchBtn.TextSize = 16
+_fetchBtn.TextScaled = true
 _fetchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-_fetchBtn.TextSize = 16
 _fetchBtn.BackgroundColor3 = Theme.Primary
 _fetchBtn.TextColor3 = Theme.TextBottonPrimary
 _fetchBtn.Parent = _controlFrame
@@ -444,7 +443,7 @@ _playerSystemlabel.Position = UDim2.new(0.5, 0, 1, -20)
 _playerSystemlabel.Text = ""
 _playerSystemlabel.TextXAlignment = Enum.TextXAlignment.Center
 _playerSystemlabel.Parent = _screenGui
-_playerSystemlabel.TextSize = 16
+_playerSystemlabel.TextScaled = true
 
 _fetchBtn.MouseButton1Click:Connect(function()
     Knit.GetService("DBService"):GetPlayerSystemData(tonumber(_userIdBox.Text)):andThen(function(playerSystemData)

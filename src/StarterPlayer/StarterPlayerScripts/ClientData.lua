@@ -18,25 +18,16 @@ ClientData.IsOnBoat = false         -- 是否在船上
 ClientData.RankData = {}
 -- 排行榜个人数据
 ClientData.PersonRankData = {
-    -- 服务器同步的历史数据
-    serverData = {
-        totalDistance = 0,          -- 总航行距离
-        maxSingleDistance = 0,      -- 单次最大距离
-        totalSailingTime = 0,       -- 总航行时间（秒）
-        maxSailingTime = 0,         -- 单次最长时间（秒）
-        totalDisRank = 0,           -- 总航行距离排名
-        maxDisRank = 0,             -- 单次最大距离排名
-        totalTimeRank = 0,          -- 总航行时间排名
-        maxTimeRank = 0,            -- 单次最长时间排名
-    },
-    -- 当前航行数据（客户端实时计算）
-    currentData = {
-        distance = 0,               -- 当前航行距离
-        sailingTime = 0,            -- 当前航行时间（秒）
-        startTime = 0,              -- 开始航行时间
-        lastPosition = nil,         -- 上次位置
-        isOnBoat = false            -- 是否在船上
-    }
+    totalDistance = 0,          -- 总航行距离
+    maxSailingDistance = 0,      -- 单次最大距离
+    totalSailingTime = 0,       -- 总航行时间（秒）
+    maxSailingTime = 0,         -- 单次最长时间（秒）
+    currentSailingDistance = 0, -- 当前航行距离
+    currentSailingTime = 0,    -- 当前航行时间
+    totalDisRank = 0,           -- 总航行距离排名
+    maxDisRank = 0,             -- 单次最大距离排名
+    totalTimeRank = 0,          -- 总航行时间排名
+    maxTimeRank = 0,            -- 单次最长时间排名
 }
 
 -- 更新buff剩余时间函数
@@ -60,73 +51,55 @@ end
 
 local function updatePersonalRanKData(personalData)
     if personalData then
-        local serverData = ClientData.PersonRankData.serverData
-        serverData.totalDistance = personalData.totalDistance or 0
-        serverData.maxSingleDistance = personalData.maxSingleDistance or 0
-        serverData.totalSailingTime = personalData.totalSailingTime or 0
-        serverData.maxSailingTime = personalData.maxSailingTime or 0
-        serverData.totalDisRank = personalData.totalDisRank or 0
-        serverData.maxDisRank = personalData.maxDisRank or 0
-        serverData.totalTimeRank = personalData.totalTimeRank or 0
-        serverData.maxTimeRank = personalData.maxTimeRank or 0
-    end
-end
-
--- 更新排行榜数据函数
-local function updateRankData()
-    local currentTime = tick()
-    local boat = Interface.GetBoatByPlayerUserId(Players.LocalPlayer.UserId)
-    if not boat or boat:GetAttribute("Destroying") then return end
-    
-    local currentData = ClientData.PersonRankData.currentData
-    
-    -- 如果刚上船，初始化数据
-    if ClientData.IsOnBoat and not currentData.isOnBoat then
-        currentData.isOnBoat = true
-        currentData.startTime = currentTime
-        currentData.distance = 0
-        currentData.sailingTime = 0
-        currentData.lastPosition = boat:GetPivot().Position
-    
-        -- 初始化排行榜数据同步
-        Knit.GetService('RankService'):GetPersonalData():andThen(function(personalData)
-            updatePersonalRanKData(personalData)
-        end):catch(warn)
-    -- 如果刚下船，重置数据
-    elseif not ClientData.IsOnBoat and currentData.isOnBoat then
-        currentData.isOnBoat = false
-        currentData.distance = 0
-        currentData.sailingTime = 0
-        currentData.lastPosition = nil
-    -- 如果在船上，更新数据
-    elseif ClientData.IsOnBoat and currentData.isOnBoat then
-        -- 更新航行时间
-        currentData.sailingTime = currentTime - currentData.startTime
-        
-        -- 更新航行距离
-        if currentData.lastPosition then
-            local currentPosition = boat:GetPivot().Position
-            local distance = Vector3.new(currentPosition.X - currentData.lastPosition.X, 0, currentPosition.Z - currentData.lastPosition.Z).Magnitude
-            currentData.distance = currentData.distance + distance
-            currentData.lastPosition = currentPosition
-        else
-            currentData.lastPosition = boat:GetPivot().Position
-        end
+        ClientData.PersonRankData.totalDistance = personalData.totalDistance or ClientData.PersonRankData.totalDistance
+        ClientData.PersonRankData.maxSailingDistance = personalData.maxSailingDistance or ClientData.PersonRankData.maxSailingDistance
+        ClientData.PersonRankData.totalSailingTime = personalData.totalSailingTime or ClientData.PersonRankData.totalSailingTime
+        ClientData.PersonRankData.maxSailingTime = personalData.maxSailingTime or ClientData.PersonRankData.maxSailingTime
+        ClientData.PersonRankData.currentSailingDistance = personalData.currentSailingDistance or ClientData.PersonRankData.currentSailingDistance
+        ClientData.PersonRankData.currentSailingTime = personalData.currentSailingTime or ClientData.PersonRankData.currentSailingTime
+        ClientData.PersonRankData.totalDisRank = personalData.totalDisRank or ClientData.PersonRankData.totalDisRank
+        ClientData.PersonRankData.maxDisRank = personalData.maxDisRank or ClientData.PersonRankData.maxDisRank
+        ClientData.PersonRankData.totalTimeRank = personalData.totalTimeRank or ClientData.PersonRankData.totalTimeRank
+        ClientData.PersonRankData.maxTimeRank = personalData.maxTimeRank or ClientData.PersonRankData.maxTimeRank
     end
 end
 
 Knit:OnStart():andThen(function()
+    Players.LocalPlayer.CharacterAdded:Connect(function()
+        local humanoid = Players.LocalPlayer.Character:FindFirstChild('Humanoid')
+        -- 监听玩家死亡事件
+        humanoid.Died:Connect(function()
+            Knit.GetController('UIController').ShowMessageBox:Fire({
+                Content = LanguageConfig.Get(10096),
+                ConfirmText = LanguageConfig.Get(10097),
+                CancelText = LanguageConfig.Get(10098),
+                OnConfirm = function()
+                    Knit.GetService('PlayerAttributeService'):BuyRevive():andThen(function()
+                        
+                    end)
+                end,
+                OnCancel = function()
+                    Knit.GetService('PlayerAttributeService'):DeclineRevive():andThen(function()
+                        
+                    end)
+                end,
+                ConfirmHide = false,
+                CloseButtonVisible = false,
+            })
+        end)
+    end)
+
+    -- 监听金币变化
     Players.LocalPlayer:GetAttributeChangedSignal('Gold'):Connect(function()
         ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold'))
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end)
-    ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold')) or 0
+    ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold') or 0)
     if ClientData.Gold ~= 0 then
         Knit.GetController('UIController').UpdateGoldUI:Fire()
     end
 
-    local PlayerAttributeService = Knit.GetService('PlayerAttributeService')
-    PlayerAttributeService:GetLoginData():andThen(function(data)
+    Knit.GetService('PlayerAttributeService'):GetLoginData():andThen(function(data)
         ClientData.Gold = data.Gold
         Knit.GetController('UIController').UpdateGoldUI:Fire()
         
@@ -145,17 +118,15 @@ Knit:OnStart():andThen(function()
         Knit.GetController('UIController').IsLandOwner:Fire()
     end):catch(warn)
 
-    local SystemService = Knit.GetService('SystemService')
-    SystemService.IsLandOwnerChanged:Connect(function(data)
+    Knit.GetService('SystemService').IsLandOwnerChanged:Connect(function(data)
         ClientData.IsLandOwners[data.landName] = {userId = data.userId, playerName = data.playerName}
         Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
     end)
-    SystemService.IsLandInfoChanged:Connect(function(data)
+    Knit.GetService('SystemService').IsLandInfoChanged:Connect(function(data)
         ClientData.IsLandOwners[data.landName] = data.isLandData
     end)
 
-    local InventoryService = Knit.GetService('InventoryService')
-    InventoryService.AddItem:Connect(function(itemData)
+    Knit.GetService('InventoryService').AddItem:Connect(function(itemData)
         local isExist = false
         for _, item in ipairs(ClientData.InventoryItems) do
             if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
@@ -171,7 +142,7 @@ Knit:OnStart():andThen(function()
         Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), itemData.itemName))
         Knit.GetController('UIController').UpdateInventoryUI:Fire()
     end)
-    InventoryService.RemoveItem:Connect(function(modelName, itemName)
+    Knit.GetService('InventoryService').RemoveItem:Connect(function(modelName, itemName)
         local isExist = false
         for _, item in ipairs(ClientData.InventoryItems) do
             if item.itemName == itemName and item.modelName == modelName then
@@ -190,7 +161,7 @@ Knit:OnStart():andThen(function()
         end
         Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10012), itemName))
     end)
-    InventoryService.InitInventory:Connect(function(inventoryData)
+    Knit.GetService('InventoryService').InitInventory:Connect(function(inventoryData)
         ClientData.InventoryItems = {}
         for _, itemData in pairs(inventoryData) do
             table.insert(ClientData.InventoryItems, itemData)
@@ -208,8 +179,7 @@ Knit:OnStart():andThen(function()
     end)
 
     -- BUFF系统事件监听
-    local BuffService = Knit.GetService('BuffService')
-    BuffService.BuffAdded:Connect(function(buffId, duration)
+    Knit.GetService('BuffService').BuffAdded:Connect(function(buffId, duration)
         local config = BuffConfig.GetBuffConfig(buffId)
         ClientData.ActiveBuffs[buffId] = {
             buffId = buffId,
@@ -221,12 +191,12 @@ Knit:OnStart():andThen(function()
         Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), config.displayName))
         Knit.GetController('UIController').BuffChanged:Fire()
     end)
-    BuffService.BuffRemoved:Connect(function(buffId)
+    Knit.GetService('BuffService').BuffRemoved:Connect(function(buffId)
         ClientData.ActiveBuffs[buffId] = nil
         Knit.GetController('UIController').BuffChanged:Fire()
     end)
     -- 获取初始BUFF状态
-    BuffService:GetPlayerBuffs(Players.LocalPlayer):andThen(function(initialBuffs)
+    Knit.GetService('BuffService'):GetPlayerBuffs(Players.LocalPlayer):andThen(function(initialBuffs)
         if initialBuffs and type(initialBuffs) == "table" then
             for buffType, buffs in pairs(initialBuffs) do
                 if type(buffs) == "table" then
@@ -247,12 +217,10 @@ Knit:OnStart():andThen(function()
     end):catch(warn)
 
     -- 监听宝箱奖励事件
-    local chestService = Knit.GetService('ChestService')
-    local RewardFlyEffect = require(game:GetService('StarterGui'):WaitForChild('RewardFlyEffect'))
-    
-    chestService.RewardReceived:Connect(function(rewardType, rewardData)
+    Knit.GetService('ChestService').RewardReceived:Connect(function(rewardType, rewardData)
         -- 播放飞行特效
         if rewardData and rewardData.chestPosition then
+            local RewardFlyEffect = require(game:GetService('StarterGui'):WaitForChild('RewardFlyEffect'))
             RewardFlyEffect.PlayEffect(rewardType, rewardData.chestPosition)
         end
         
@@ -284,11 +252,13 @@ Knit:OnStart():andThen(function()
     Knit.GetService("RankService").InitPlayerSailingData:Connect(function(personalData)
         updatePersonalRanKData(personalData)
     end)
+    Knit.GetService("RankService").UpdatePlayerSailingData:Connect(function(leaderboardData)
+        updatePersonalRanKData(leaderboardData)
+    end)
     
     -- 启动时间更新循环
     RunService.Heartbeat:Connect(function()
         updateRemainingTimes()
-        updateRankData()  -- 每帧更新排行榜数据
     end)
 
     local success = false

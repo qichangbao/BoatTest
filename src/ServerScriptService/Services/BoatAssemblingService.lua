@@ -362,31 +362,35 @@ function BoatAssemblingService:CreateStabilizer(boat)
 end
 
 function BoatAssemblingService.Client:AssembleBoat(player)
+    return self.Server:AssembleBoat(player)
+end
+
+function BoatAssemblingService:AssembleBoat(player, revivePos)
     local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if boat then
         return 10020
     end
 
-    boat = self.Server:CreateBoat(player)
+    boat = self:CreateBoat(player)
     if not boat or not boat.primaryPart then
         return 10021
     end
 
-    self.Server:CreateStabilizer(boat)
-    self.Server:CreateMoveVelocity(boat.primaryPart)
+    self:CreateStabilizer(boat)
+    self:CreateMoveVelocity(boat.primaryPart)
 
     -- 设置船的初始位置
-    Interface.InitBoatWaterPos(player, boat)
+    Interface.InitBoatWaterPos(player, boat, revivePos)
     Knit.GetService('BoatWeaponService'):Active(player, true)
     Knit.GetService('BoatMovementService'):OnBoat(player, true)
     Knit.GetService('InventoryService'):BoatAssemblySuccess(player, boat:GetAttribute('ModelName'))
     
     -- 开始追踪玩家航行距离（全服排行榜）
-    Knit.GetService('RankService'):StartTrackingPlayer(player)
+    Knit.GetService('RankService'):StartTrackingPlayer(player, revivePos ~= nil)
     
     -- 触发客户端事件更新主界面UI
-    self.UpdateMainUI:Fire(player, {explore = true})
-    self.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
+    self.Client.UpdateMainUI:Fire(player, {explore = true})
+    self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
 
     return 10022
 end

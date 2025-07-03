@@ -29,7 +29,7 @@ _minusButton.Position = UDim2.new(0.2, 0, 0.4, 0)
 _minusButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _minusButton.Text = '-'
 _minusButton.Font = UIConfig.Font
-_minusButton.TextSize = 24
+_minusButton.TextScaled = true
 _minusButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 _minusButton.Parent = _frame
 
@@ -40,7 +40,7 @@ _plusButton.Position = UDim2.new(0.8, 0, 0.4, 0)
 _plusButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _plusButton.Text = '+'
 _plusButton.Font = UIConfig.Font
-_plusButton.TextSize = 24
+_plusButton.TextScaled = true
 _plusButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
 _plusButton.Parent = _frame
 
@@ -51,7 +51,7 @@ _countLabel.Position = UDim2.new(0.5, 0, 0.4, 0)
 _countLabel.AnchorPoint = Vector2.new(0.5, 0.5)
 _countLabel.Text = '1'
 _countLabel.Font = UIConfig.Font
-_countLabel.TextSize = 20
+_countLabel.TextScaled = true
 _countLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 _countLabel.BackgroundTransparency = 0.9
 _countLabel.TextColor3 = Color3.fromRGB(0, 0, 0)

@@ -92,7 +92,7 @@ _nameText.Size = UDim2.new(0.9, 0, 0.2, 0)
 _nameText.Position = UDim2.new(0.05, 0, 0.05, 0)
 _nameText.TextColor3 = Color3.new(1, 1, 1)
 _nameText.Font = UIConfig.Font
-_nameText.TextSize = 12
+_nameText.TextScaled = true
 _nameText.TextXAlignment = Enum.TextXAlignment.Center
 _nameText.BackgroundTransparency = 1
 _nameText.Parent = _itemTemplate
@@ -105,7 +105,7 @@ _hpText.Size = UDim2.new(0.9, 0, 0.2, 0)
 _hpText.Position = UDim2.new(0.05, 0, 0.35, 0)
 _hpText.TextColor3 = Color3.new(0.5, 1, 0.2)
 _hpText.TextXAlignment = Enum.TextXAlignment.Left
-_hpText.TextSize = 10
+_hpText.TextScaled = true
 _hpText.Parent = _itemTemplate
 UIConfig.CreateCorner(_hpText, UDim.new(0, 8))
 
@@ -116,7 +116,7 @@ _speedText.Size = UDim2.new(0.9, 0, 0.2, 0)
 _speedText.Position = UDim2.new(0.05, 0, 0.6, 0)
 _speedText.TextColor3 = Color3.new(0.2, 0.6, 1)
 _speedText.TextXAlignment = Enum.TextXAlignment.Left
-_speedText.TextSize = 10
+_speedText.TextScaled = true
 _speedText.Parent = _itemTemplate
 UIConfig.CreateCorner(_speedText, UDim.new(0, 8))
 
@@ -128,7 +128,7 @@ _countText.Size = UDim2.new(0.3, 0, 0.2, 0)
 _countText.Position = UDim2.new(0.7, 0, 0.8, 0)
 _countText.TextColor3 = Color3.new(1, 1, 1)
 _countText.Font = UIConfig.Font
-_countText.TextSize = 14
+_countText.TextScaled = true
 _countText.BackgroundTransparency = 1
 _countText.Parent = _itemTemplate
 

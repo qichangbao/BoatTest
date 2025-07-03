@@ -21,6 +21,8 @@ _screenGui.Parent = PlayerGui
 
 local _confirmCallFunc = nil
 local _cancelCallFunc = nil
+local _confirmHide = true
+local _cancelHide = true
 local function Hide()
     _screenGui.Enabled = false
     _confirmCallFunc = nil
@@ -29,7 +31,7 @@ end
 
 UIConfig.CreateBlock(_screenGui)
 
-local _frame, _titleLabel = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10078), function()
+local _frame, _titleLabel, _closeButton = UIConfig.CreateSmallFrame(_screenGui, LanguageConfig.Get(10078), function()
     Hide()
 end)
 
@@ -38,7 +40,7 @@ local _contentLabel = Instance.new('TextLabel')
 _contentLabel.Size = UDim2.new(1, -40, 0.6, 0)
 _contentLabel.Position = UDim2.new(0, 20, 0, 20)
 _contentLabel.Font = UIConfig.Font
-_contentLabel.TextSize = 18
+_contentLabel.TextScaled = true
 _contentLabel.TextWrapped = true
 _contentLabel.TextColor3 = Color3.new(1, 1, 1)
 _contentLabel.BackgroundTransparency = 1
@@ -49,7 +51,9 @@ local _confirmButton = UIConfig.CreateConfirmButton(_frame, function()
     if _confirmCallFunc then
         _confirmCallFunc()
     end
-    Hide()
+    if _confirmHide then
+        Hide()
+    end
 end)
 _confirmButton.Position = UDim2.new(0.7, 0, 0.8, 0)
 
@@ -58,7 +62,9 @@ local _cancelButton = UIConfig.CreateCancelButton(_frame, function()
     if _cancelCallFunc then
         _cancelCallFunc()
     end
-    Hide()
+    if _cancelHide then
+        Hide()
+    end
 end)
 _cancelButton.Position = UDim2.new(0.3, 0, 0.8, 0)
 
@@ -73,6 +79,18 @@ local function Show(config)
     -- 事件绑定
     _confirmCallFunc = config.OnConfirm
     _cancelCallFunc = config.OnCancel
+    if config.ConfirmHide or config.ConfirmHide == nil then
+        _confirmHide = true
+    else
+        _confirmHide = false
+    end
+    if config.CancelHide or config.CancelHide == nil then
+        _cancelHide = true
+    else
+        _cancelHide = false
+    end
+
+    _closeButton.Visible = config.CloseButtonVisible ~= false
 end
 
 Knit:OnStart():andThen(function()

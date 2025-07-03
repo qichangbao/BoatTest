@@ -191,7 +191,7 @@ local function CreateBillBoard(land, name, lifetime)
     nameLabel.Position = UDim2.new(0, 0, 0, 0)
     nameLabel.Text = name
     nameLabel.Font = Enum.Font.SourceSansBold
-    nameLabel.TextSize = 24
+    nameLabel.TextScaled = true
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.BackgroundTransparency = 1
     nameLabel.TextStrokeTransparency = 0.5
@@ -204,7 +204,7 @@ local function CreateBillBoard(land, name, lifetime)
         countdownLabel.Size = UDim2.new(1, 0, 0.5, 0)
         countdownLabel.Position = UDim2.new(0, 0, 0.5, 0)
         countdownLabel.Font = Enum.Font.SourceSansBold
-        countdownLabel.TextSize = 20
+        countdownLabel.TextScaled = true
         countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
         countdownLabel.BackgroundTransparency = 1
         countdownLabel.TextStrokeTransparency = 0.5

@@ -104,6 +104,7 @@ function LandService.Client:IntoIsLand(player, landName)
         landName = landName:sub(1, start - 1)
     end
     Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
+    task.wait(0.1)
     Interface.InitPlayerPos(player)
 end
 

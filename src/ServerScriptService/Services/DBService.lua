@@ -138,7 +138,7 @@ function DBService:PlayerAdded(player)
 		player:Kick()
 	end
 	
-	self:GiveStats(player)
+	--self:GiveStats(player)
 end
 
 function DBService:PlayerRemoving(player)
@@ -228,7 +228,10 @@ function DBService:Set(userId, key, value)
 	if key == "Gold" then
 		local player = Players:GetPlayerByUserId(userId)
 		if player then
-			player:FindFirstChild("leaderstats"):FindFirstChild("Gold").Value = value
+			local leaderstats = player:FindFirstChild("leaderstats")
+			if leaderstats then
+				leaderstats:FindFirstChild("Gold").Value = value
+			end
 		end
 	end
 

@@ -47,7 +47,7 @@ leftTitleLabel.Position = UDim2.new(0, 0, 0, 0)
 leftTitleLabel.BackgroundColor3 = Color3.fromRGB(74, 144, 226)
 leftTitleLabel.Text = LanguageConfig.Get(10067)
 leftTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-leftTitleLabel.TextSize = 18
+leftTitleLabel.TextScaled = true
 leftTitleLabel.Font = UIConfig.Font
 leftTitleLabel.Parent = _leftFrame
 UIConfig.CreateCorner(leftTitleLabel, UDim.new(0, 10))
@@ -121,7 +121,7 @@ local function createIslandItem(islandData)
     islandItem.BackgroundColor3 = Color3.fromRGB(73, 80, 87)
     islandItem.Text = islandData.name
     islandItem.TextColor3 = Color3.fromRGB(255, 255, 255)
-    islandItem.TextSize = 16
+    islandItem.TextScaled = true
     islandItem.Font = UIConfig.Font
     islandItem.Parent = _islandList
     UIConfig.CreateCorner(islandItem, UDim.new(0, 8))
@@ -165,7 +165,7 @@ local function createTowerInfo(islandData, maxTowers)
     towerCountLabel.BackgroundTransparency = 1
     towerCountLabel.Text = LanguageConfig.Get(10068) .. string.format(": %d/%d", #islandData.towerData or 0, maxTowers)
     towerCountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    towerCountLabel.TextSize = 18
+    towerCountLabel.TextScaled = true
     towerCountLabel.Font = UIConfig.Font
     towerCountLabel.TextXAlignment = Enum.TextXAlignment.Left
     towerCountLabel.Parent = towerInfoFrame
@@ -178,7 +178,7 @@ local function createTowerInfo(islandData, maxTowers)
     incomeLabel.BackgroundTransparency = 1
     incomeLabel.Text = LanguageConfig.Get(10069) .. string.format(": %d", islandData.dailyIncome or 0)
     incomeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    incomeLabel.TextSize = 18
+    incomeLabel.TextScaled = true
     incomeLabel.Font = UIConfig.Font
     incomeLabel.TextXAlignment = Enum.TextXAlignment.Left
     incomeLabel.Parent = towerInfoFrame
@@ -202,7 +202,7 @@ local function createTowerPosition(islandData, maxTowers)
     towerPositionTitle.BackgroundTransparency = 1
     towerPositionTitle.Text = LanguageConfig.Get(10070)
     towerPositionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    towerPositionTitle.TextSize = 18
+    towerPositionTitle.TextScaled = true
     towerPositionTitle.Font = UIConfig.Font
     towerPositionTitle.Parent = towerPositionFrame
     
@@ -232,7 +232,7 @@ local function createTowerPosition(islandData, maxTowers)
     positionTemplate.BackgroundColor3 = Color3.fromRGB(68, 75, 82)
     positionTemplate.Text = ""
     positionTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
-    positionTemplate.TextSize = 16
+    positionTemplate.TextScaled = true
     positionTemplate.Font = UIConfig.Font
     positionTemplate.Visible = false
     positionTemplate.Parent = positionScrollFrame
@@ -246,7 +246,7 @@ local function createTowerPosition(islandData, maxTowers)
     statusLabel.BackgroundTransparency = 1
     statusLabel.Text = ""
     statusLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
-    statusLabel.TextSize = 16
+    statusLabel.TextScaled = true
     statusLabel.Font = UIConfig.Font
     statusLabel.TextXAlignment = Enum.TextXAlignment.Center
     statusLabel.Parent = positionTemplate

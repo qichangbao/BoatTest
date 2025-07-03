@@ -35,6 +35,7 @@ local RankService = Knit.CreateService({
     Client = {
         UpdateLeaderboard = Knit.CreateSignal(),
         InitPlayerSailingData = Knit.CreateSignal(),
+        UpdatePlayerSailingData = Knit.CreateSignal(),
     },
     
     -- 服务器端数据
@@ -58,7 +59,7 @@ function RankService:InitPlayerSailingData(player)
     -- 从数据库获取玩家航行数据
     local DBService = Knit.GetService('DBService')
     local totalDistance = DBService:Get(player.UserId, "TotalSailingDistance") or 0
-    local maxSingleDistance = DBService:Get(player.UserId, "MaxSingleSailingDistance") or 0
+    local maxSailingDistance = DBService:Get(player.UserId, "MaxSingleSailingDistance") or 0
     local totalSailingTime = DBService:Get(player.UserId, "TotalSailingTime") or 0
     local maxSailingTime = DBService:Get(player.UserId, "MaxSailingTime") or 0
     
@@ -66,7 +67,7 @@ function RankService:InitPlayerSailingData(player)
     self.playerSailingData[userId] = {
         player = player,
         totalDistance = totalDistance,
-        maxSingleDistance = maxSingleDistance,
+        maxSailingDistance = maxSailingDistance,
         totalSailingTime = totalSailingTime,
         maxSailingTime = maxSailingTime,
         currentSailingDistance = 0, -- 当前航行距离
@@ -74,17 +75,16 @@ function RankService:InitPlayerSailingData(player)
         lastPosition = nil, -- 上次位置
         isTracking = false, -- 是否正在追踪
         lastUpdateTime = tick(), -- 上次更新时间
-        trackingStartTime = 0, -- 开始追踪时间
     }
     
     -- 保存玩家名称到DataStore（用于排行榜显示）
     self:SavePlayerName(userId, player.Name)
     
     -- 如果玩家有现有数据，添加到待更新队列同步到OrderedDataStore
-    if totalDistance > 0 or maxSingleDistance > 0 or totalSailingTime > 0 or maxSailingTime > 0 then
+    if totalDistance > 0 or maxSailingDistance > 0 or totalSailingTime > 0 or maxSailingTime > 0 then
         self.pendingUpdates[userId] = {
             totalDistance = math.floor(totalDistance),
-            maxSingleDistance = math.floor(maxSingleDistance),
+            maxSailingDistance = math.floor(maxSailingDistance),
             totalSailingTime = totalSailingTime,
             maxSailingTime = maxSailingTime,
             playerName = player.Name
@@ -93,7 +93,7 @@ function RankService:InitPlayerSailingData(player)
 
     self.Client.InitPlayerSailingData:Fire(player, {
         totalDistance = math.floor(totalDistance),
-        maxSingleDistance = math.floor(maxSingleDistance),
+        maxSailingDistance = math.floor(maxSailingDistance),
         totalSailingTime = totalSailingTime,
         maxSailingTime = maxSailingTime,
     })
@@ -144,7 +144,8 @@ end
 
 -- 开始追踪玩家航行距离
 -- @param player Player 玩家对象
-function RankService:StartTrackingPlayer(player)
+-- @param isRevive 是否重生
+function RankService:StartTrackingPlayer(player, isRevive)
     local userId = player.UserId
     local data = self.playerSailingData[userId]
     
@@ -159,17 +160,26 @@ function RankService:StartTrackingPlayer(player)
     end
     
     -- 重置当前航行数据
-    data.currentSailingDistance = 0
-    data.currentSailingTime = 0
-    data.isTracking = true
-    data.lastPosition = nil
-    data.lastUpdateTime = tick()
-    data.trackingStartTime = tick()
-    
-    -- 获取初始位置
-    if player.Character and player.Character.PrimaryPart then
-        data.lastPosition = player.Character.PrimaryPart.Position
+    if not isRevive then
+        data.currentSailingDistance = 0
+        data.currentSailingTime = 0
     end
+    data.isTracking = true
+    data.lastUpdateTime = tick()
+    data.lastPosition = nil
+    if player.Character then
+        data.lastPosition = player.Character:GetPivot().Position
+    end
+    
+    -- 同步客户端航行数据
+    self.Client.UpdatePlayerSailingData:Fire(player, {
+        totalDistance = data.totalDistance,
+        maxSailingDistance = data.maxSailingDistance,
+        totalSailingTime = data.totalSailingTime,
+        maxSailingTime = data.maxSailingTime,
+        currentSailingDistance = data.currentSailingDistance,
+        currentSailingTime = data.currentSailingTime,
+    })
 end
 
 -- 停止追踪玩家航行距离
@@ -184,43 +194,48 @@ function RankService:StopTrackingPlayer(player)
     
     data.isTracking = false
     
-    -- 计算本次航行时间（秒）
-    local currentTime = tick()
-    data.currentSailingTime = currentTime - data.trackingStartTime
-    
-    -- 更新总航行距离
-    data.totalDistance += data.currentSailingDistance
-    -- 更新最大单次航行距离
-    if data.currentSailingDistance > data.maxSingleDistance then
-        data.maxSingleDistance = data.currentSailingDistance
+    if player.Character and data.lastPosition then
+        -- 更新最大单次航行距离
+        local currentPosition = player.Character:GetPivot().Position
+        -- 计算距离
+        local distance = Vector3.new(currentPosition.X - data.lastPosition.X, 0, currentPosition.Z - data.lastPosition.Z).Magnitude
+        
+        -- 防止传送等异常移动（距离过大）
+        if distance < 1000 and distance > 0.1 then
+            data.totalDistance += distance
+        end
     end
+    data.maxSailingDistance = math.max(data.maxSailingDistance, data.currentSailingDistance)
     
     -- 计算航行时间
-    data.totalSailingTime += data.currentSailingTime * GameConfig.Real_To_Game_Second
+    local currentTime = tick()
+    local stepTime = currentTime - data.lastUpdateTime
+    data.currentSailingTime += stepTime * GameConfig.Real_To_Game_Second
+    data.totalSailingTime += stepTime * GameConfig.Real_To_Game_Second
     -- 更新航行时间
-    if data.currentSailingTime * GameConfig.Real_To_Game_Second > data.maxSailingTime then
-        data.maxSailingTime = data.currentSailingTime * GameConfig.Real_To_Game_Second
-    end
+    data.maxSailingTime = math.max(data.maxSailingTime, data.currentSailingTime)
     
     -- 保存到数据库
     local DBService = Knit.GetService('DBService')
     DBService:Set(player.UserId, "TotalSailingDistance", data.totalDistance)
-    DBService:Set(player.UserId, "MaxSingleSailingDistance", data.maxSingleDistance)
+    DBService:Set(player.UserId, "MaxSingleSailingDistance", data.maxSailingDistance)
     DBService:Set(player.UserId, "TotalSailingTime", data.totalSailingTime)
     DBService:Set(player.UserId, "MaxSailingTime", data.maxSailingTime)
     
     -- 添加到待更新队列（确保数据为整数类型）
     self.pendingUpdates[userId] = {
         totalDistance = math.floor(data.totalDistance),
-        maxSingleDistance = math.floor(data.maxSingleDistance),
+        maxSailingDistance = math.floor(data.maxSailingDistance),
         totalSailingTime = data.totalSailingTime,
         maxSailingTime = data.maxSailingTime,
         playerName = player.Name
     }
     
-    -- 重置当前航行数据
-    data.currentSailingDistance = 0
-    data.currentSailingTime = 0
+    -- -- 重置当前航行数据
+    -- data.currentSailingDistance = 0
+    -- data.currentSailingTime = 0
+    -- data.lastUpdateTime = 0
+    -- data.lastPosition = nil
 end
 
 -- 更新玩家航行距离
@@ -234,9 +249,9 @@ function RankService:UpdatePlayerDistance(player)
     end
     
     local currentTime = tick()
-    
+    local stepTime = currentTime - data.lastUpdateTime
     -- 限制更新频率
-    if currentTime - data.lastUpdateTime < UPDATE_INTERVAL then
+    if stepTime < UPDATE_INTERVAL then
         return
     end
     
@@ -248,18 +263,33 @@ function RankService:UpdatePlayerDistance(player)
         return
     end
     
-    local currentPosition = boat:GetPivot().Position
-    -- 如果有上次位置，计算距离
-    if data.lastPosition then
+    if player.Character and data.lastPosition then
+        local currentPosition = player.Character:GetPivot().Position
+        -- 计算距离
         local distance = Vector3.new(currentPosition.X - data.lastPosition.X, 0, currentPosition.Z - data.lastPosition.Z).Magnitude
         
         -- 防止传送等异常移动（距离过大）
         if distance < 1000 and distance > 0.1 then
-            data.currentSailingDistance = data.currentSailingDistance + distance
+            data.currentSailingDistance += distance
+            data.totalDistance += distance
         end
+        -- 更新位置
+        data.lastPosition = currentPosition
     end
-    -- 更新位置
-    data.lastPosition = currentPosition
+
+    -- 计算本次航行时间（秒）
+    data.currentSailingTime += stepTime * GameConfig.Real_To_Game_Second
+    data.totalSailingTime += stepTime * GameConfig.Real_To_Game_Second
+
+    -- 同步客户端航行数据
+    self.Client.UpdatePlayerSailingData:Fire(player, {
+        totalDistance = data.totalDistance,
+        maxSailingDistance = data.maxSailingDistance,
+        totalSailingTime = data.totalSailingTime,
+        maxSailingTime = data.maxSailingTime,
+        currentSailingDistance = data.currentSailingDistance,
+        currentSailingTime = data.currentSailingTime,
+    })
 end
 
 -- 批量更新全服排行榜
@@ -277,7 +307,7 @@ function RankService:BatchUpdateGlobalLeaderboard()
             
             -- 更新最大单次距离排行榜
             pcall(function()
-                MaxSingleDistanceLeaderboard:SetAsync(userId, math.floor(updateData.maxSingleDistance))
+                MaxSingleDistanceLeaderboard:SetAsync(userId, math.floor(updateData.maxSailingDistance))
             end)
 
             -- 更新总航行时间排行榜
@@ -583,7 +613,7 @@ function RankService:GetPersonalDataWithRank(player)
     
     return {
         totalDistance = data.totalDistance + data.currentSailingDistance,
-        maxSingleDistance = math.max(data.maxSingleDistance, data.currentSailingDistance),
+        maxSailingDistance = math.max(data.maxSailingDistance, data.currentSailingDistance),
         totalSailingTime = data.totalSailingTime,
         maxSailingTime = math.max(data.maxSailingTime, data.currentSailingTime),
         totalDisRank = totalDisRank,

@@ -96,7 +96,7 @@ local function createLabel(parent, barPos, barAnchorPoint, fillColor)
     label.AnchorPoint = Vector2.new(0.5, 0.5)
     label.Text = ""
     label.Font = UIConfig.Font
-    label.TextSize = 18
+    label.TextScaled = true
     label.TextColor3 = Color3.new(1, 1, 1)
     label.TextStrokeColor3 = Color3.new(0, 0, 0)
     label.TextStrokeTransparency = 0.5
@@ -225,7 +225,7 @@ local function UpdateCompass()
     if not boat or not boat.PrimaryPart then return end
     
     local boatCFrame = boat.PrimaryPart.CFrame or CFrame.new()
-    local lookVector = -boatCFrame.LookVector  -- 取反获得船头方向
+    local lookVector = boatCFrame.LookVector  -- 船头方向（修正：移除取反）
     local rightVector = boatCFrame.RightVector
     
     -- 计算正北方向（世界坐标系Z轴负方向）

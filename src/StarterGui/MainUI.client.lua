@@ -17,7 +17,6 @@ local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
-local _buttonTextSize = 24
 local _buttonSize = UDim2.new(0, 100, 0, 60)
 
 local _screenGui = Instance.new('ScreenGui')
@@ -32,7 +31,7 @@ _startBoatButton.Size = _buttonSize
 _startBoatButton.Position = UDim2.new(0, 80, 1, -60)
 _startBoatButton.Text = LanguageConfig.Get(10004)
 _startBoatButton.Font = UIConfig.Font
-_startBoatButton.TextSize = _buttonTextSize
+_startBoatButton.TextScaled = true
 _startBoatButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)  -- 海洋蓝
 _startBoatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _startBoatButton.Parent = _screenGui
@@ -58,7 +57,7 @@ _stopBoatButton.Size = _buttonSize
 _stopBoatButton.Position = UDim2.new(0, 80, 1, -60)
 _stopBoatButton.Text = LanguageConfig.Get(10005)
 _stopBoatButton.Font = UIConfig.Font
-_stopBoatButton.TextSize = _buttonTextSize
+_stopBoatButton.TextScaled = true
 _stopBoatButton.BackgroundColor3 = Color3.fromRGB(209, 52, 56)  -- 警示红
 _stopBoatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _stopBoatButton.Visible = false
@@ -81,7 +80,7 @@ _addBoatPartButton.Size = _buttonSize
 _addBoatPartButton.Position = UDim2.new(0, 80, 1, -140)
 _addBoatPartButton.Text = LanguageConfig.Get(10006)
 _addBoatPartButton.Font = UIConfig.Font
-_addBoatPartButton.TextSize = _buttonTextSize
+_addBoatPartButton.TextScaled = true
 _addBoatPartButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)
 _addBoatPartButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _addBoatPartButton.Visible = false
@@ -253,7 +252,7 @@ local function addMessage(messageType, messageText)
     messageLabel.Position = UDim2.new(0, 5, 0, 0)  -- 左边5像素间距
     messageLabel.Text = messageText
     messageLabel.Font = UIConfig.Font
-    messageLabel.TextSize = 16
+    messageLabel.TextScaled = true
     messageLabel.TextColor3 = _messageColors[messageType] or _messageColors['info']
     messageLabel.BackgroundTransparency = 1
     messageLabel.TextWrapped = true
@@ -302,9 +301,9 @@ local _goldLabel = Instance.new('TextLabel')
 _goldLabel.Name = 'GoldLabel'
 _goldLabel.AnchorPoint = Vector2.new(1, 1)
 _goldLabel.Position = UDim2.new(1, -20, 1, -20)
-_goldLabel.Text = LanguageConfig.Get(10007) .. ": 0"
+_goldLabel.Text = LanguageConfig.Get(10007) .. ": " .. ClientData.Gold
 _goldLabel.Font = UIConfig.Font
-_goldLabel.TextSize = 20
+_goldLabel.TextSize = 30
 _goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 _goldLabel.BackgroundTransparency = 1
 _goldLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -318,7 +317,7 @@ _playersButton.Size = _buttonSize
 _playersButton.Position = UDim2.new(1, -60, 1, -240)
 _playersButton.Text = LanguageConfig.Get(10026)
 _playersButton.Font = UIConfig.Font
-_playersButton.TextSize = _buttonTextSize
+_playersButton.TextScaled = true
 _playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
 _playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _playersButton.Parent = _screenGui
@@ -337,7 +336,7 @@ _buffButton.Size = _buttonSize
 _buffButton.Position = UDim2.new(1, -60, 1, -320)
 _buffButton.Text = "BUFF"
 _buffButton.Font = UIConfig.Font
-_buffButton.TextSize = _buttonTextSize
+_buffButton.TextScaled = true
 _buffButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
 _buffButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _buffButton.Parent = _screenGui
@@ -352,10 +351,10 @@ local _lootButton = Instance.new('TextButton')
 _lootButton.Name = 'LootButton'
 _lootButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _lootButton.Size = _buttonSize
-_lootButton.Position = UDim2.new(1, -60, 1, -160)
+_lootButton.Position = UDim2.new(1, -60, 0, 0)
 _lootButton.Text = LanguageConfig.Get(10008)
 _lootButton.Font = UIConfig.Font
-_lootButton.TextSize = _buttonTextSize
+_lootButton.TextScaled = true
 _lootButton.Active = false
 _lootButton.AutoButtonColor = false
 _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
@@ -367,7 +366,7 @@ local _cooldownLabel = Instance.new('TextLabel')
 _cooldownLabel.Size = UDim2.new(1, 0, 1, 0)
 _cooldownLabel.Text = tostring(LOOT_TIME_COOLDOWN)
 _cooldownLabel.TextColor3 = Color3.new(0.925490, 0.231372, 0.231372)
-_cooldownLabel.TextSize = 32
+_cooldownLabel.TextScaled = true
 _cooldownLabel.BackgroundTransparency = 0.7
 _cooldownLabel.BackgroundColor3 = Color3.new(0,0,0)
 _cooldownLabel.Visible = false
@@ -427,7 +426,7 @@ _backpackButton.Size = _buttonSize
 _backpackButton.Position = UDim2.new(1, -60, 1, -80)
 _backpackButton.Text = LanguageConfig.Get(10025)
 _backpackButton.Font = UIConfig.Font
-_backpackButton.TextSize = _buttonTextSize
+_backpackButton.TextScaled = true
 _backpackButton.BackgroundColor3 = Color3.fromRGB(147, 51, 234)  -- 柔和紫罗兰色
 _backpackButton.Parent = _screenGui
 -- 背包按钮点击事件
@@ -441,17 +440,35 @@ local _rankButton = Instance.new('TextButton')
 _rankButton.Name = 'RankButton'
 _rankButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _rankButton.Size = _buttonSize
-_rankButton.Position = UDim2.new(1, -60, 0, 60)
+_rankButton.Position = UDim2.new(1, -60, 1, -400)
 _rankButton.Text = LanguageConfig.Get(10084)
 _rankButton.Font = UIConfig.Font
-_rankButton.TextSize = _buttonTextSize
+_rankButton.TextScaled = true
 _rankButton.BackgroundColor3 = Color3.fromRGB(182, 109, 250)  -- 柔和紫罗兰色
 _rankButton.Parent = _screenGui
--- 背包按钮点击事件
+-- 排行榜按钮点击事件
 _rankButton.MouseButton1Click:Connect(function()
     Knit.GetController('UIController').ShowRankUI:Fire()
 end)
 UIConfig.CreateCorner(_rankButton)
+
+-- 商城按钮
+local _shopButton = Instance.new('TextButton')
+_shopButton.Name = 'ShopButton'
+_shopButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_shopButton.Size = _buttonSize
+_shopButton.Position = UDim2.new(1, -60, 1, -160)
+_shopButton.Text = LanguageConfig.Get(10092)
+_shopButton.Font = UIConfig.Font
+_shopButton.TextScaled = true
+_shopButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)  -- 橙色
+_shopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_shopButton.Parent = _screenGui
+-- 商城按钮点击事件
+_shopButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowPurchaseUI:Fire()
+end)
+UIConfig.CreateCorner(_shopButton)
 
 -- 岛屿管理按钮
 local _islandManageButton = Instance.new('TextButton')
@@ -462,7 +479,7 @@ _islandManageButton.Size = _buttonSize
 _islandManageButton.Position = UDim2.new(0, 60, 1, -240)
 _islandManageButton.Text = LanguageConfig.Get(10066)
 _islandManageButton.Font = UIConfig.Font
-_islandManageButton.TextSize = _buttonTextSize
+_islandManageButton.TextScaled = true
 _islandManageButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)  -- 森林绿
 _islandManageButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 _islandManageButton.Parent = _screenGui
@@ -492,7 +509,7 @@ _islandOccupyTipText.Text = LanguageConfig.Get(10037)
 _islandOccupyTipText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _islandOccupyTipText.BackgroundTransparency = 1
 _islandOccupyTipText.Font = UIConfig.Font
-_islandOccupyTipText.TextSize = 20
+_islandOccupyTipText.TextScaled = true
 _islandOccupyTipText.Parent = _islandOccupyProgressContainer
 
 -- 创建进度条背景
@@ -521,7 +538,7 @@ _islandOccupyCountdownText.Text = tostring(GameConfig.OccupyTime)
 _islandOccupyCountdownText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _islandOccupyCountdownText.BackgroundTransparency = 1
 _islandOccupyCountdownText.Font = UIConfig.Font
-_islandOccupyCountdownText.TextSize = 18
+_islandOccupyCountdownText.TextScaled = true
 _islandOccupyCountdownText.Parent = _islandOccupyProgressContainer
 
 local function ShowOccupingLayer(isShow)
@@ -662,33 +679,23 @@ local function createPersonalRankDisplay()
     _maxDaysLabel.LayoutOrder = 4
     _maxDaysLabel.Parent = _personalRankFrame
     
-    -- 获取当前航行数据的函数
-     local function getCurrentSailingData()
-         local currentData = ClientData.PersonRankData.currentData
-         return currentData.distance or 0, (currentData.sailingTime or 0) * GameConfig.Real_To_Game_Second
-     end
-    
     -- 更新显示数据的函数
     local function updateDisplayData()
-        local currentDistance, currentTime = getCurrentSailingData()
-        local currentTimeDays = currentTime / (24 * 3600)
-        local serverData = ClientData.PersonRankData.serverData
+        local personRankData = ClientData.PersonRankData
         
         -- 更新总航行距离（服务器历史数据 + 当前航行距离）
-        local totalDistance = (serverData.totalDistance or 0) + currentDistance
-        _totalDistanceLabel.Text = LanguageConfig.Get(10085) .. ": " ..  math.floor(totalDistance)
+        _totalDistanceLabel.Text = LanguageConfig.Get(10085) .. ": " ..  math.floor(personRankData.totalDistance)
         
         -- 更新最大航行距离（当前/最大）
         _maxDistanceLabel.Text = LanguageConfig.Get(10086) .. ": " .. string.format("%d/%d",
-            math.floor(currentDistance), math.floor(serverData.maxSingleDistance or 0))
+            math.floor(personRankData.currentSailingDistance), math.floor(personRankData.maxSailingDistance))
         
         -- 更新总航行时间（服务器历史数据 + 当前航行时间）
-        local totalSailingTime = (serverData.totalSailingTime or 0) + currentTime
-        _totalDaysLabel.Text = LanguageConfig.Get(10090) .. ": " .. string.format("%.2f", totalSailingTime / (24 * 3600))
+        _totalDaysLabel.Text = LanguageConfig.Get(10090) .. ": " .. string.format("%.2f", personRankData.totalSailingTime / (24 * 3600))
         
         -- 更新最大航行时间（当前/最大）
         _maxDaysLabel.Text = LanguageConfig.Get(10087) .. ": " .. string.format("%.2f/%.2f",
-            currentTimeDays, (serverData.maxSailingTime or 0) / (24 * 3600))
+            personRankData.currentSailingTime / (24 * 3600), personRankData.maxSailingTime / (24 * 3600))
     end
     
     -- 高频更新显示数据（每1秒）
@@ -726,7 +733,7 @@ Knit:OnStart():andThen(function()
             _adminButton.Position = UDim2.new(0, 60, 0, 60)
             _adminButton.Text = '数据库'
             _adminButton.Font = UIConfig.Font
-            _adminButton.TextSize = _buttonTextSize
+            _adminButton.TextScaled = true
             _adminButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
             _adminButton.Parent = _screenGui
             UIConfig.CreateCorner(_adminButton)

@@ -56,89 +56,72 @@ return {
     --     },
     -- },
     
-    -- -- 航行距离触发器测试
-    -- {
-    --     ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
-    --     MaxConditions = -1, -- 最大触发次数，-1表示无限制
-    --     RequiredDistance = 500, -- 需要航行的距离（单位：studs）
-    --     Cooldown = 30, -- 触发冷却时间（秒）
-    --     RandomChance = 40, -- 随机触发的概率，30%的概率触发
-    --     IsGoodCondition = true,
-    --     Action = {
-    --         ActionType = "CreateMonster",
-    --         MonsterName = "海怪1",
-    --         UsePlayerPosition = true, -- 使用玩家当前位置
-    --         PositionOffset = 200, -- 相对于玩家位置的偏移
-    --         DestroyToResetCondition = true, -- 死亡是否重置条件
-    --         ResetConditionDelayTime = {30, 50}, -- 重置条件的延迟时间
-    --         Lifetime = 300 -- 怪物存在时间
-    --     },
-    -- },
-    -- -- 航行距离触发器测试
-    -- {
-    --     ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
-    --     MaxConditions = -1, -- 最大触发次数，-1表示无限制
-    --     RequiredDistance = 200, -- 需要航行的距离（单位：studs）
-    --     Cooldown = 30, -- 触发冷却时间（秒）
-    --     RandomChance = 40, -- 随机触发的概率，30%的概率触发
-    --     IsGoodCondition = true,
-    --     Action = {
-    --         ActionType = "CreateChest",
-    --         UsePlayerPosition = true, -- 使用玩家当前位置
-    --         PositionOffset = 200, -- 相对于玩家位置的偏移
-    --         DestroyToResetCondition = true, -- 销毁后重置条件
-    --         ResetConditionDelayTime = {10, 20}, -- 重置条件的延迟时间
-    --         Lifetime = 300 -- 宝箱存在时间
-    --     },
-    -- },
     -- 航行距离触发器测试
     {
         ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
         MaxConditions = -1, -- 最大触发次数，-1表示无限制
-        RequiredDistance = 30, -- 需要航行的距离（单位：studs）
-        Cooldown = 3, -- 触发冷却时间（秒）
-        RandomChance = 100, -- 随机触发的概率，30%的概率触发
+        RequiredDistance = 500, -- 需要航行的距离（单位：studs）
+        Cooldown = 30, -- 触发冷却时间（秒）
+        RandomChance = 40, -- 随机触发的概率
+        IsGoodCondition = true,
+        Action = {
+            ActionType = "CreateMonster",
+            MonsterName = "海怪1",
+            UsePlayerPosition = true, -- 使用玩家当前位置
+            PositionOffset = 200, -- 相对于玩家位置的偏移
+            DestroyToResetCondition = true, -- 死亡是否重置条件
+            ResetConditionDelayTime = {30, 50}, -- 重置条件的延迟时间
+            Lifetime = 300 -- 怪物存在时间
+        },
+    },
+    -- 航行距离触发器测试
+    {
+        ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
+        MaxConditions = -1, -- 最大触发次数，-1表示无限制
+        RequiredDistance = 200, -- 需要航行的距离（单位：studs）
+        Cooldown = 30, -- 触发冷却时间（秒）
+        RandomChance = 40, -- 随机触发的概率
+        IsGoodCondition = true,
+        Action = {
+            ActionType = "CreateChest",
+            UsePlayerPosition = true, -- 使用玩家当前位置
+            PositionOffset = 200, -- 相对于玩家位置的偏移
+            DestroyToResetCondition = true, -- 销毁后重置条件
+            ResetConditionDelayTime = {10, 20}, -- 重置条件的延迟时间
+            Lifetime = 300 -- 宝箱存在时间
+        },
+    },
+    -- 航行距离触发器测试
+    {
+        ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
+        MaxConditions = -1, -- 最大触发次数，-1表示无限制
+        RequiredDistance = 300, -- 需要航行的距离（单位：studs）
+        Cooldown = 30, -- 触发冷却时间（秒）
+        RandomChance = 40, -- 随机触发的概率
         IsGoodCondition = false,
         Action = {
             ActionType = "Wave",
             Lifetime = 3,
             UsePlayerPosition = true, -- 使用玩家当前位置
             PositionOffset = 200, -- 相对于玩家位置的偏移
-            ChangeHp = 300,
+            ChangeHp = 30,
         },
     },
-    -- -- 航行距离触发器测试
-    -- {
-    --     ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
-    --     MaxConditions = -1, -- 最大触发次数，-1表示无限制
-    --     RequiredDistance = 1000, -- 需要航行的距离（单位：studs）
-    --     Cooldown = 30, -- 触发冷却时间（秒）
-    --     RandomChance = 40, -- 随机触发的概率，30%的概率触发
-    --     IsGoodCondition = true,-- 是否好的条件，用于玩家的幸运值怎么影响
-    --     Action = {
-    --         ActionType = "CreateIsland",
-    --         Lifetime = 300,
-    --         UsePlayerPosition = true, -- 使用玩家当前位置
-    --         PositionOffset = 600, -- 相对于玩家位置的偏移
-    --         DestroyToResetCondition = true, -- 销毁后重置条件
-    --         ResetConditionDelayTime = {10, 20}, -- 重置条件的延迟时间
-    --     },
-    -- },
-    -- -- 时间触发器测试
-    -- {
-    --     ConditionType = "Time", -- 条件类型：时间条件
-    --     MinTime = 3, -- 最小时间
-    --     MaxTime = 10, -- 最大时间
-    --     Cooldown = 30, -- 触发冷却时间（秒）
-    --     RandomChance = 100, -- 随机触发的概率，30%的概率触发
-    --     IsGoodCondition = nil,-- 是否好的条件，用于玩家的幸运值怎么影响
-    --     Action = {
-    --         ActionType = "CreateIsland",
-    --         Lifetime = 300,
-    --         UsePlayerPosition = true, -- 使用玩家当前位置
-    --         PositionOffset = 600, -- 相对于玩家位置的偏移
-    --         DestroyToResetCondition = true, -- 销毁后重置条件
-    --         ResetConditionDelayTime = {10, 20}, -- 重置条件的延迟时间
-    --     },
-    -- },
+    -- 航行距离触发器测试
+    {
+        ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
+        MaxConditions = -1, -- 最大触发次数，-1表示无限制
+        RequiredDistance = 1000, -- 需要航行的距离（单位：studs）
+        Cooldown = 30, -- 触发冷却时间（秒）
+        RandomChance = 70, -- 随机触发的概率
+        IsGoodCondition = true,-- 是否好的条件，用于玩家的幸运值怎么影响
+        Action = {
+            ActionType = "CreateIsland",
+            Lifetime = 300,
+            UsePlayerPosition = true, -- 使用玩家当前位置
+            PositionOffset = 600, -- 相对于玩家位置的偏移
+            DestroyToResetCondition = true, -- 销毁后重置条件
+            ResetConditionDelayTime = {10, 20}, -- 重置条件的延迟时间
+        },
+    },
 }

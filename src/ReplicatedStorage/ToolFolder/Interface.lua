@@ -27,7 +27,6 @@ function Interface.InitPlayerPos(player)
         if humanoid then
             humanoid.Sit = false
         end
-        task.wait(0.2)
         player.Character:PivotTo(spawnLocation.CFrame + Vector3.new(math.random(5, 10), 6, math.random(5, 10)))
         return spawnLocation.Parent.Name
     end
@@ -36,53 +35,59 @@ end
 
 -- 初始化船的位置
 -- 初始化船只在水中的位置，让船头朝向海的方向
-function Interface.InitBoatWaterPos(player, boat)
-    local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
-    local area = nil
-    if curAreaTemplate then
-        area = workspace:FindFirstChild(curAreaTemplate)
+function Interface.InitBoatWaterPos(player, boat, revivePos)
+    local x = 0
+    local z = 0
+    -- 使用适当的水面高度，而不是0
+    local waterLevel = 0 -- 根据oldCFrame的Y坐标设置合适的水面高度
+    if revivePos then   -- 如果是原地复活
+        x = revivePos.X
+        z = revivePos.Z
+    else
+        local curAreaTemplate = player:GetAttribute("CurAreaTemplate")
+        local area = nil
+        if curAreaTemplate then
+            area = workspace:FindFirstChild(curAreaTemplate)
+        end
+
+        local spawnLocation = nil
+        if area then
+            spawnLocation = area:WaitForChild("SpawnLocation")
+        end
+
+        if not spawnLocation then
+            spawnLocation = player.RespawnLocation
+        end
+        player:SetAttribute("CurAreaTemplate", nil)
+        if spawnLocation and player.Character then
+            local land = spawnLocation.Parent
+            local floor = land:FindFirstChild("Floor")
+            if not floor then
+                return
+            end
+            local minPosX = floor.Position.X - floor.Size.X / 2
+            local maxPosX = floor.Position.X + floor.Size.X / 2
+            local minPosZ = floor.Position.Z - floor.Size.Z / 2
+            local maxPosZ = floor.Position.Z + floor.Size.Z / 2
+            local randomPosX = math.random(-10, 10)
+            local randomPosZ = math.random(-10, 10)
+            if randomPosX < 0 then
+                x = minPosX + randomPosX - GameConfig.LandWharfDis
+            else
+                x = maxPosX + randomPosX + GameConfig.LandWharfDis
+            end
+            if randomPosZ < 0 then
+                z = minPosZ + randomPosZ - GameConfig.LandWharfDis
+            else
+                z = maxPosZ + randomPosZ + GameConfig.LandWharfDis
+            end
+        end
     end
 
-    local spawnLocation = nil
-    if area then
-        spawnLocation = area:WaitForChild("SpawnLocation")
-    end
+    boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)))
 
-    if not spawnLocation then
-        spawnLocation = player.RespawnLocation
-    end
-    player:SetAttribute("CurAreaTemplate", nil)
-    if spawnLocation and player.Character then
-        local land = spawnLocation.Parent
-        local floor = land:FindFirstChild("Floor")
-        if not floor then
-            return
-        end
-        local minPosX = floor.Position.X - floor.Size.X / 2
-        local maxPosX = floor.Position.X + floor.Size.X / 2
-        local minPosZ = floor.Position.Z - floor.Size.Z / 2
-        local maxPosZ = floor.Position.Z + floor.Size.Z / 2
-        local randomPosX = math.random(-10, 10)
-        local randomPosZ = math.random(-10, 10)
-        local x = 0
-        local z = 0
-        if randomPosX < 0 then
-            x = minPosX + randomPosX - GameConfig.LandWharfDis
-        else
-            x = maxPosX + randomPosX + GameConfig.LandWharfDis
-        end
-        if randomPosZ < 0 then
-            z = minPosZ + randomPosZ - GameConfig.LandWharfDis
-        else
-            z = maxPosZ + randomPosZ + GameConfig.LandWharfDis
-        end
-        -- 使用适当的水面高度，而不是0
-        local waterLevel = 0 -- 根据oldCFrame的Y坐标设置合适的水面高度
-        boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)))
-    
-        -- 玩家登船
-        Interface.PlayerToBoat(player, boat)
-    end
+    -- 玩家登船
+    Interface.PlayerToBoat(player, boat)
 end
 
 -- 玩家登船
@@ -95,6 +100,7 @@ function Interface.PlayerToBoat(player, boat)
     local driverSeat = boat:FindFirstChild('VehicleSeat')
     if driverSeat then
         player.Character:PivotTo(driverSeat.CFrame)
+        print("5555555555555   ", driverSeat.CFrame)
     end
 end
 

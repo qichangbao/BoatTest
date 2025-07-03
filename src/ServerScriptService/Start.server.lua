@@ -74,6 +74,9 @@ local function setupBoatCollisionGroup(boatModel)
 end
 setupBoatCollisionGroup(ServerStorage:WaitForChild("船"))
 
+-- 全局禁用自动重生
+game.Players.CharacterAutoLoads = false
+
 print("服务器ID：", game.JobId)
 print("服务器ID：", game.GameId)
 print("服务器ID：", game.PlaceId)

@@ -35,7 +35,7 @@ _giftButton.Size = UDim2.new(1, 0, 1, 0)
 _giftButton.BackgroundColor3 = Color3.fromRGB(33, 150, 243)  -- 蓝色
 _giftButton.Text = LanguageConfig.Get(10027)
 _giftButton.Font = UIConfig.Font
-_giftButton.TextSize = 18
+_giftButton.TextScaled = true
 _giftButton.TextColor3 = Color3.new(1, 1, 1)
 _giftButton.Parent = _childFrame
 UIConfig.CreateCorner(_giftButton)
@@ -52,7 +52,7 @@ _playerTemplate.Name = '_playerTemplate'
 _playerTemplate.Size = UDim2.new(0.95, 0, 0, 40)
 _playerTemplate.Text = "PlayerName (ID:123)"
 _playerTemplate.Font = UIConfig.Font
-_playerTemplate.TextSize = 18
+_playerTemplate.TextScaled = true
 _playerTemplate.TextColor3 = Color3.new(1, 1, 1)
 _playerTemplate.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 _playerTemplate.Visible = false

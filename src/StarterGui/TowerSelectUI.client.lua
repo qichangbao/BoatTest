@@ -50,7 +50,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
         towerInfo.BackgroundTransparency = 1
         towerInfo.Text = towerData.ModelName
         towerInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
-        towerInfo.TextSize = 18
+        towerInfo.TextScaled = true
         towerInfo.Font = UIConfig.Font
         towerInfo.TextXAlignment = Enum.TextXAlignment.Left
         towerInfo.Parent = towerOption
@@ -63,7 +63,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
         towerStats.BackgroundTransparency = 1
         towerStats.Text = LanguageConfig.Get(10073) .. string.format(":%d", towerData.Damage)
         towerStats.TextColor3 = Color3.fromRGB(200, 200, 200)
-        towerStats.TextSize = 16
+        towerStats.TextScaled = true
         towerStats.Font = UIConfig.Font
         towerStats.TextXAlignment = Enum.TextXAlignment.Left
         towerStats.Parent = towerOption
@@ -76,7 +76,7 @@ local function createSelectItem(selectedIsland, index, callFunc)
         buyButton.AnchorPoint = Vector2.new(0, 0.5)
         buyButton.Text = string.format("%d金币\n购买", towerData.Price)
         buyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        buyButton.TextSize = 16
+        buyButton.TextScaled = true
         buyButton.Font = UIConfig.Font
         buyButton.Parent = towerOption
         UIConfig.CreateCorner(buyButton, UDim.new(0, 6))

@@ -4,7 +4,6 @@ local ConfigTriggers = require(TriggerFolder:WaitForChild("ConfigTriggers"))
 local ConditionFolder = TriggerFolder:WaitForChild("ConditionFolder")
 local PositionCondition = require(ConditionFolder:WaitForChild("PositionCondition"))
 local SailingDistanceCondition = require(ConditionFolder:WaitForChild("SailingDistanceCondition"))
-local TimeCondition = require(ConditionFolder:WaitForChild("TimeCondition"))
 
 local ActionFolder = TriggerFolder:WaitForChild("ActionFolder")
 local CreateChestAction = require(ActionFolder:WaitForChild("CreateChestAction"))
@@ -33,8 +32,6 @@ function TriggerManager:Init()
             condition = PositionCondition.new(triggerConfig)
         elseif triggerConfig.ConditionType == "SailingDistance" then
             condition = SailingDistanceCondition.new(triggerConfig)
-        elseif triggerConfig.ConditionType == "Time" then
-            condition = TimeCondition.new(triggerConfig)
         else
             warn("未知的触发器类型:", triggerConfig.ConditionType)
             continue
@@ -50,12 +47,8 @@ function TriggerManager:Init()
         condition:Connect(function(data)
             if triggerConfig.ConditionType == "Position" then
                 print("位置触发器被触发!", data.Player.Name, "在位置", data.Position)
-            elseif triggerConfig.ConditionType == "Random" then
-                print("玩家随机触发器被触发!", data.Player.Name)
             elseif triggerConfig.ConditionType == "SailingDistance" then
                 print("玩家航行距离触发器被触发!", data.Player.Name)
-            elseif triggerConfig.ConditionType == "Time" then
-                print("时间触发器被处罚!", data.Player.Name)
             else
                 warn("未知的触发器类型:", triggerConfig.ConditionType)
                 return
@@ -70,11 +63,8 @@ function TriggerManager:Init()
 
     game:GetService("RunService").Heartbeat:Connect(function()
         for _, condition in ipairs(_allConditions) do
-            local conditionType = condition.config.ConditionType
-            if conditionType == "Position" or conditionType == "SailingDistance" or conditionType == "Time" then
-                for _, v in pairs(game.Players:GetPlayers()) do
-                    condition:MonitorPlayer(v)
-                end
+            for _, v in pairs(game.Players:GetPlayers()) do
+                condition:MonitorPlayer(v)
             end
         end
     end)
