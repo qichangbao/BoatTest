@@ -16,17 +16,17 @@ _screenGui.Parent = PlayerGui
 UIConfig.CreateBlock(_screenGui)
 
 local _frame = UIConfig.CreateFrame(_screenGui)
-_frame.Size = UDim2.new(0.4, 0, 0.3, 0)
+_frame.Size = UDim2.new(0.4, 0, 0.5, 0)
 UIConfig.CreateCorner(_frame, UDim.new(0, 8))
 
 -- title显示
 local _titleLabel = Instance.new('TextLabel')
 _titleLabel.AnchorPoint = Vector2.new(0.5, 0)
-_titleLabel.Position = UDim2.new(0.5, 0, 0.1, 0)
-_titleLabel.Size = UDim2.new(0.9, 0, 0.5, 0)
+_titleLabel.Position = UDim2.new(0.5, 0, 0, 0)
+_titleLabel.Size = UDim2.new(0.9, 0, 0.2, 0)
 _titleLabel.TextScaled = true
 _titleLabel.Font = UIConfig.Font
-_titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+_titleLabel.TextColor3 = Color3.fromRGB(147, 51, 234)
 _titleLabel.TextXAlignment = Enum.TextXAlignment.Center
 _titleLabel.TextYAlignment = Enum.TextYAlignment.Top
 _titleLabel.TextWrapped = true
@@ -65,8 +65,8 @@ _cancelButton.Position = UDim2.new(0.3, 0, 0.8, 0)
 
 local _textLabel = Instance.new('TextLabel')
 _textLabel.AnchorPoint = Vector2.new(0.5, 0)
-_textLabel.Position = UDim2.new(0.5, 0, 0.1, 0)
-_textLabel.Size = UDim2.new(0.9, 0, 0.6, 0)
+_textLabel.Position = UDim2.new(0.5, 0, 0.2, 0)
+_textLabel.Size = UDim2.new(0.9, 0, 0.4, 0)
 _textLabel.TextScaled = true
 _textLabel.Font = UIConfig.Font
 _textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)

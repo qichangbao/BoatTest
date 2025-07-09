@@ -47,9 +47,9 @@ local RankService = Knit.CreateService({
 
 -- 配置参数
 local UPDATE_INTERVAL = 1 -- 距离更新间隔（秒）
-local CACHE_UPDATE_INTERVAL = 30 -- 缓存更新间隔（秒）
-local LEADERBOARD_SIZE = 100 -- 排行榜显示数量
-local BATCH_UPDATE_INTERVAL = 5 -- 批量更新间隔（秒）
+local CACHE_UPDATE_INTERVAL = 3600 -- 缓存更新间隔（秒）
+local LEADERBOARD_SIZE = 15 -- 排行榜显示数量
+local BATCH_UPDATE_INTERVAL = 30 -- 批量更新间隔（秒）
 
 -- 初始化玩家航行数据
 -- @param player Player 玩家对象
@@ -331,7 +331,6 @@ end
 -- @param limit number 获取数量限制
 -- @return table 排行榜数据
 function RankService:GetGlobalLeaderboardData(leaderboardType, limit)
-    limit = limit or LEADERBOARD_SIZE
     local dataStore
     if leaderboardType == "totalDis" then
         dataStore = TotalDistanceLeaderboard
@@ -423,10 +422,10 @@ function RankService:UpdateLeaderboardCache()
     
     -- 获取排行榜数据
     task.spawn(function()
-        local totalDisLeaderboard = self:GetGlobalLeaderboardData("totalDis", 50)
-        local maxDisLeaderboard = self:GetGlobalLeaderboardData("maxDis", 50)
-        local totalTimeLeaderboard = self:GetGlobalLeaderboardData("totalTime", 50)
-        local maxTimeLeaderboard = self:GetGlobalLeaderboardData("maxTime", 50)
+        local totalDisLeaderboard = self:GetGlobalLeaderboardData("totalDis", LEADERBOARD_SIZE)
+        local maxDisLeaderboard = self:GetGlobalLeaderboardData("maxDis", LEADERBOARD_SIZE)
+        local totalTimeLeaderboard = self:GetGlobalLeaderboardData("totalTime", LEADERBOARD_SIZE)
+        local maxTimeLeaderboard = self:GetGlobalLeaderboardData("maxTime", LEADERBOARD_SIZE)
         
         -- 更新缓存
         self.leaderboardCache = {
@@ -440,6 +439,12 @@ function RankService:UpdateLeaderboardCache()
         -- 通知所有客户端更新排行榜
         self.Client.UpdateLeaderboard:FireAll(self.leaderboardCache)
     end)
+end
+
+function  RankService:GetPersonalData(player)
+    local userId = player.UserId
+    local data = self.playerSailingData[userId]
+    return data
 end
 
 -- 获取玩家个人数据和排名
@@ -624,13 +629,22 @@ function RankService:GetPersonalDataWithRank(player)
 end
 
 -- 客户端请求排行榜数据
-function RankService.Client:GetLeaderboard(player, leaderboardType)
-    local cache = self.Server.leaderboardCache[leaderboardType or "totalDis"]
+function RankService.Client:GetLeaderboard(player)
+    local cache = self.Server.leaderboardCache
     if cache then
         return cache
     else
+        local totalDisLeaderboard = self:GetGlobalLeaderboardData("totalDis", LEADERBOARD_SIZE)
+        local maxDisLeaderboard = self:GetGlobalLeaderboardData("maxDis", LEADERBOARD_SIZE)
+        local totalTimeLeaderboard = self:GetGlobalLeaderboardData("totalTime", LEADERBOARD_SIZE)
+        local maxTimeLeaderboard = self:GetGlobalLeaderboardData("maxTime", LEADERBOARD_SIZE)
         -- 如果缓存为空，立即获取数据
-        local data = self.Server:GetGlobalLeaderboardData(leaderboardType or "totalDis", 50)
+        local data = {
+            totalDis = totalDisLeaderboard,
+            maxDis = maxDisLeaderboard,
+            totalTime = totalTimeLeaderboard,
+            maxTime = maxTimeLeaderboard,
+        }
         return data
     end
 end

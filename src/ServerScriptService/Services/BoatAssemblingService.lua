@@ -16,7 +16,7 @@ local BoatAssemblingService = Knit.CreateService({
     },
 })
 
-function BoatAssemblingService:CreateBoat(player)
+function BoatAssemblingService:CreateBoat(player, boatName)
     if not player or not player.Character or not player.Character.Humanoid then
         return
     end
@@ -25,34 +25,15 @@ function BoatAssemblingService:CreateBoat(player)
     -- 获取玩家库存中的船部件
     local inventory = InventoryService:Inventory(player, 'GetInventory')
     -- 检查库存有效性并收集船部件
-    local boats = {}
-    local boatCount = 0
+    local boatParts = {}
     for itemName, itemData in pairs(inventory) do
         if itemData.itemType == ItemConfig.BoatTag then
-            if not boats[itemData.modelName] then
-                boats[itemData.modelName] = {}
-                boatCount += 1
+            if itemData.modelName == boatName then
+                table.insert(boatParts, {
+                    Name = itemName,
+                })
             end
-            table.insert(boats[itemData.modelName], {
-                Name = itemName,
-                Data = itemData
-            })
         end
-    end
-
-    if boatCount == 0 then
-        return
-    end
-
-    if boatCount > 1 then
-        return
-    end
-
-    local boatName = ""
-    local boatParts = {}
-    for i, v in pairs(boats) do
-        boatName = i
-        boatParts = v
     end
 
     -- 确保ServerStorage中存在船舶模板
@@ -361,17 +342,17 @@ function BoatAssemblingService:CreateStabilizer(boat)
         boatSize.X, boatSize.Y, boatSize.Z))
 end
 
-function BoatAssemblingService.Client:AssembleBoat(player)
-    return self.Server:AssembleBoat(player)
+function BoatAssemblingService.Client:AssembleBoat(player, boatName, revivePos)
+    return self.Server:AssembleBoat(player, boatName, revivePos)
 end
 
-function BoatAssemblingService:AssembleBoat(player, revivePos)
+function BoatAssemblingService:AssembleBoat(player, boatName, revivePos)
     local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if boat then
         return 10020
     end
 
-    boat = self:CreateBoat(player)
+    boat = self:CreateBoat(player, boatName)
     if not boat or not boat.primaryPart then
         return 10021
     end
@@ -517,6 +498,7 @@ function BoatAssemblingService:StopBoat(player)
 
     playerBoat:Destroy()
     print("船已销毁")
+    task.wait(0.1)
     local landName = Interface.InitPlayerPos(player)
     if landName then
         local start = landName:find("_")

@@ -165,7 +165,7 @@ local function CreateBillBoard(land, name, lifetime)
     -- 创建BillboardGui
     local billboard = Instance.new("BillboardGui")
     billboard.Size = UDim2.new(0, 300, 0, 100)
-    billboard.StudsOffset = Vector3.new(0, 30, 0)
+    billboard.StudsOffset = Vector3.new(0, 100, 0)
     billboard.AlwaysOnTop = true
     billboard.Adornee = land
     billboard.MaxDistance = 600

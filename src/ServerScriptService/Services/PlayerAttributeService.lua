@@ -115,6 +115,12 @@ function PlayerAttributeService:KnitInit()
             end
             character:SetAttribute("ModelType", "Player")
             
+            -- 移除Roblox自带的ForceField保护光环效果
+            local forceField = character:FindFirstChild("ForceField")
+            if forceField then
+                forceField:Destroy()
+            end
+            
             for _, part in ipairs(character:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.CollisionGroup = "PlayerCollisionGroup"

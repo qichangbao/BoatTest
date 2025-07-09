@@ -24,8 +24,10 @@ local function generateRandomBuff()
 end
 
 -- 生成随机物品
-local function generateRandomItem()
-    return ItemConfig.GetRandomItem()
+local function generateRandomItem(player)
+    local playerSailingTime = Knit.GetService("RankService"):GetPersonalData(player).totalSailingTime
+    local playerDay = string.format("%.2f", playerSailingTime / (24 * 3600))
+    return ItemConfig.GetRandomItem(tonumber(playerDay))
 end
 
 -- 给玩家添加金币
@@ -87,7 +89,7 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     
     -- 检查物品奖励
     if math.random() < ChestConfig.item.chance then
-        local itemData = generateRandomItem()
+        local itemData = generateRandomItem(player)
         if itemData and addItemToPlayer(player, itemData) then
             sendRewardNotification(player, "Item", {itemName = itemData.itemName, chestPosition = chestPosition})
             isReward = true

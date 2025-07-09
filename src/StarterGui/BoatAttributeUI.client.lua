@@ -148,7 +148,7 @@ local function UpdateUI(type, value, maxValue)
         healthTween:Play()
         
         -- 更新文本
-        _healthLabel.Text = string.format(LanguageConfig.Get(10013), math.floor(value), math.floor(maxValue))
+        _healthLabel.Text = LanguageConfig.Get(10013) .. string.format("   %s/%s", math.floor(value), math.floor(maxValue))
         
     elseif type == 'Speed' then
         local oldSpeed = currentSpeed
@@ -177,7 +177,7 @@ local function UpdateUI(type, value, maxValue)
         speedTween:Play()
         
         -- 更新文本
-        _speedLabel.Text = string.format(LanguageConfig.Get(10014), math.floor(value), math.floor(maxValue))
+        _speedLabel.Text = LanguageConfig.Get(10014) .. string.format("   %s/%s", math.floor(value), math.floor(maxValue))
     end
 end
 

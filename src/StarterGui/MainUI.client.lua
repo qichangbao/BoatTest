@@ -13,6 +13,7 @@ local TweenService = game:GetService('TweenService')
 local Knit = require(ReplicatedStorage.Packages:WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
@@ -38,15 +39,41 @@ _startBoatButton.Parent = _screenGui
 UIConfig.CreateCorner(_startBoatButton)
 -- 点击事件处理：向服务端发送船只组装请求
 _startBoatButton.MouseButton1Click:Connect(function()
-    local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
-    if boat then
-        boat:Destroy()
+    -- 获取玩家库存中的船部件
+    local inventory = ClientData.InventoryItems
+    -- 检查库存有效性并收集船部件
+    local boats = {}
+    local boatCount = 0
+    for itemName, itemData in pairs(inventory) do
+        if itemData.itemType == ItemConfig.BoatTag then
+            if not boats[itemData.modelName] then
+                boats[itemData.modelName] = {}
+                boatCount += 1
+            end
+            table.insert(boats[itemData.modelName], {
+                Name = itemName,
+                Data = itemData
+            })
+        end
     end
 
-    ClientData.IsBoatAssembling = true
-    Knit.GetService('BoatAssemblingService'):AssembleBoat():andThen(function(tipId)
-        Knit.GetController('UIController').ShowTip:Fire(tipId)
-    end)
+    if boatCount == 1 then
+        local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
+        if boat then
+            boat:Destroy()
+        end
+
+        local boatName = boats[1].Data.modelName
+        ClientData.IsBoatAssembling = true
+        Knit.GetService('BoatAssemblingService'):AssembleBoat(boatName):andThen(function(tipId)
+            Knit.GetController('UIController').ShowTip:Fire(tipId)
+        end)
+        return
+    else
+        -- 有船只部件时显示船只选择界面
+        Knit.GetController('UIController').ShowBoatChooseUI:Fire()
+        return
+    end
 end)
 
 -- 止航按钮
@@ -435,22 +462,22 @@ _backpackButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_backpackButton)
 
--- 排行榜按钮
-local _rankButton = Instance.new('TextButton')
-_rankButton.Name = 'RankButton'
-_rankButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_rankButton.Size = _buttonSize
-_rankButton.Position = UDim2.new(1, -60, 1, -400)
-_rankButton.Text = LanguageConfig.Get(10084)
-_rankButton.Font = UIConfig.Font
-_rankButton.TextScaled = true
-_rankButton.BackgroundColor3 = Color3.fromRGB(182, 109, 250)  -- 柔和紫罗兰色
-_rankButton.Parent = _screenGui
--- 排行榜按钮点击事件
-_rankButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowRankUI:Fire()
-end)
-UIConfig.CreateCorner(_rankButton)
+-- -- 排行榜按钮
+-- local _rankButton = Instance.new('TextButton')
+-- _rankButton.Name = 'RankButton'
+-- _rankButton.AnchorPoint = Vector2.new(0.5, 0.5)
+-- _rankButton.Size = _buttonSize
+-- _rankButton.Position = UDim2.new(1, -60, 1, -400)
+-- _rankButton.Text = LanguageConfig.Get(10084)
+-- _rankButton.Font = UIConfig.Font
+-- _rankButton.TextScaled = true
+-- _rankButton.BackgroundColor3 = Color3.fromRGB(182, 109, 250)  -- 柔和紫罗兰色
+-- _rankButton.Parent = _screenGui
+-- -- 排行榜按钮点击事件
+-- _rankButton.MouseButton1Click:Connect(function()
+--     Knit.GetController('UIController').ShowRankUI:Fire()
+-- end)
+-- UIConfig.CreateCorner(_rankButton)
 
 -- 商城按钮
 local _shopButton = Instance.new('TextButton')

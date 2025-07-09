@@ -39,7 +39,7 @@ function Interface.InitBoatWaterPos(player, boat, revivePos)
     local x = 0
     local z = 0
     -- 使用适当的水面高度，而不是0
-    local waterLevel = 0 -- 根据oldCFrame的Y坐标设置合适的水面高度
+    local waterLevel = 2 -- 根据oldCFrame的Y坐标设置合适的水面高度
     if revivePos then   -- 如果是原地复活
         x = revivePos.X
         z = revivePos.Z

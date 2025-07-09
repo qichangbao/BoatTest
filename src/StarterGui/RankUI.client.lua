@@ -295,7 +295,7 @@ local function createLeaderboardEntry(rank, playerName, value, isPersonal)
     if currentLeaderboardType == 'totalTime' or currentLeaderboardType == 'maxTime' then
         valueLabel.Text = string.format('%.2f', value / (24 * 3600))
     else
-        valueLabel.Text = string.format('%.2f', value)
+        valueLabel.Text = tostring(value)
     end
     valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     valueLabel.TextScaled = true
@@ -411,10 +411,10 @@ Knit.OnStart():andThen(function()
     -- 定期更新排行榜
     task.spawn(function()
         while true do
+            task.wait(30) -- 每30秒更新一次
             if _screenGui.Enabled then
                 updateLeaderboard()
             end
-            task.wait(30) -- 每30秒更新一次
         end
     end)
 

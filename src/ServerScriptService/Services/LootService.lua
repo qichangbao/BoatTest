@@ -16,7 +16,9 @@ local LOOT_COOLDOWN = 3.6
 local _playerCoolDown = {}
 
 local function getRandomParts(player)
-    local itemData = ItemConfig.GetRandomItem()
+    local playerSailingTime = Knit.GetService("RankService"):GetPersonalData(player).totalSailingTime
+    local playerDay = string.format("%.2f", playerSailingTime / (24 * 3600))
+    local itemData = ItemConfig.GetRandomItem(tonumber(playerDay))
     if itemData.itemType == ItemConfig.BoatTag then
         local curBoatConfig = BoatConfig.GetBoatConfig(itemData.modelName)
         
@@ -34,7 +36,7 @@ local function getRandomParts(player)
             return itemData.itemType,primaryPartName, itemData.modelName
         end
 
-        local randomItem = ItemConfig.GetRandomItem()
+        local randomItem = ItemConfig.GetRandomItem(playerDay)
         for name, data in pairs(curBoatConfig) do
             if name == randomItem.itemName then
                 return itemData.itemType, name, itemData.modelName

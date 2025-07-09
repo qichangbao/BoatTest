@@ -211,6 +211,4 @@ Knit:OnStart():andThen(function()
     TowerService.TowerDestroyed:Connect(function(data)
         HandleTowerDestroyed(data)
     end)
-    
-    print("TowerController已启动，开始监听箭塔状态变化")
 end)

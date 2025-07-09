@@ -227,15 +227,14 @@ function ItemConfig.GetItemConfig(itemName)
     end
 end
 
-local time111 = 3
-function ItemConfig.GetRandomItem()
+function ItemConfig.GetRandomItem(playerDay)
     local randomCount = math.random(100)
     local curCount = 0
     for i, v in pairs(_data) do
         if randomCount <= curCount + v.Random then
             if i == ItemConfig.BoatTag then
                 for j, k in pairs(v.Parts) do
-                    if time111 >= k.MinTime and time111 < k.MaxTime then
+                    if playerDay >= k.MinTime and playerDay < k.MaxTime then
                         local randomSubCount = math.random(100)
                         local curSubCount = 0
                         for m, n in pairs(k.Parts) do
