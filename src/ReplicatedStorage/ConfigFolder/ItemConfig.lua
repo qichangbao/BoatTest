@@ -228,6 +228,7 @@ function ItemConfig.GetItemConfig(itemName)
 end
 
 function ItemConfig.GetRandomItem(playerDay)
+    playerDay = tonumber(playerDay)
     local randomCount = math.random(100)
     local curCount = 0
     for i, v in pairs(_data) do

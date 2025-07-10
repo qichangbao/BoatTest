@@ -136,6 +136,7 @@ function LandService:CreateIsland(modelName, position, lifetime)
     local pos = Interface.GetPartBottomPos(island, position)
     island:PivotTo(CFrame.new(pos))
     island.Parent = workspace
+    island:FindFirstChild("Floor").Anchored = true
     _allLand[island.Name] = true
 
     self.Client.CreateIsland:FireAll(island.Name, lifetime)
@@ -148,8 +149,8 @@ function LandService:RemoveIsland(landName)
         return
     end
 
+    island:FindFirstChild("Floor").Anchored = false
     _allLand[island.Name] = nil
-
     for _, child in ipairs(island:GetDescendants()) do
         if child:IsA("BasePart") then
             child.Anchored = false

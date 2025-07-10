@@ -322,7 +322,7 @@ end
 -- 获取玩家所有BUFF
 function BuffService:GetPlayerBuffs(player)
     if not playerBuffs[player.UserId] then
-        return {}
+        return
     end
     
     local result = {}

@@ -106,12 +106,28 @@ local function updateLeaderboard()
     local leaderboardData = nil
     if currentLeaderboardType == "totalDis" then
         leaderboardData = ClientData.RankData.totalDis
+        totalDisTab.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+        maxDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        totalTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     elseif currentLeaderboardType == "maxDis" then
         leaderboardData = ClientData.RankData.maxDis
+        totalDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxDisTab.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+        totalTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     elseif currentLeaderboardType == "totalTime" then
         leaderboardData = ClientData.RankData.totalTime
+        totalDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        totalTimeTab.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
+        maxTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
     elseif currentLeaderboardType == "maxTime" then
         leaderboardData = ClientData.RankData.maxTime
+        totalDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxDisTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        totalTimeTab.BackgroundColor3 = Color3.fromRGB(100, 100, 120)
+        maxTimeTab.BackgroundColor3 = Color3.fromRGB(60, 120, 200)
     end
 
     if leaderboardData and leaderboardData.leaderboard then
@@ -159,7 +175,7 @@ end
 -- 创建排行榜界面的函数
 local function createRankInterface()
     -- 等待RankPart存在
-    local rankPart = workspace:WaitForChild("奥林匹斯"):WaitForChild("RankPart")
+    local rankPart = workspace:WaitForChild("奥林匹斯", 30):WaitForChild("RankPart")
     
     -- 创建SurfaceGui
     surfaceGui = Instance.new('SurfaceGui')
@@ -214,6 +230,10 @@ local function createRankInterface()
     totalDisTab.TextScaled = true
     totalDisTab.Font = UIConfig.Font
     totalDisTab.Parent = tabContainer
+    totalDisTab.MouseButton1Click:Connect(function()
+        currentLeaderboardType = "totalDis"
+        updateLeaderboard()
+    end)
     
     local totalDisTabCorner = Instance.new('UICorner')
     totalDisTabCorner.CornerRadius = UDim.new(0, 6)
@@ -231,6 +251,10 @@ local function createRankInterface()
     maxDisTab.TextScaled = true
     maxDisTab.Font = UIConfig.Font
     maxDisTab.Parent = tabContainer
+    maxDisTab.MouseButton1Click:Connect(function()
+        currentLeaderboardType = "maxDis"
+        updateLeaderboard()
+    end)
     
     local maxDisTabCorner = Instance.new('UICorner')
     maxDisTabCorner.CornerRadius = UDim.new(0, 6)
@@ -248,6 +272,10 @@ local function createRankInterface()
     totalTimeTab.TextScaled = true
     totalTimeTab.Font = UIConfig.Font
     totalTimeTab.Parent = tabContainer
+    totalTimeTab.MouseButton1Click:Connect(function()
+        currentLeaderboardType = "totalTime"
+        updateLeaderboard()
+    end)
     
     local totalTimeTabCorner = Instance.new('UICorner')
     totalTimeTabCorner.CornerRadius = UDim.new(0, 6)
@@ -265,6 +293,10 @@ local function createRankInterface()
     maxTimeTab.TextScaled = true
     maxTimeTab.Font = UIConfig.Font
     maxTimeTab.Parent = tabContainer
+    maxTimeTab.MouseButton1Click:Connect(function()
+        currentLeaderboardType = "maxTime"
+        updateLeaderboard()
+    end)
     
     local maxTimeTabCorner = Instance.new('UICorner')
     maxTimeTabCorner.CornerRadius = UDim.new(0, 6)
@@ -422,38 +454,32 @@ local function createRankInterface()
     maxTimeLabel.Parent = timeRow
 end
 
--- 等待玩家角色创建后再创建排行榜界面
-local function waitForCharacterAndCreateRankInterface()
-    local player = game.Players.LocalPlayer
-    -- 如果角色已经存在，直接创建界面
-    if player.Character and player.Character:FindFirstChild("Humanoid") then
-        createRankInterface()
-        return
-    end
-    
-    -- 等待角色创建
-    local function onCharacterAdded(character)
-        -- 等待Humanoid加载完成
-        local humanoid = character:WaitForChild("Humanoid", 10)
-        if humanoid then
-            createRankInterface()
-        else
-            warn("排行榜界面：等待Humanoid超时")
-        end
-    end
-    
-    -- 连接角色添加事件
-    if player.Character then
-        onCharacterAdded(player.Character)
-    else
-        player.CharacterAdded:Connect(onCharacterAdded)
-    end
-end
-
 -- 等待Knit启动
 Knit.OnStart():andThen(function()
-    -- 等待角色创建后再创建排行榜界面
-    waitForCharacterAndCreateRankInterface()
+    createRankInterface()
+    -- local player = game.Players.LocalPlayer
+    -- -- 如果角色已经存在，直接创建界面
+    -- if player.Character and player.Character:FindFirstChild("Humanoid") then
+    --     createRankInterface()
+    -- else
+    --     -- 等待角色创建
+    --     local function onCharacterAdded(character)
+    --         -- 等待Humanoid加载完成
+    --         local humanoid = character:WaitForChild("Humanoid", 10)
+    --         if humanoid then
+    --             createRankInterface()
+    --         else
+    --             warn("排行榜界面：等待Humanoid超时")
+    --         end
+    --     end
+        
+    --     -- 连接角色添加事件
+    --     if player.Character then
+    --         onCharacterAdded(player.Character)
+    --     else
+    --         player.CharacterAdded:Connect(onCharacterAdded)
+    --     end
+    -- end
     
     -- 定期更新排行榜
     task.spawn(function()

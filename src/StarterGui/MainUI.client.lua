@@ -63,9 +63,12 @@ _startBoatButton.MouseButton1Click:Connect(function()
             boat:Destroy()
         end
 
-        local boatName = boats[1].Data.modelName
         ClientData.IsBoatAssembling = true
-        Knit.GetService('BoatAssemblingService'):AssembleBoat(boatName):andThen(function(tipId)
+        local modelName = ""
+        for name, boatData in pairs(boats) do
+            modelName = name
+        end
+        Knit.GetService('BoatAssemblingService'):AssembleBoat(modelName):andThen(function(tipId)
             Knit.GetController('UIController').ShowTip:Fire(tipId)
         end)
         return

@@ -32,13 +32,6 @@ function CreateMonsterAction:Execute(data)
         self.position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
     end
 
-    print("执行CreateMonsterAction")
-    local aiManager = AIManager.new(self.config.MonsterName, self.position)
-    if not aiManager then
-        return
-    end
-    aiManager:Start()
-
     local function MonsterDead()
         -- 执行死亡处理
         if self.destroyToResetCondition then
@@ -49,17 +42,14 @@ function CreateMonsterAction:Execute(data)
                 end)
             end
         end
-        
-        aiManager:SetState('Dead')
     end
 
-    if aiManager.Humanoid then
-        -- 监听死亡状态
-        aiManager.Humanoid.Died:Connect(function()
-            print("怪物死亡")
-            MonsterDead()
-        end)
+    print("执行CreateMonsterAction")
+    local aiManager = AIManager.new(self.config.MonsterName, self.position, true, MonsterDead)
+    if not aiManager then
+        return
     end
+    aiManager:Start()
 end
 
 return CreateMonsterAction

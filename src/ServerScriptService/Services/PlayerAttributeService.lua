@@ -95,7 +95,7 @@ end
 -- 客户端登陆时调用，获取玩家数据
 function PlayerAttributeService.Client:GetLoginData(player)
     local data = {}
-    data.Gold = player:GetAttribute("Gold") or 0
+    data.Gold = player:GetAttribute("Gold")
     data.PlayerInventory = Knit.GetService('InventoryService'):GetPlayerInventory(player)
     data.isAdmin = self.Server:IsAdmin(player)
     data.IsLandOwners = Knit.GetService('SystemService'):GetIsLandOwner(player)
@@ -130,7 +130,8 @@ function PlayerAttributeService:KnitInit()
             local revivePos = player:GetAttribute("RevivePos")
             if revivePos then
                 task.wait(0.1)
-                Knit.GetService("BoatAssemblingService"):AssembleBoat(player, revivePos)
+                local boatName = player:GetAttribute("BoatName")
+                Knit.GetService("BoatAssemblingService"):AssembleBoat(player, boatName, revivePos)
             else
                 Interface.InitPlayerPos(player)
             end

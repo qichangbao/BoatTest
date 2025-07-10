@@ -347,6 +347,7 @@ function BoatAssemblingService.Client:AssembleBoat(player, boatName, revivePos)
 end
 
 function BoatAssemblingService:AssembleBoat(player, boatName, revivePos)
+    player:SetAttribute("BoatName", boatName)
     local boat = game.Workspace:FindFirstChild("PlayerBoat_"..player.UserId)
     if boat then
         return 10020
@@ -426,6 +427,7 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
     if not player or not player.Character or not player.Character.Humanoid then
         return 10018
     end
+    local modelName = boat:GetAttribute('ModelName')
     local curBoatConfig = BoatConfig.GetBoatConfig(boat:GetAttribute('ModelName'))
     local boatHP = boat:GetAttribute('Health')
     local boatMaxHP = boat:GetAttribute('MaxHealth')

@@ -275,6 +275,7 @@ Knit:OnStart():andThen(function()
     Knit.GetController('UIController').AddUI:Fire(_screenGui)
     Knit.GetController('UIController').ShowInventoryUI:Connect(function()
         _screenGui.Enabled = true
+        UpdateInventoryUI()
     end)
     Knit.GetController('UIController').UpdateInventoryUI:Connect(function()
         UpdateInventoryUI()

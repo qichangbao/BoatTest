@@ -6,16 +6,19 @@ local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForCh
 local AIManager = {}
 AIManager.__index = AIManager
 
-function AIManager.new(name, position)
+function AIManager.new(name, position, isWaterMonster, deadCallFunc)
     local self = setmetatable({}, AIManager)
+    self.deadCallFunc = deadCallFunc
     
     -- 保存原始NPC克隆体
     self.NPC = ServerStorage:FindFirstChild(name):Clone()
-    local isHasPart, foundParts = Interface.CheckPosHasPart(position, self.NPC:GetExtentsSize())
-    if isHasPart then
-        print("位置有物体，取消创建")
-        self.NPC:Destroy()
-        return
+    if isWaterMonster then
+        local isHasPart, foundParts = Interface.CheckPosHasPart(position, self.NPC:GetExtentsSize())
+        if isHasPart then
+            print("位置有物体，取消创建")
+            self.NPC:Destroy()
+            return
+        end
     end
 
     self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
@@ -41,6 +44,15 @@ function AIManager.new(name, position)
         Dead = require(script.Parent:WaitForChild("DeadState")).new(self),
         Chase = require(script.Parent:WaitForChild("ChaseState")).new(self),
     }
+
+    -- 监听死亡状态
+    self.Humanoid.Died:Connect(function()
+        print("怪物死亡")
+        self:SetState("Dead")
+        if self.deadCallFunc then
+            self.deadCallFunc()
+        end
+    end)
     return self
 end
 

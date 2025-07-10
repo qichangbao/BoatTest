@@ -28,9 +28,6 @@ local IslandConfig = {
             type = "Tree",
             parts = {
                 "tree1",
-                "tree2",
-                "tree3",
-                "tree4",
             },
         },
         [2] = {
@@ -39,14 +36,24 @@ local IslandConfig = {
                 "stone1",
                 "stone2",
                 "stone3",
+                "stone4",
+                "stone5",
             },
         },
         [3] = {
+            type = "Decoration",
+            parts = {
+                "decoration1",
+                "decoration2",
+                "decoration3",
+                "decoration4",
+                "decoration5",
+            }
+        },
+        [4] = {
             type = "Chest",
             parts = {
                 "chest1",
-                "chest2",
-                "chest3",
             }
         }
     },

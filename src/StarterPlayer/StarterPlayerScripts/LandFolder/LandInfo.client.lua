@@ -238,8 +238,7 @@ local function CreateBillBoard(land, name, lifetime)
             local remaining = math.max(0, lifetime - elapsed)
             
             if remaining > 0 then
-                countdownLabel.Text = "岛屿沉没剩余时间: " .. formatTime(remaining)
-                
+                countdownLabel.Text = string.format(LanguageConfig.Get(10104), formatTime(remaining))
                 -- 根据剩余时间改变颜色
                 if remaining <= 30 then
                     countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0) -- 红色警告
@@ -249,7 +248,7 @@ local function CreateBillBoard(land, name, lifetime)
                     countdownLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- 黄色正常
                 end
             else
-                countdownLabel.Text = "即将沉没"
+                countdownLabel.Text = LanguageConfig.Get(10103)
                 countdownLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
             end
         end
@@ -354,8 +353,8 @@ local function CreateIslandPart(landName, lifetime)
                     if part.PrimaryPart then
                         -- 创建ProximityPrompt
                         local proximityPrompt = Instance.new("ProximityPrompt")
-                        proximityPrompt.ActionText = "打开宝箱"
-                        proximityPrompt.ObjectText = "宝箱"
+                        proximityPrompt.ActionText = LanguageConfig.Get(10101)
+                        proximityPrompt.ObjectText = LanguageConfig.Get(10102)
                         proximityPrompt.KeyboardKeyCode = Enum.KeyCode.E
                         proximityPrompt.HoldDuration = 0
                         proximityPrompt.MaxActivationDistance = 15

@@ -95,248 +95,143 @@ Knit:OnStart():andThen(function()
                 CloseButtonVisible = false,
             })
         end)
+    end)
         
-        -- 监听金币变化
-        Players.LocalPlayer:GetAttributeChangedSignal('Gold'):Connect(function()
-            ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold'))
-            Knit.GetController('UIController').UpdateGoldUI:Fire()
-        end)
-        ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold') or 0)
-        if ClientData.Gold ~= 0 then
-            Knit.GetController('UIController').UpdateGoldUI:Fire()
+    -- 监听金币变化
+    Players.LocalPlayer:GetAttributeChangedSignal('Gold'):Connect(function()
+        ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold'))
+        Knit.GetController('UIController').UpdateGoldUI:Fire()
+    end)
+    ClientData.Gold = tonumber(Players.LocalPlayer:GetAttribute('Gold') or 0)
+    if ClientData.Gold ~= 0 then
+        Knit.GetController('UIController').UpdateGoldUI:Fire()
+    end
+
+    -- 系统服务事件监听
+    Knit.GetService('SystemService').IsLandOwnerChanged:Connect(function(data)
+        ClientData.IsLandOwners[data.landName] = {userId = data.userId, playerName = data.playerName}
+        Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
+    end)
+    
+    Knit.GetService('SystemService').IsLandInfoChanged:Connect(function(data)
+        ClientData.IsLandOwners[data.landName] = data.isLandData
+    end)
+
+    -- 背包服务事件监听
+    Knit.GetService('InventoryService').AddItem:Connect(function(itemData)
+        local isExist = false
+        for _, item in ipairs(ClientData.InventoryItems) do
+            if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
+                item.num = itemData.num
+                isExist = true
+                break
+            end
         end
-
-        -- 使用通用重试工具获取登录数据
-        DataRetryUtil.RetryDataFetch(
-            function()
-                return Knit.GetService('PlayerAttributeService'):GetLoginData()
-            end,
-            {
-                maxRetries = 5,
-                retryDelay = 2,
-                operationName = "登录数据获取",
-                dataValidator = function(data)
-                    return data and type(data) == "table" and data.Gold ~= nil
-                end,
-                onSuccess = function(data)
-                    -- 安全地设置数据
-                    ClientData.Gold = data.Gold or 0
-                    Knit.GetController('UIController').UpdateGoldUI:Fire()
-                    
-                    ClientData.InventoryItems = {}
-                    if data.PlayerInventory and type(data.PlayerInventory) == "table" then
-                        for _, itemData in pairs(data.PlayerInventory) do
-                            if itemData then
-                                table.insert(ClientData.InventoryItems, itemData)
-                            end
-                        end
-                    end
-                    Knit.GetController('UIController').UpdateInventoryUI:Fire()
-
-                    ClientData.IsAdmin = data.isAdmin or false
-                    if ClientData.IsAdmin then
-                        Knit.GetController('UIController').IsAdmin:Fire()
-                    end
-
-                    ClientData.IsLandOwners = data.IsLandOwners or {}
-                    Knit.GetController('UIController').IsLandOwner:Fire()
-                end,
-                onFailure = function(errorMsg)
-                    -- 使用默认值
-                    ClientData.Gold = 0
-                    ClientData.InventoryItems = {}
-                    ClientData.IsAdmin = false
-                    ClientData.IsLandOwners = {}
-                    
-                    Knit.GetController('UIController').UpdateGoldUI:Fire()
-                    Knit.GetController('UIController').UpdateInventoryUI:Fire()
+    
+        if not isExist then
+            table.insert(ClientData.InventoryItems, itemData)
+        end
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), itemData.itemName))
+        Knit.GetController('UIController').UpdateInventoryUI:Fire()
+    end)
+    
+    Knit.GetService('InventoryService').RemoveItem:Connect(function(modelName, itemName)
+        local isExist = false
+        for i, item in ipairs(ClientData.InventoryItems) do
+            if item.itemName == itemName and item.modelName == modelName then
+                if item.num > 1 then
+                    item.num = item.num - 1
+                else
+                    table.remove(ClientData.InventoryItems, i)
                 end
-            }
-        )
-
-        -- 系统服务事件监听
-        Knit.GetService('SystemService').IsLandOwnerChanged:Connect(function(data)
-            ClientData.IsLandOwners[data.landName] = {userId = data.userId, playerName = data.playerName}
-            Knit.GetController('UIController').IsLandOwnerChanged:Fire(data.landName, data.playerName)
-        end)
-        
-        Knit.GetService('SystemService').IsLandInfoChanged:Connect(function(data)
-            ClientData.IsLandOwners[data.landName] = data.isLandData
-        end)
-
-        -- 背包服务事件监听
-        Knit.GetService('InventoryService').AddItem:Connect(function(itemData)
-            local isExist = false
-            for _, item in ipairs(ClientData.InventoryItems) do
-                if item.itemName == itemData.itemName and item.modelName == itemData.modelName then
-                    item.num = itemData.num
-                    isExist = true
-                    break
-                end
+                isExist = true
+                break
             end
-        
-            if not isExist then
-                table.insert(ClientData.InventoryItems, itemData)
-            end
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), itemData.itemName))
+        end
+    
+        if isExist then
             Knit.GetController('UIController').UpdateInventoryUI:Fire()
-        end)
-        
-        Knit.GetService('InventoryService').RemoveItem:Connect(function(modelName, itemName)
-            local isExist = false
-            for i, item in ipairs(ClientData.InventoryItems) do
-                if item.itemName == itemName and item.modelName == modelName then
-                    if item.num > 1 then
-                        item.num = item.num - 1
-                    else
-                        table.remove(ClientData.InventoryItems, i)
-                    end
-                    isExist = true
-                    break
-                end
-            end
-        
-            if isExist then
-                Knit.GetController('UIController').UpdateInventoryUI:Fire()
-            end
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10012), itemName))
-        end)
-        
-        Knit.GetService('InventoryService').InitInventory:Connect(function(inventoryData)
-            ClientData.InventoryItems = {}
-            for _, itemData in pairs(inventoryData) do
-                table.insert(ClientData.InventoryItems, itemData)
-            end
-            Knit.GetController('UIController').UpdateInventoryUI:Fire()
-        end)
+        end
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10012), itemName))
+    end)
+    
+    Knit.GetService('InventoryService').InitInventory:Connect(function(inventoryData)
+        ClientData.InventoryItems = {}
+        for _, itemData in pairs(inventoryData) do
+            table.insert(ClientData.InventoryItems, itemData)
+        end
+        Knit.GetController('UIController').UpdateInventoryUI:Fire()
+    end)
 
-        Knit.GetService('BoatAssemblingService').UpdateInventory:Connect(function(modelName)
-            for _, item in pairs(ClientData.InventoryItems) do
-                if item.modelName == modelName then
-                    item.isUsed = 1
-                end
+    Knit.GetService('BoatAssemblingService').UpdateInventory:Connect(function(modelName)
+        for _, item in pairs(ClientData.InventoryItems) do
+            if item.modelName == modelName then
+                item.isUsed = 1
             end
-            Knit.GetController('UIController').UpdateInventoryUI:Fire()
-        end)
+        end
+        Knit.GetController('UIController').UpdateInventoryUI:Fire()
+    end)
 
-        -- BUFF系统事件监听
-        Knit.GetService('BuffService').BuffAdded:Connect(function(buffId, duration)
-            local config = BuffConfig.GetBuffConfig(buffId)
-            ClientData.ActiveBuffs[buffId] = {
-                buffId = buffId,
-                remainingTime = duration,
-                startTime = tick(),
-                config = config
-            }
+    -- BUFF系统事件监听
+    Knit.GetService('BuffService').BuffAdded:Connect(function(buffId, duration)
+        local config = BuffConfig.GetBuffConfig(buffId)
+        ClientData.ActiveBuffs[buffId] = {
+            buffId = buffId,
+            remainingTime = duration,
+            startTime = tick(),
+            config = config
+        }
 
-            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), config.displayName))
-            Knit.GetController('UIController').BuffChanged:Fire()
-        end)
-        
-        Knit.GetService('BuffService').BuffRemoved:Connect(function(buffId)
-            ClientData.ActiveBuffs[buffId] = nil
-            Knit.GetController('UIController').BuffChanged:Fire()
-        end)
-        
-        -- 使用通用重试工具获取初始BUFF状态
-        DataRetryUtil.RetryDataFetch(
-            function()
-                return Knit.GetService('BuffService'):GetPlayerBuffs(Players.LocalPlayer)
-            end,
-            {
-                maxRetries = 3,
-                retryDelay = 1,
-                operationName = "初始BUFF数据获取",
-                dataValidator = function(data)
-                    return data and type(data) == "table"
-                end,
-                onSuccess = function(initialBuffs)
-                    local buffCount = 0
-                    for buffType, buffs in pairs(initialBuffs) do
-                        if type(buffs) == "table" then
-                            for buffId, buffData in pairs(buffs) do
-                                if buffData and buffData.remainingTime then
-                                    local config = BuffConfig.GetBuffConfig(buffId)
-                                    if config then
-                                        ClientData.ActiveBuffs[buffId] = {
-                                            buffId = buffId,
-                                            remainingTime = buffData.remainingTime,
-                                            startTime = tick(),
-                                            config = config
-                                        }
-                                        buffCount = buffCount + 1
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    print("初始BUFF数据获取成功，加载了 " .. buffCount .. " 个BUFF")
-                    Knit.GetController('UIController').BuffChanged:Fire()
-                end
-            }
-        )
+        Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), config.displayName))
+        Knit.GetController('UIController').BuffChanged:Fire()
+    end)
+    
+    Knit.GetService('BuffService').BuffRemoved:Connect(function(buffId)
+        ClientData.ActiveBuffs[buffId] = nil
+        Knit.GetController('UIController').BuffChanged:Fire()
+    end)
 
-        -- 监听宝箱奖励事件
-        Knit.GetService('ChestService').RewardReceived:Connect(function(rewardType, rewardData)
-            if rewardData and rewardData.chestPosition then
-                local RewardFlyEffect = require(game:GetService('StarterGui'):WaitForChild('RewardFlyEffect'))
-                RewardFlyEffect.PlayEffect(rewardType, rewardData.chestPosition)
-            end
-            
-            if rewardType == "Gold" then
-                Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), rewardData.amount) .. LanguageConfig.Get(10007))
-                return
-            elseif rewardType == "" then
-                Knit.GetController('UIController').ShowTip:Fire(10051)
-            end
-        end)
+    -- 监听宝箱奖励事件
+    Knit.GetService('ChestService').RewardReceived:Connect(function(rewardType, rewardData)
+        if rewardData and rewardData.chestPosition then
+            local RewardFlyEffect = require(game:GetService('StarterGui'):WaitForChild('RewardFlyEffect'))
+            RewardFlyEffect.PlayEffect(rewardType, rewardData.chestPosition)
+        end
         
-        -- 使用通用重试工具获取排行榜数据
-        DataRetryUtil.RetryDataFetch(
-            function()
-                return Knit.GetService('RankService').GetLeaderboard()
-            end,
-            {
-                maxRetries = 3,
-                retryDelay = 1,
-                operationName = "排行榜数据获取",
-                onSuccess = function(leaderboardData)
-                    ClientData.RankData = leaderboardData
-                    Knit.GetController('UIController').UpdateRankUI:Fire()
-                end,
-                onFailure = function()
-                    ClientData.RankData = {}
-                end
-            }
-        )
-        
-        -- 排行榜更新事件监听（添加数据验证）
-        Knit.GetService('RankService').UpdateLeaderboard:Connect(function(leaderboardData)
-            if leaderboardData and type(leaderboardData) == "table" then
-                ClientData.RankData = leaderboardData
-                print("客户端排行榜数据更新:", leaderboardData)
-                Knit.GetController('UIController').UpdateRankUI:Fire()
-            else
-                warn("接收到的排行榜数据格式错误")
-            end
-        end)
-        
-        -- 个人航行数据事件监听（添加数据验证）
-        Knit.GetService("RankService").InitPlayerSailingData:Connect(function(personalData)
-            if personalData and type(personalData) == "table" then
-                updatePersonalRankData(personalData)
-            else
-                warn("初始化个人航行数据格式错误")
-            end
-        end)
-        
-        Knit.GetService("RankService").UpdatePlayerSailingData:Connect(function(leaderboardData)
-            if leaderboardData and type(leaderboardData) == "table" then
-                updatePersonalRankData(leaderboardData)
-            else
-                warn("更新个人航行数据格式错误")
-            end
-        end)
+        if rewardType == "Gold" then
+            Knit.GetController('UIController').ShowTip:Fire(string.format(LanguageConfig.Get(10011), rewardData.amount) .. LanguageConfig.Get(10007))
+            return
+        elseif rewardType == "" then
+            Knit.GetController('UIController').ShowTip:Fire(10051)
+        end
+    end)
+    
+    -- 排行榜更新事件监听（添加数据验证）
+    Knit.GetService('RankService').UpdateLeaderboard:Connect(function(leaderboardData)
+        if leaderboardData and type(leaderboardData) == "table" then
+            ClientData.RankData = leaderboardData
+            print("客户端排行榜数据更新:", leaderboardData)
+            Knit.GetController('UIController').UpdateRankUI:Fire()
+        else
+            warn("接收到的排行榜数据格式错误")
+        end
+    end)
+    
+    -- 个人航行数据事件监听（添加数据验证）
+    Knit.GetService("RankService").InitPlayerSailingData:Connect(function(personalData)
+        if personalData and type(personalData) == "table" then
+            updatePersonalRankData(personalData)
+        else
+            warn("初始化个人航行数据格式错误")
+        end
+    end)
+    
+    Knit.GetService("RankService").UpdatePlayerSailingData:Connect(function(leaderboardData)
+        if leaderboardData and type(leaderboardData) == "table" then
+            updatePersonalRankData(leaderboardData)
+        else
+            warn("更新个人航行数据格式错误")
+        end
     end)
 
     -- 启动时间更新循环
@@ -350,12 +245,122 @@ Knit:OnStart():andThen(function()
             return Knit.GetService('RankService'):GetPersonalData()
         end,
         {
-            maxRetries = 10,
+            maxRetries = 5,
             retryDelay = 2,
             timeout = 30,
             operationName = "个人航行数据获取",
             onSuccess = function(personalData)
                 updatePersonalRankData(personalData)
+            end
+        }
+    )
+        
+    -- 使用通用重试工具获取排行榜数据
+    DataRetryUtil.RetryDataFetch(
+        function()
+            return Knit.GetService('RankService').GetLeaderboard()
+        end,
+        {
+            maxRetries = 5,
+            retryDelay = 2,
+            operationName = "排行榜数据获取",
+            dataValidator = function(data)
+                return data and data.totalDis and data.maxDis and data.totalTime and data.maxTime
+                and #data.totalDis.leaderboard ~= 0 and #data.maxDis.leaderboard ~= 0
+                and #data.totalTime.leaderboard ~= 0 and #data.maxTime.leaderboard ~= 0
+            end,
+            onSuccess = function(leaderboardData)
+                ClientData.RankData = leaderboardData
+                Knit.GetController('UIController').UpdateRankUI:Fire()
+            end,
+            onFailure = function()
+                ClientData.RankData = {}
+            end
+        }
+    )
+        
+    -- 使用通用重试工具获取初始BUFF状态
+    DataRetryUtil.RetryDataFetch(
+        function()
+            return Knit.GetService('BuffService'):GetPlayerBuffs(Players.LocalPlayer)
+        end,
+        {
+            maxRetries = 5,
+            retryDelay = 1,
+            operationName = "初始BUFF数据获取",
+            dataValidator = function(data)
+                return data and type(data) == "table"
+            end,
+            onSuccess = function(initialBuffs)
+                local buffCount = 0
+                for buffType, buffs in pairs(initialBuffs) do
+                    if type(buffs) == "table" then
+                        for buffId, buffData in pairs(buffs) do
+                            if buffData and buffData.remainingTime then
+                                local config = BuffConfig.GetBuffConfig(buffId)
+                                if config then
+                                    ClientData.ActiveBuffs[buffId] = {
+                                        buffId = buffId,
+                                        remainingTime = buffData.remainingTime,
+                                        startTime = tick(),
+                                        config = config
+                                    }
+                                    buffCount = buffCount + 1
+                                end
+                            end
+                        end
+                    end
+                end
+                print("初始BUFF数据获取成功，加载了 " .. buffCount .. " 个BUFF")
+                Knit.GetController('UIController').BuffChanged:Fire()
+            end
+        }
+    )
+
+    -- 使用通用重试工具获取登录数据
+    DataRetryUtil.RetryDataFetch(
+        function()
+            return Knit.GetService('PlayerAttributeService'):GetLoginData()
+        end,
+        {
+            maxRetries = 5,
+            retryDelay = 1,
+            operationName = "登录数据获取",
+            dataValidator = function(data)
+                return data and type(data) == "table" and data.Gold ~= nil
+            end,
+            onSuccess = function(data)
+                -- 安全地设置数据
+                ClientData.Gold = data.Gold or 0
+                Knit.GetController('UIController').UpdateGoldUI:Fire()
+                
+                ClientData.InventoryItems = {}
+                if data.PlayerInventory and type(data.PlayerInventory) == "table" then
+                    for _, itemData in pairs(data.PlayerInventory) do
+                        if itemData then
+                            table.insert(ClientData.InventoryItems, itemData)
+                        end
+                    end
+                end
+                Knit.GetController('UIController').UpdateInventoryUI:Fire()
+
+                ClientData.IsAdmin = data.isAdmin or false
+                if ClientData.IsAdmin then
+                    Knit.GetController('UIController').IsAdmin:Fire()
+                end
+
+                ClientData.IsLandOwners = data.IsLandOwners or {}
+                Knit.GetController('UIController').IsLandOwner:Fire()
+            end,
+            onFailure = function(errorMsg)
+                -- 使用默认值
+                ClientData.Gold = 0
+                ClientData.InventoryItems = {}
+                ClientData.IsAdmin = false
+                ClientData.IsLandOwners = {}
+                
+                Knit.GetController('UIController').UpdateGoldUI:Fire()
+                Knit.GetController('UIController').UpdateInventoryUI:Fire()
             end
         }
     )
