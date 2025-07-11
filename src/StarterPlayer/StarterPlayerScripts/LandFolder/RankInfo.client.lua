@@ -14,6 +14,14 @@ local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):Wa
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
+local mainArea
+while true do
+    mainArea = workspace:FindFirstChild("奥林匹斯")
+    if mainArea then
+        break
+    end
+end
+
 -- 当前显示的排行榜类型
 local currentLeaderboardType = 'totalDis'
 
@@ -95,6 +103,10 @@ end
 
 -- 更新排行榜显示
 local function updateLeaderboard()
+    if not surfaceGui then
+        return
+    end
+
     -- 清除现有条目
     for _, child in pairs(contentFrame:GetChildren()) do
         if child:IsA('Frame') then
@@ -174,8 +186,7 @@ end
 
 -- 创建排行榜界面的函数
 local function createRankInterface()
-    -- 等待RankPart存在
-    local rankPart = workspace:WaitForChild("奥林匹斯", 30):WaitForChild("RankPart")
+    local rankPart = mainArea:WaitForChild("RankPart")
     
     -- 创建SurfaceGui
     surfaceGui = Instance.new('SurfaceGui')
@@ -452,34 +463,14 @@ local function createRankInterface()
     maxTimeLabel.TextXAlignment = Enum.TextXAlignment.Left
     maxTimeLabel.LayoutOrder = 2
     maxTimeLabel.Parent = timeRow
+
+    updateLeaderboard()
 end
 
 -- 等待Knit启动
 Knit.OnStart():andThen(function()
+    task.wait(5)
     createRankInterface()
-    -- local player = game.Players.LocalPlayer
-    -- -- 如果角色已经存在，直接创建界面
-    -- if player.Character and player.Character:FindFirstChild("Humanoid") then
-    --     createRankInterface()
-    -- else
-    --     -- 等待角色创建
-    --     local function onCharacterAdded(character)
-    --         -- 等待Humanoid加载完成
-    --         local humanoid = character:WaitForChild("Humanoid", 10)
-    --         if humanoid then
-    --             createRankInterface()
-    --         else
-    --             warn("排行榜界面：等待Humanoid超时")
-    --         end
-    --     end
-        
-    --     -- 连接角色添加事件
-    --     if player.Character then
-    --         onCharacterAdded(player.Character)
-    --     else
-    --         player.CharacterAdded:Connect(onCharacterAdded)
-    --     end
-    -- end
     
     -- 定期更新排行榜
     task.spawn(function()

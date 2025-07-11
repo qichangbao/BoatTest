@@ -500,6 +500,24 @@ _shopButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_shopButton)
 
+-- 反馈按钮
+local _feedbackButton = Instance.new('TextButton')
+_feedbackButton.Name = 'FeedbackButton'
+_feedbackButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_feedbackButton.Size = _buttonSize
+_feedbackButton.Position = UDim2.new(1, -60, 1, -240)
+_feedbackButton.Text = "反馈"
+_feedbackButton.Font = UIConfig.Font
+_feedbackButton.TextScaled = true
+_feedbackButton.BackgroundColor3 = Color3.fromRGB(156, 39, 176)  -- 紫色
+_feedbackButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_feedbackButton.Parent = _screenGui
+-- 反馈按钮点击事件
+_feedbackButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowFeedbackUI:Fire()
+end)
+UIConfig.CreateCorner(_feedbackButton)
+
 -- 岛屿管理按钮
 local _islandManageButton = Instance.new('TextButton')
 _islandManageButton.Name = 'IslandManageButton'

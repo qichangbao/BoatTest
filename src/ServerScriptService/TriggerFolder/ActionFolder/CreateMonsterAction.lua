@@ -50,6 +50,12 @@ function CreateMonsterAction:Execute(data)
         return
     end
     aiManager:Start()
+
+    if self.config.Lifetime > 0 then
+        task.delay(self.config.Lifetime, function()
+            aiManager:Destroy()
+        end)
+    end
 end
 
 return CreateMonsterAction

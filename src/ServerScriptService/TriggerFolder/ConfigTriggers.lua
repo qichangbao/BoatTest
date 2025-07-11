@@ -111,9 +111,9 @@ return {
     {
         ConditionType = "SailingDistance", -- 条件类型：基于航行距离的触发器
         MaxConditions = -1, -- 最大触发次数，-1表示无限制
-        RequiredDistance = 10, -- 需要航行的距离（单位：studs）
-        Cooldown = 3, -- 触发冷却时间（秒）
-        RandomChance = 100, -- 随机触发的概率
+        RequiredDistance = 1000, -- 需要航行的距离（单位：studs）
+        Cooldown = 30, -- 触发冷却时间（秒）
+        RandomChance = 40, -- 随机触发的概率
         IsGoodCondition = true,-- 是否好的条件，用于玩家的幸运值怎么影响
         Action = {
             ActionType = "CreateIsland",
