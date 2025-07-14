@@ -6,6 +6,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('ItemConfig'))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BadgeConfig'))
 
 local BoatAssemblingService = Knit.CreateService({
     Name = 'BoatAssemblingService',
@@ -374,6 +375,17 @@ function BoatAssemblingService:AssembleBoat(player, boatName, revivePos)
     self.Client.UpdateMainUI:Fire(player, {explore = true})
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
 
+    -- 检查玩家是否拥有徽章
+	local success, hasBadge = pcall(function()
+		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["FirstVoyage"].id)
+	end)
+    if success and not hasBadge then
+        -- 获奖徽章
+        local awardSuccess = pcall(function()
+            game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["FirstVoyage"].id)
+        end)
+        print("111111111111  ", awardSuccess)
+    end
     return 10022
 end
 

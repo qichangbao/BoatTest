@@ -5,6 +5,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local BuffConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BuffConfig"))
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 local ChestConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ChestConfig"))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
 
 local ChestService = Knit.CreateService({
     Name = 'ChestService',
@@ -100,6 +101,14 @@ function ChestService:ProcessChestRewards(player, chestPosition)
     if not isReward then
         sendRewardNotification(player, "")
         print("ChestService: 玩家捡到了空箱子:", player.Name)
+    end
+
+    -- 检查玩家是否拥有徽章
+	local success, hasBadge = pcall(function()
+		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["OpenChestCount"].id)
+	end)
+    if success and not hasBadge then
+        game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["OpenChestCount"].id)
     end
     return true
 end

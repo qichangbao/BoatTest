@@ -84,39 +84,14 @@ local function submitFeedback(player, feedbackText)
             truncatedContent = truncatedContent .. "..."
         end
         
-        -- 记录到Analytics（包含实际反馈内容）
-        local success = pcall(function()
-            AnalyticsService:LogCustomEvent(
-                player,
-                "PlayerFeedbackSubmitted",
-                1,
-                {
-                    FeedbackContent = truncatedContent, -- 反馈内容（截取版本）
-                    FeedbackLength = string.len(feedbackText), -- 原始长度
-                    FeedbackType = "General",
-                    Platform = "InGame",
-                    Timestamp = os.time(),
-                    PlayerId = tostring(player.UserId), -- 玩家ID
-                    PlayerName = player.Name -- 玩家名称
-                }
-            )
-        end)
+        warn("FeedBack:" .. truncatedContent)
         
-        if success then
-            -- 显示成功通知
-            game.StarterGui:SetCore("SendNotification", {
-                Title = LanguageConfig.Get(10108),
-                Text = LanguageConfig.Get(10109),
-                Duration = 5
-            })
-        else
-            -- 显示失败通知
-            game.StarterGui:SetCore("SendNotification", {
-                Title = LanguageConfig.Get(10110),
-                Text = LanguageConfig.Get(10111),
-                Duration = 5
-            })
-        end
+        -- 显示成功通知
+        game.StarterGui:SetCore("SendNotification", {
+            Title = LanguageConfig.Get(10108),
+            Text = LanguageConfig.Get(10109),
+            Duration = 5
+        })
     end
 end
 

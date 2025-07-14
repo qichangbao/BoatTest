@@ -290,6 +290,8 @@ function RankService:UpdatePlayerDistance(player)
         currentSailingDistance = data.currentSailingDistance,
         currentSailingTime = data.currentSailingTime,
     })
+
+    Knit.GetService("DBService"):Set(player.UserId, "TotalSailingDistance", data.totalDistance)
 end
 
 -- 批量更新全服排行榜

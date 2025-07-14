@@ -465,6 +465,24 @@ _backpackButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_backpackButton)
 
+-- 徽章按钮
+local _badgeButton = Instance.new('TextButton')
+_badgeButton.Name = 'BadgeButton'
+_badgeButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_badgeButton.Size = _buttonSize
+_badgeButton.Position = UDim2.new(1, -180, 1, -80)  -- 在背包按钮左侧
+_badgeButton.Text = "徽章"  -- 临时文本，后续可以添加到语言配置中
+_badgeButton.Font = UIConfig.Font
+_badgeButton.TextScaled = true
+_badgeButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 金黄色
+_badgeButton.TextColor3 = Color3.fromRGB(0, 0, 0)  -- 黑色文字
+_badgeButton.Parent = _screenGui
+-- 徽章按钮点击事件
+_badgeButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowBadgeUI:Fire()
+end)
+UIConfig.CreateCorner(_badgeButton)
+
 -- -- 排行榜按钮
 -- local _rankButton = Instance.new('TextButton')
 -- _rankButton.Name = 'RankButton'
@@ -506,7 +524,7 @@ _feedbackButton.Name = 'FeedbackButton'
 _feedbackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _feedbackButton.Size = _buttonSize
 _feedbackButton.Position = UDim2.new(1, -60, 1, -240)
-_feedbackButton.Text = "反馈"
+_feedbackButton.Text = LanguageConfig.Get(10106)
 _feedbackButton.Font = UIConfig.Font
 _feedbackButton.TextScaled = true
 _feedbackButton.BackgroundColor3 = Color3.fromRGB(156, 39, 176)  -- 紫色

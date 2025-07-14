@@ -86,8 +86,10 @@ end
 
 -- 客户端调用，设置出生点
 function PlayerAttributeService.Client:SetSpawnLocation(player, areaName)
-    local spawnLocation = workspace:WaitForChild(areaName):WaitForChild("SpawnLocation")
-    player.RespawnLocation = spawnLocation
+    local spawnLocation = workspace:FindFirstChild(areaName):FindFirstChild("SpawnLocation")
+    if spawnLocation then
+        player.RespawnLocation = spawnLocation
+    end
     local DBService = Knit.GetService('DBService')
     DBService:Set(player.UserId, "SpawnLocation", areaName)
 end
@@ -175,6 +177,7 @@ function PlayerAttributeService:KnitInit()
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
         Knit.GetService("RankService"):RemovePlayerSailingData(player)
+        Knit.GetService("BadgeService"):PlayerRemoving(player)
         local DBService = Knit.GetService('DBService')
         DBService:PlayerRemoving(player)
     end

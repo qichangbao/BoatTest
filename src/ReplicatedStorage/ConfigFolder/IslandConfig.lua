@@ -22,6 +22,10 @@ local IslandConfig = {
         --     Price = 150,
         -- },
     },
+    RandomIsLand = {
+        [1] = {ModelName = "岛屿1"},
+        [2] = {ModelName = "岛屿2"},
+    },
 
     IsLandPart = {
         [1] = {
@@ -69,8 +73,8 @@ IslandConfig.FindIsLand = function(name)
 end
 
 IslandConfig.GetRandomIsland = function()
-    local index = math.random(1, #IslandConfig.IsLand)
-    return IslandConfig.IsLand[index]
+    local index = math.random(1, #IslandConfig.RandomIsLand)
+    return IslandConfig.RandomIsLand[index]
 end
 
 IslandConfig.GetIslandPart = function(num)

@@ -5,6 +5,7 @@ local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("IslandConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
 local Players = game.Players
 
 local LandService = Knit.CreateService {
@@ -106,6 +107,14 @@ function LandService.Client:IntoIsLand(player, landName)
     Knit.GetService("SystemService"):SendSystemMessageToSinglePlayer(player, 'info', 10049, landName)
     task.wait(0.1)
     Interface.InitPlayerPos(player)
+    
+    -- 检查玩家是否拥有徽章
+	local success, hasBadge = pcall(function()
+		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["IslandExplorer"].id)
+	end)
+    if success and not hasBadge then
+        game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["IslandExplorer"].id)
+    end
 end
 
 -- 客户端调用，玩家登船
@@ -133,10 +142,10 @@ function LandService:CreateIsland(modelName, position, lifetime)
     end
 
     island.Name = string.format("%s_%s", LanguageConfig.Get(10082), tick())
-    local pos = Interface.GetPartBottomPos(island, position)
-    island:PivotTo(CFrame.new(pos))
+    local floor = island:FindFirstChild("Floor")
+    island:PivotTo(CFrame.new(position))
     island.Parent = workspace
-    island:FindFirstChild("Floor").Anchored = true
+    floor.Anchored = true
     _allLand[island.Name] = true
 
     self.Client.CreateIsland:FireAll(island.Name, lifetime)
