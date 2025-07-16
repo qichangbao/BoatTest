@@ -40,6 +40,7 @@ local UIController = Knit.CreateController {
     ShowBoatChooseUI = Signal.new(),
     ShowFeedbackUI = Signal.new(),
     ShowBadgeUI = Signal.new(),
+    BadgeComplete = Signal.new(),
 }
 
 function UIController:KnitInit()

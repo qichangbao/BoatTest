@@ -18,14 +18,18 @@ local Players = game:GetService("Players")
 local DataStoreService = game:GetService("DataStoreService")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
 local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 -- 创建OrderedDataStore用于排行榜
 local TotalDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalDistance")
---TotalDistanceLeaderboard:RemoveAsync(7689724124)
+--TotalDistanceLeaderboard:RemoveAsync(-2)
 local MaxSingleDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxSingleDistance")
+--MaxSingleDistanceLeaderboard:RemoveAsync(-2)
 local TotalSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalTime")
+--TotalSailingTimeLeaderboard:RemoveAsync(-2)
 local MaxSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxTime")
+--MaxSailingTimeLeaderboard:RemoveAsync(-2)
 
 -- 创建普通DataStore用于玩家名称映射
 local PlayerNameStore = DataStoreService:GetDataStore("PlayerNames")
@@ -292,6 +296,16 @@ function RankService:UpdatePlayerDistance(player)
     })
 
     Knit.GetService("DBService"):Set(player.UserId, "TotalSailingDistance", data.totalDistance)
+
+    if data.totalDistance >= 100000 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["SailMeters100000"].id)
+    elseif data.totalDistance >= 50000 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["SailMeters50000"].id)
+    elseif data.totalDistance >= 10000 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["SailMeters10000"].id)
+    elseif data.totalDistance >= 1000 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["SailMeters1000"].id)
+    end
 end
 
 -- 批量更新全服排行榜

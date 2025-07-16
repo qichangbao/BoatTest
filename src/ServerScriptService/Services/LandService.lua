@@ -108,13 +108,7 @@ function LandService.Client:IntoIsLand(player, landName)
     task.wait(0.1)
     Interface.InitPlayerPos(player)
     
-    -- 检查玩家是否拥有徽章
-	local success, hasBadge = pcall(function()
-		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["IslandExplorer"].id)
-	end)
-    if success and not hasBadge then
-        game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["IslandExplorer"].id)
-    end
+    Interface.AwardBadge(player.UserId, BadgeConfig["IslandExplorer"].id)
 end
 
 -- 客户端调用，玩家登船

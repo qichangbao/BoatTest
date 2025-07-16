@@ -9,7 +9,7 @@ local Players = game:GetService('Players')
 local RunService = game:GetService('RunService')
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 local BuffConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BuffConfig"))
-local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
 local DataRetryUtil = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("DataRetryUtil"))
 
 local ClientData = {}
@@ -21,6 +21,7 @@ ClientData.ActiveBuffs = {}
 ClientData.IsBoatAssembling = false
 ClientData.IsOnBoat = false
 ClientData.RankData = {}
+ClientData.BadgeData = {} -- 存储所有徽章数据和状态
 
 -- 排行榜个人数据
 ClientData.PersonRankData = {
@@ -71,10 +72,60 @@ local function updatePersonalRankData(personalData)
     DataRetryUtil.SafeUpdateNumbers(ClientData.PersonRankData, personalData, fieldMappings)
 end
 
+--[[
+预加载所有徽章数据
+获取徽章信息和玩家拥有状态，存储到ClientData中
+]]
+local function preloadBadgeData()
+    print("开始预加载徽章数据...")
+    local badgeCount = 0
+    local successCount = 0
+    
+    for _, data in pairs(BadgeConfig) do
+        local badgeId = data.id
+        badgeCount = badgeCount + 1
+        
+        -- 获取徽章详细信息
+        local badgeInfoSuccess, badgeInfo = pcall(function()
+            return game:GetService("BadgeService"):GetBadgeInfoAsync(badgeId)
+        end)
+
+        if not badgeInfoSuccess then
+            warn("获取徽章信息失败:", badgeId)
+            continue
+        end
+
+        -- 检查玩家是否拥有徽章
+        local success, hasBadge = pcall(function()
+            return game:GetService("BadgeService"):UserHasBadgeAsync(Players.LocalPlayer.UserId, badgeId)
+        end)
+
+        if not success then
+            warn("检查徽章拥有状态失败:", badgeId)
+            continue
+        end
+        
+        -- 存储徽章数据到ClientData
+        ClientData.BadgeData[badgeId] = {
+            id = badgeId,
+            info = badgeInfo,
+            hasBadge = hasBadge,
+            config = data,
+            layoutOrder = badgeCount
+        }
+        
+        successCount = successCount + 1
+    end
+    
+    -- 触发徽章UI更新信号
+    Knit.GetController('UIController').BadgeComplete:Fire()
+
+    print(string.format("徽章数据预加载完成: %d/%d 成功", successCount, badgeCount))
+end
+
 Knit:OnStart():andThen(function()
     Players.LocalPlayer.CharacterAdded:Connect(function()
-        local humanoid = Players.LocalPlayer.Character:FindFirstChild('Humanoid')
-        
+        local humanoid = Players.LocalPlayer.Character:WaitForChild('Humanoid')
         -- 监听玩家死亡事件
         humanoid.Died:Connect(function()
             Knit.GetController('UIController').ShowMessageBox:Fire({
@@ -265,9 +316,7 @@ Knit:OnStart():andThen(function()
             retryDelay = 2,
             operationName = "排行榜数据获取",
             dataValidator = function(data)
-                return data and data.totalDis and data.maxDis and data.totalTime and data.maxTime
-                and #data.totalDis.leaderboard ~= 0 and #data.maxDis.leaderboard ~= 0
-                and #data.totalTime.leaderboard ~= 0 and #data.maxTime.leaderboard ~= 0
+                return data and data.lastUpdate
             end,
             onSuccess = function(leaderboardData)
                 ClientData.RankData = leaderboardData
@@ -364,6 +413,12 @@ Knit:OnStart():andThen(function()
             end
         }
     )
+    
+    -- 预加载徽章数据
+    task.spawn(function()
+        task.wait(2) -- 等待2秒确保服务初始化完成
+        preloadBadgeData()
+    end)
 end):catch(warn)
 
 return ClientData

@@ -22,7 +22,7 @@ local BoatConfig = {
         ["3级船_风帆1"] = {PartType = "SeatPart", HP = 10, speed = 1},
         ["3级船_风帆2"] = {PartType = "SeatPart", HP = 10, speed = 1},
         ["3级船_驾驶室"] = {PartType = "SeatPart", HP = 10, speed = 1},
-        ["3级船_炮"] = {PartType = "WeaponPart", HP = 10, speed = 1},
+        ["3级船_前炮"] = {PartType = "WeaponPart", HP = 10, speed = 1},
         ["3级船_右炮"] = {PartType = "WeaponPart", HP = 10, speed = 1},
         ["3级船_左炮"] = {PartType = "WeaponPart", HP = 10, speed = 1},
     }

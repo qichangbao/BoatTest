@@ -177,6 +177,7 @@ function BoatAssemblingService:CreateBoat(player, boatName)
 
     createWeldConstraint(seatPart, primaryPart, seatPart)
 
+    local hasWeapon = false
     -- 统一创建其他部件
     for _, partInfo in ipairs(boatParts) do
         if partInfo.Name ~= primaryPartName then
@@ -191,6 +192,10 @@ function BoatAssemblingService:CreateBoat(player, boatName)
                 boatSpeed += curBoatConfig[partInfo.Name].speed
 
                 createWeldConstraint(partClone, primaryPart, partClone)
+
+                if curBoatConfig[partInfo.Name] and curBoatConfig[partInfo.Name].PartType == "WeaponPart" then
+                    hasWeapon = true
+                end
             end
         end
     end
@@ -199,6 +204,9 @@ function BoatAssemblingService:CreateBoat(player, boatName)
     boat:SetAttribute('MaxHealth', math.max(boatHP, 0))
     boat:SetAttribute('Speed', math.max(boatSpeed, 0))
     boat:SetAttribute('MaxSpeed', math.max(boatSpeed, 0))
+    
+    -- 是否激活船炮
+    Knit.GetService("BoatWeaponService"):Active(player, hasWeapon)
     return boat
 end
 
@@ -250,7 +258,7 @@ function BoatAssemblingService:CreateStabilizer(boat)
         },
         -- 前后稳定器配置
         frontBack = {
-            width = math.max(boatSize.X * 0.8, 3), -- 宽度为船宽的80%，最小15
+            width = math.max(boatSize.X * 2, 3), -- 宽度为船宽的80%，最小15
             height = math.max(boatSize.Y * 0.2, 1), -- 高度为船高的40%，最小3
             length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小5
             offset = 0 -- 距离船体的偏移量
@@ -375,17 +383,7 @@ function BoatAssemblingService:AssembleBoat(player, boatName, revivePos)
     self.Client.UpdateMainUI:Fire(player, {explore = true})
     self.Client.UpdateInventory:Fire(player, boat:GetAttribute('ModelName'))
 
-    -- 检查玩家是否拥有徽章
-	local success, hasBadge = pcall(function()
-		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["FirstVoyage"].id)
-	end)
-    if success and not hasBadge then
-        -- 获奖徽章
-        local awardSuccess = pcall(function()
-            game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["FirstVoyage"].id)
-        end)
-        print("111111111111  ", awardSuccess)
-    end
+    Interface.AwardBadge(player.UserId, BadgeConfig["FirstVoyage"].id)
     return 10022
 end
 

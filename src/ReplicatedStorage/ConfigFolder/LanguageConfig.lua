@@ -116,7 +116,11 @@ local Text = {
 	[10115] = {zh_cn = "开启宝箱10个", en_us = "Treasure Hunter II"},
 	[10116] = {zh_cn = "首次组建一艘完成的船", en_us = "Shipbuilder"},
 	[10117] = {zh_cn = "拥有第二艘船", en_us = "Fleet Begins"},
-
+	[10118] = {zh_cn = "徽章", en_us = "Badge"},
+	[10119] = {zh_cn = "点击下方的徽章来查看详细信息", en_us = "点击下方的徽章来查看详细信息"},
+	[10120] = {zh_cn = "已获得", en_us = "已获得"},
+	[10121] = {zh_cn = "未获得", en_us = "未获得"},
+	[10122] = {zh_cn = "选择一个徽章查看详情", en_us = "选择一个徽章查看详情"},
 }
 
 local Players = game:GetService("Players")

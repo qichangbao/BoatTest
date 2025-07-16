@@ -17,42 +17,42 @@ local _data = {
     --     }
     -- },
     
-    -- -- 速度类BUFF
-    -- speed = {
-    --     buffType = "speed",
-    --     Random = 100,
-    --     Parts = {
-    --         speed_boost = {
-    --             displayName = LanguageConfig.Get(10052),
-    --             buffType = "speed",
-    --             effectType = "additive",
-    --             value = 5,
-    --             duration = 45,
-    --             Random = 10,
-    --         },
-    --     }
-    -- },
+    -- 速度类BUFF
+    speed = {
+        buffType = "speed",
+        Random = 30,
+        Parts = {
+            speed_boost = {
+                displayName = LanguageConfig.Get(10052),
+                buffType = "speed",
+                effectType = "additive",
+                value = 5,
+                duration = 45,
+                Random = 10,
+            },
+        }
+    },
     
-    -- -- 生命类BUFF
-    -- health = {
-    --     buffType = "health",
-    --     Random = 100,
-    --     Parts = {
-    --         health_boost = {
-    --             displayName = LanguageConfig.Get(10053),
-    --             buffType = "health",
-    --             effectType = "multiplier",
-    --             value = 1.2,
-    --             duration = 60,
-    --             Random = 10,
-    --         },
-    --     }
-    -- },
+    -- 生命类BUFF
+    health = {
+        buffType = "health",
+        Random = 30,
+        Parts = {
+            health_boost = {
+                displayName = LanguageConfig.Get(10053),
+                buffType = "health",
+                effectType = "multiplier",
+                value = 1.2,
+                duration = 60,
+                Random = 10,
+            },
+        }
+    },
     
     -- 幸运类BUFF
     lucky = {
         buffType = "lucky",
-        Random = 100,
+        Random = 30,
         Parts = {
             lucky_boost = {
                 displayName = LanguageConfig.Get(10054),
@@ -60,7 +60,7 @@ local _data = {
                 effectType = "chance",
                 value = 0.3,
                 duration = 90,
-                Random = 100,
+                Random = 10,
             },
         }
     },

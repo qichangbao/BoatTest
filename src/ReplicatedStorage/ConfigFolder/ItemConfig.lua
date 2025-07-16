@@ -79,7 +79,7 @@ local _data = {
             ["3级船"] = {
                 Name = "3级船",
                 MinTime = 5,   -- 需要达到的最小天数才能抽取
-                MaxTime = 10,  -- 需要达到的最大天数才能抽取
+                MaxTime = -1,  -- 需要达到的最大天数才能抽取
                 Parts = {
                     ["3级船_船身"] = {
                         itemName = "3级船_船身", 
@@ -177,8 +177,8 @@ local _data = {
                         sellPrice = 10, 
                         Random = 5
                     },
-                    ["3级船_炮"] = {
-                        itemName = "3级船_炮", 
+                    ["3级船_前炮"] = {
+                        itemName = "3级船_前炮", 
                         modelName = "3级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -235,7 +235,7 @@ function ItemConfig.GetRandomItem(playerDay)
         if randomCount <= curCount + v.Random then
             if i == ItemConfig.BoatTag then
                 for j, k in pairs(v.Parts) do
-                    if playerDay >= k.MinTime and playerDay < k.MaxTime then
+                    if playerDay >= k.MinTime and (playerDay < k.MaxTime or k.MaxTime == -1) then
                         local randomSubCount = math.random(100)
                         local curSubCount = 0
                         for m, n in pairs(k.Parts) do

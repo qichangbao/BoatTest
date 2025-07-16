@@ -177,7 +177,6 @@ function PlayerAttributeService:KnitInit()
     local function playerRemoving(player)
 		print("playerRemoving    ", player.Name)
         Knit.GetService("RankService"):RemovePlayerSailingData(player)
-        Knit.GetService("BadgeService"):PlayerRemoving(player)
         local DBService = Knit.GetService('DBService')
         DBService:PlayerRemoving(player)
     end

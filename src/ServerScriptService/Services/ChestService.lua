@@ -6,6 +6,7 @@ local BuffConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 local ChestConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ChestConfig"))
 local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local ChestService = Knit.CreateService({
     Name = 'ChestService',
@@ -103,12 +104,16 @@ function ChestService:ProcessChestRewards(player, chestPosition)
         print("ChestService: 玩家捡到了空箱子:", player.Name)
     end
 
-    -- 检查玩家是否拥有徽章
-	local success, hasBadge = pcall(function()
-		return game:GetService("BadgeService"):UserHasBadgeAsync(player.UserId, BadgeConfig["OpenChestCount"].id)
-	end)
-    if success and not hasBadge then
-        game:GetService("BadgeService"):AwardBadge(player.UserId, BadgeConfig["OpenChestCount"].id)
+    local DBService = Knit.GetService("DBService")
+    local openChestNum = DBService:Get(player.UserId, "OpenChestNum") or 0
+    openChestNum += 1
+    DBService:Set(player.UserId, "OpenChestNum", openChestNum)
+    if openChestNum == 1 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["FirstTreasure"].id)
+    elseif openChestNum == 5 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["TreasureHunterI"].id)
+    elseif openChestNum == 10 then
+        Interface.AwardBadge(player.UserId, BadgeConfig["TreasureHunterII"].id)
     end
     return true
 end

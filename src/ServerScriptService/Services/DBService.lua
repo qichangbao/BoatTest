@@ -4,15 +4,24 @@ local ProfileService = require(ReplicatedStorage:WaitForChild("Packages"):WaitFo
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
 local DataStoreService = game:GetService("DataStoreService")
 local SystemStore = DataStoreService:GetDataStore("SystemStore")
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 
 local _dataTemplate = {
 	Gold = 50,	-- 金币
-	PlayerInventory = {},			-- 背包
+	PlayerInventory = {
+		["初级小船1_船身"] = {
+			itemName = "初级小船1_船身",
+			num = 1,
+			modelName = "初级小船1",
+			itemType = ItemConfig.BoatTag,
+		},
+	},			-- 背包
 	SpawnLocation = "奥林匹斯",		 -- 出生地
 	TotalSailingTime = 0,			-- 总航行时长
 	MaxSailingTime = 0,				-- 最大航行时长
 	TotalSailingDistance = 0,		-- 总航行距离
 	MaxSingleSailingDistance = 0,	-- 单次最大航行距离
+	OpenChestNum = 0,				-- 开箱子个数
 }
 
 local ProfileStore = ProfileService.GetProfileStore(

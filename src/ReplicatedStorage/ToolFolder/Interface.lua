@@ -249,4 +249,26 @@ function Interface.CheckPosHasPart(pos, size)
     return #foundParts > 0, foundParts
 end
 
+function Interface.AwardBadge(userId, badgeId)
+    -- 检查玩家是否拥有徽章
+	local success, hasBadge = pcall(function()
+		return game:GetService("BadgeService"):UserHasBadgeAsync(userId, badgeId)
+	end)
+    if success and not hasBadge then
+        -- 首先检查徽章是否启用
+        local badgeInfoSuccess, badgeInfo = pcall(function()
+            return game:GetService("BadgeService"):GetBadgeInfoAsync(badgeId)
+        end)
+        
+        if badgeInfoSuccess and badgeInfo.IsEnabled then
+            -- 奖励徽章
+            pcall(function()
+                return game:GetService("BadgeService"):AwardBadge(userId, badgeId)
+            end)
+        else
+            warn("BoatAssemblingService: 徽章未启用或获取徽章信息失败")
+        end
+    end
+end
+
 return Interface

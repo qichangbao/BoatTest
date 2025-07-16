@@ -57,7 +57,10 @@ _startBoatButton.MouseButton1Click:Connect(function()
         end
     end
 
-    if boatCount == 1 then
+    if boatCount == 0 then
+        Knit.GetController('UIController').ShowTip:Fire(10021)
+        return
+    elseif boatCount == 1 then
         local boat = game.Workspace:FindFirstChild("PlayerBoat_"..Players.LocalPlayer.UserId)
         if boat then
             boat:Destroy()
@@ -339,114 +342,77 @@ _goldLabel.BackgroundTransparency = 1
 _goldLabel.TextXAlignment = Enum.TextXAlignment.Right
 _goldLabel.Parent = _screenGui
 
--- 玩家按钮
-local _playersButton = Instance.new('TextButton')
-_playersButton.Name = 'PlayersButton'
-_playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_playersButton.Size = _buttonSize
-_playersButton.Position = UDim2.new(1, -60, 1, -240)
-_playersButton.Text = LanguageConfig.Get(10026)
-_playersButton.Font = UIConfig.Font
-_playersButton.TextScaled = true
-_playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
-_playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-_playersButton.Parent = _screenGui
--- 玩家按钮点击事件
-_playersButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowPlayersUI:Fire()
-end)
+-- -- 抽奖按钮
+-- local _lootButton = Instance.new('TextButton')
+-- _lootButton.Name = 'LootButton'
+-- _lootButton.AnchorPoint = Vector2.new(0.5, 0.5)
+-- _lootButton.Size = _buttonSize
+-- _lootButton.Position = UDim2.new(1, -60, 0, 0)
+-- _lootButton.Text = LanguageConfig.Get(10008)
+-- _lootButton.Font = UIConfig.Font
+-- _lootButton.TextScaled = true
+-- _lootButton.Active = false
+-- _lootButton.AutoButtonColor = false
+-- _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+-- _lootButton.Parent = _screenGui
 
-UIConfig.CreateCorner(_playersButton)
+-- local LOOT_TIME_COOLDOWN = 3.6
+-- -- 倒计时标签
+-- local _cooldownLabel = Instance.new('TextLabel')
+-- _cooldownLabel.Size = UDim2.new(1, 0, 1, 0)
+-- _cooldownLabel.Text = tostring(LOOT_TIME_COOLDOWN)
+-- _cooldownLabel.TextColor3 = Color3.new(0.925490, 0.231372, 0.231372)
+-- _cooldownLabel.TextScaled = true
+-- _cooldownLabel.BackgroundTransparency = 0.7
+-- _cooldownLabel.BackgroundColor3 = Color3.new(0,0,0)
+-- _cooldownLabel.Visible = false
+-- _cooldownLabel.Parent = _lootButton
+-- UIConfig.CreateCorner(_cooldownLabel)
 
--- Buff按钮
-local _buffButton = Instance.new('TextButton')
-_buffButton.Name = 'BuffButton'
-_buffButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_buffButton.Size = _buttonSize
-_buffButton.Position = UDim2.new(1, -60, 1, -320)
-_buffButton.Text = "BUFF"
-_buffButton.Font = UIConfig.Font
-_buffButton.TextScaled = true
-_buffButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
-_buffButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-_buffButton.Parent = _screenGui
--- Buff按钮点击事件
-_buffButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowBuffUI:Fire()
-end)
-UIConfig.CreateCorner(_buffButton)
+-- local _remainingTime = LOOT_TIME_COOLDOWN
 
--- 抽奖按钮
-local _lootButton = Instance.new('TextButton')
-_lootButton.Name = 'LootButton'
-_lootButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_lootButton.Size = _buttonSize
-_lootButton.Position = UDim2.new(1, -60, 0, 0)
-_lootButton.Text = LanguageConfig.Get(10008)
-_lootButton.Font = UIConfig.Font
-_lootButton.TextScaled = true
-_lootButton.Active = false
-_lootButton.AutoButtonColor = false
-_lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-_lootButton.Parent = _screenGui
+-- local function updateCooldown()
+--     if _remainingTime > 0 then
+--         _cooldownLabel.Text = string.format("%.1f", _remainingTime)
+--         _cooldownLabel.Visible = true
+--         _lootButton.Active = false
+--     else
+--         _cooldownLabel.Visible = false
+--         _lootButton.Active = true
+--         _lootButton.AutoButtonColor = true
+--         _lootButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
+--     end
+-- end
 
-local LOOT_TIME_COOLDOWN = 3.6
--- 倒计时标签
-local _cooldownLabel = Instance.new('TextLabel')
-_cooldownLabel.Size = UDim2.new(1, 0, 1, 0)
-_cooldownLabel.Text = tostring(LOOT_TIME_COOLDOWN)
-_cooldownLabel.TextColor3 = Color3.new(0.925490, 0.231372, 0.231372)
-_cooldownLabel.TextScaled = true
-_cooldownLabel.BackgroundTransparency = 0.7
-_cooldownLabel.BackgroundColor3 = Color3.new(0,0,0)
-_cooldownLabel.Visible = false
-_cooldownLabel.Parent = _lootButton
-UIConfig.CreateCorner(_cooldownLabel)
+-- -- 初始化冷却计时器
+-- local _renderSteppedConnection = RunService.Heartbeat:Connect(function(dt)
+--     if _remainingTime > 0 then
+--         _remainingTime = math.max(0, _remainingTime - dt)
+--         updateCooldown()
+--     end
+-- end)
 
-local _remainingTime = LOOT_TIME_COOLDOWN
-
-local function updateCooldown()
-    if _remainingTime > 0 then
-        _cooldownLabel.Text = string.format("%.1f", _remainingTime)
-        _cooldownLabel.Visible = true
-        _lootButton.Active = false
-    else
-        _cooldownLabel.Visible = false
-        _lootButton.Active = true
-        _lootButton.AutoButtonColor = true
-        _lootButton.BackgroundColor3 = Color3.fromRGB(215, 120, 0)
-    end
-end
-
--- 初始化冷却计时器
-local _renderSteppedConnection = RunService.Heartbeat:Connect(function(dt)
-    if _remainingTime > 0 then
-        _remainingTime = math.max(0, _remainingTime - dt)
-        updateCooldown()
-    end
-end)
-
--- 抽奖按钮点击事件
-_lootButton.MouseButton1Click:Connect(function()
-    if not _lootButton.Active then
-        return
-    end
-    _remainingTime = LOOT_TIME_COOLDOWN
-    _lootButton.Active = false
-    _lootButton.AutoButtonColor = false
-    _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+-- -- 抽奖按钮点击事件
+-- _lootButton.MouseButton1Click:Connect(function()
+--     if not _lootButton.Active then
+--         return
+--     end
+--     _remainingTime = LOOT_TIME_COOLDOWN
+--     _lootButton.Active = false
+--     _lootButton.AutoButtonColor = false
+--     _lootButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     
-    local LootService = Knit.GetService('LootService')
-    LootService:Loot():andThen(function(tipId, itemName)
-        if itemName then
-            local str = string.format(LanguageConfig.Get(tipId), itemName)
-            Knit.GetController('UIController').ShowTip:Fire(str)
-        else
-            Knit.GetController('UIController').ShowTip:Fire(tipId)
-        end
-    end)
-end)
-UIConfig.CreateCorner(_lootButton)
+--     local LootService = Knit.GetService('LootService')
+--     LootService:Loot():andThen(function(tipId, itemName)
+--         if itemName then
+--             local str = string.format(LanguageConfig.Get(tipId), itemName)
+--             Knit.GetController('UIController').ShowTip:Fire(str)
+--         else
+--             Knit.GetController('UIController').ShowTip:Fire(tipId)
+--         end
+--     end)
+-- end)
+-- UIConfig.CreateCorner(_lootButton)
 
 -- 背包按钮
 local _backpackButton = Instance.new('TextButton')
@@ -465,65 +431,85 @@ _backpackButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_backpackButton)
 
+-- Buff按钮
+local _buffButton = Instance.new('TextButton')
+_buffButton.Name = 'BuffButton'
+_buffButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_buffButton.Size = _buttonSize
+_buffButton.Position = UDim2.new(1, -60, 1, -160)
+_buffButton.Text = "BUFF"
+_buffButton.Font = UIConfig.Font
+_buffButton.TextScaled = true
+_buffButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)  -- 橙色
+_buffButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_buffButton.Parent = _screenGui
+-- Buff按钮点击事件
+_buffButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowBuffUI:Fire()
+end)
+UIConfig.CreateCorner(_buffButton)
+
 -- 徽章按钮
 local _badgeButton = Instance.new('TextButton')
 _badgeButton.Name = 'BadgeButton'
 _badgeButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _badgeButton.Size = _buttonSize
-_badgeButton.Position = UDim2.new(1, -180, 1, -80)  -- 在背包按钮左侧
-_badgeButton.Text = "徽章"  -- 临时文本，后续可以添加到语言配置中
+_badgeButton.Position = UDim2.new(1, -60, 1, -240)
+_badgeButton.Text = LanguageConfig.Get(10118)
 _badgeButton.Font = UIConfig.Font
 _badgeButton.TextScaled = true
 _badgeButton.BackgroundColor3 = Color3.fromRGB(255, 193, 7)  -- 金黄色
 _badgeButton.TextColor3 = Color3.fromRGB(0, 0, 0)  -- 黑色文字
 _badgeButton.Parent = _screenGui
+_badgeButton.Visible = false
 -- 徽章按钮点击事件
 _badgeButton.MouseButton1Click:Connect(function()
     Knit.GetController('UIController').ShowBadgeUI:Fire()
 end)
 UIConfig.CreateCorner(_badgeButton)
 
--- -- 排行榜按钮
--- local _rankButton = Instance.new('TextButton')
--- _rankButton.Name = 'RankButton'
--- _rankButton.AnchorPoint = Vector2.new(0.5, 0.5)
--- _rankButton.Size = _buttonSize
--- _rankButton.Position = UDim2.new(1, -60, 1, -400)
--- _rankButton.Text = LanguageConfig.Get(10084)
--- _rankButton.Font = UIConfig.Font
--- _rankButton.TextScaled = true
--- _rankButton.BackgroundColor3 = Color3.fromRGB(182, 109, 250)  -- 柔和紫罗兰色
--- _rankButton.Parent = _screenGui
--- -- 排行榜按钮点击事件
--- _rankButton.MouseButton1Click:Connect(function()
---     Knit.GetController('UIController').ShowRankUI:Fire()
--- end)
--- UIConfig.CreateCorner(_rankButton)
-
--- 商城按钮
-local _shopButton = Instance.new('TextButton')
-_shopButton.Name = 'ShopButton'
-_shopButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_shopButton.Size = _buttonSize
-_shopButton.Position = UDim2.new(1, -60, 1, -160)
-_shopButton.Text = LanguageConfig.Get(10092)
-_shopButton.Font = UIConfig.Font
-_shopButton.TextScaled = true
-_shopButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)  -- 橙色
-_shopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-_shopButton.Parent = _screenGui
--- 商城按钮点击事件
-_shopButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowPurchaseUI:Fire()
+-- 玩家按钮
+local _playersButton = Instance.new('TextButton')
+_playersButton.Name = 'PlayersButton'
+_playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
+_playersButton.Size = _buttonSize
+_playersButton.Position = UDim2.new(1, -60, 1, -320)
+_playersButton.Text = LanguageConfig.Get(10026)
+_playersButton.Font = UIConfig.Font
+_playersButton.TextScaled = true
+_playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
+_playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+_playersButton.Parent = _screenGui
+-- 玩家按钮点击事件
+_playersButton.MouseButton1Click:Connect(function()
+    Knit.GetController('UIController').ShowPlayersUI:Fire()
 end)
-UIConfig.CreateCorner(_shopButton)
+UIConfig.CreateCorner(_playersButton)
+
+-- -- 商城按钮
+-- local _shopButton = Instance.new('TextButton')
+-- _shopButton.Name = 'ShopButton'
+-- _shopButton.AnchorPoint = Vector2.new(0.5, 0.5)
+-- _shopButton.Size = _buttonSize
+-- _shopButton.Position = UDim2.new(1, -60, 1, -160)
+-- _shopButton.Text = LanguageConfig.Get(10092)
+-- _shopButton.Font = UIConfig.Font
+-- _shopButton.TextScaled = true
+-- _shopButton.BackgroundColor3 = Color3.fromRGB(255, 140, 0)  -- 橙色
+-- _shopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- _shopButton.Parent = _screenGui
+-- -- 商城按钮点击事件
+-- _shopButton.MouseButton1Click:Connect(function()
+--     Knit.GetController('UIController').ShowPurchaseUI:Fire()
+-- end)
+-- UIConfig.CreateCorner(_shopButton)
 
 -- 反馈按钮
 local _feedbackButton = Instance.new('TextButton')
 _feedbackButton.Name = 'FeedbackButton'
 _feedbackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _feedbackButton.Size = _buttonSize
-_feedbackButton.Position = UDim2.new(1, -60, 1, -240)
+_feedbackButton.Position = UDim2.new(1, -60, 1, -400)
 _feedbackButton.Text = LanguageConfig.Get(10106)
 _feedbackButton.Font = UIConfig.Font
 _feedbackButton.TextScaled = true
@@ -821,6 +807,10 @@ Knit:OnStart():andThen(function()
     -- 注册显示占领中接口
     Knit.GetController('UIController').ShowOccupingUI:Connect(function(isShow)
         ShowOccupingLayer(isShow)
+    end)
+    -- 注册徽章完成更新事件
+    Knit.GetController('UIController').BadgeComplete:Connect(function()
+        _badgeButton.Visible = true
     end)
     -- 注册系统消息接口
     Knit.GetService('SystemService').SystemMessage:Connect(function(messageType, tipId, ...)

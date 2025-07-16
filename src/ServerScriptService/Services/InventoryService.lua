@@ -1,5 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Knit"))
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
+local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
+local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BadgeConfig"))
+local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForChild("Interface"))
 
 local InventoryService = Knit.CreateService({
     Name = 'InventoryService',
@@ -47,6 +51,20 @@ function InventoryService:GetInitData(userId)
     return data
 end
 
+function InventoryService:CheckCompleteBoat(player, modelName)
+    local boatConfig = BoatConfig.GetBoatConfig(modelName)
+    if not boatConfig then
+        return
+    end
+
+    for partName, _ in pairs(boatConfig) do
+        if not self:CheckExists(player, partName) then
+            return false
+        end
+    end
+    return true
+end
+
 function InventoryService:AddItemToInventory(player, itemType, itemName, modelName)
     local userId = player.UserId
     if not self.playersInventory[userId] then
@@ -57,6 +75,31 @@ function InventoryService:AddItemToInventory(player, itemType, itemName, modelNa
     Knit.GetService('DBService'):Set(userId, "PlayerInventory", data)
     self.Client.AddItem:Fire(player, self.playersInventory[userId][itemName])
     
+    if itemType == ItemConfig.BoatTag then
+        local boatCount = 0
+        -- 检查是否集齐了一整艘船的所有部件
+        for _, boatData in pairs(BoatConfig) do
+            if type(boatData) == "table" then
+                local isAllExist = true
+                for partName, _ in pairs(boatData) do
+                    if not self:CheckExists(player, partName) then
+                        isAllExist = false
+                        break
+                    end
+                end
+
+                if isAllExist then
+                    boatCount += 1
+                end
+            end
+        end
+
+        if boatCount == 1 then
+            Interface.AwardBadge(player.UserId, BadgeConfig["Shipbuilder"].id)
+        elseif boatCount == 2 then
+            Interface.AwardBadge(player.UserId, BadgeConfig["FleetBegins"].id)
+        end
+    end
     return true
 end
 

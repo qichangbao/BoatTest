@@ -78,7 +78,7 @@ function DataRetryUtil.RetryDataFetch(serviceCall, config)
             if finalConfig.validateData and not dataValidator(data) then
                 local errorMsg = operationName .. "数据验证失败，重试次数: " .. retryCount .. "/" .. finalConfig.maxRetries
                 if finalConfig.logErrors then
-                    warn(errorMsg)
+                    print(errorMsg)
                 end
                 
                 if retryCount < finalConfig.maxRetries then
@@ -106,7 +106,7 @@ function DataRetryUtil.RetryDataFetch(serviceCall, config)
         end):catch(function(err)
             local errorMsg = operationName .. "失败，重试次数: " .. retryCount .. "/" .. finalConfig.maxRetries .. "，错误: " .. tostring(err)
             if finalConfig.logErrors then
-                warn(errorMsg)
+                print(errorMsg)
             end
             
             if retryCount < finalConfig.maxRetries then
