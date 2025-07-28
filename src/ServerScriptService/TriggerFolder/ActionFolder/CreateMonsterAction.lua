@@ -27,7 +27,7 @@ function CreateMonsterAction:Execute(data)
         -- 添加小范围随机偏移 (-5到5米的随机范围)
         local randomX = math.random(-100, 100)
         local randomZ = math.random(-100, 100)
-        local randomOffset = Vector3.new(randomX, 1.5, randomZ)
+        local randomOffset = Vector3.new(randomX, -5, randomZ)
         
         self.position = Vector3.new(position.X + baseOffset.X + randomOffset.X, randomOffset.Y, position.Z + baseOffset.Z + randomOffset.Z)
     end

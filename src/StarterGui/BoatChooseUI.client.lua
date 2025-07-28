@@ -152,8 +152,8 @@ local function getPlayerBoats()
                     end
                     
                     -- 计算可用部件的HP和速度
-                    totalHP = totalHP + (partConfig.HP or 0) * (partData.num or 1)
-                    totalSpeed = totalSpeed + (partConfig.speed or 0) * (partData.num or 1)
+                    totalHP = totalHP + (partConfig.HP or 0)
+                    totalSpeed = totalSpeed + (partConfig.speed or 0)
                 end
             end
             

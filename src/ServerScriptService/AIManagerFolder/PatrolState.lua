@@ -16,6 +16,8 @@ end
 
 function PatrolState:Enter()
     print("进入Patrol状态")
+    self:PlayAnimation()
+
     local npcPos = self.AIManager.NPC.HumanoidRootPart.CFrame.Position
     local maxDisForSpawn = self.AIManager.NPC:GetAttribute("MaxDisForSpawn")
     local patrolRadius = self.AIManager.NPC:GetAttribute("PatrolRadius")
@@ -33,10 +35,10 @@ function PatrolState:Enter()
 
     self.timer = HEARTBEAT_SPACE
     self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        dt = dt or 0.01
         -- 计算移动方向
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
-            print("HumanoidRootPart not found")
             return
         end
         
@@ -62,8 +64,9 @@ function PatrolState:Enter()
             return
         end
 
-        -- 更新位置和方向
-        HumanoidRootPart.CFrame = CFrame.new(newPos, targetPosition)
+        -- 更新位置和方向（确保怪物正面朝向目标）
+        local lookDirection = (targetPosition - newPos).Unit
+        HumanoidRootPart.CFrame = CFrame.lookAt(newPos, newPos + lookDirection)
 
         -- self.timer = self.timer - dt
         -- if self.timer <= 0 then
@@ -97,8 +100,40 @@ function PatrolState:Enter()
     end)
 end
 
+-- 播放游泳动画
+-- @description 播放怪物的Shark_Swim移动动画
+function PatrolState:PlayAnimation()
+    local humanoid = self.AIManager.Humanoid
+    if not humanoid then
+        return
+    end
+    
+    local animator = humanoid:FindFirstChild("Animator")
+    if not animator then
+        return
+    end
+    
+    -- 查找Shark_Swim动画
+    local animationId = "rbxassetid://80889812749625" -- 这里需要替换为实际的动画ID
+    local animation = Instance.new("Animation")
+    animation.AnimationId = animationId
+    
+    -- 加载并播放动画
+    local animationTrack = animator:LoadAnimation(animation)
+    if animationTrack then
+        animationTrack:Play()
+        animationTrack.Looped = true -- 设置循环播放
+        self.swimAnimationTrack = animationTrack
+    end
+end
+
 function PatrolState:Exit()
     print("退出Patrol状态")
+    -- 停止游泳动画
+    if self.swimAnimationTrack then
+        self.swimAnimationTrack:Stop()
+        self.swimAnimationTrack = nil
+    end
     if self.connection then
         self.connection:Disconnect()
         self.connection = nil

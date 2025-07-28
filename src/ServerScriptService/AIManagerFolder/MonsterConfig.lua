@@ -1,5 +1,5 @@
 local MonsterConfig = {
-    ["海怪1"]  = {
+    ["Shark"]  = {
         Type = "Monster",
         Health = 100,
         WalkSpeed = 16,

@@ -15,6 +15,7 @@ function IdleState:Enter()
     print("进入Idle状态")
     self.timer = math.random(3, 8)
     self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        dt = dt or 0.01
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")

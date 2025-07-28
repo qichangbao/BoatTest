@@ -66,7 +66,7 @@ return {
         IsGoodCondition = true,
         Action = {
             ActionType = "CreateMonster",
-            MonsterName = "海怪1",
+            MonsterName = "Shark",
             UsePlayerPosition = true, -- 使用玩家当前位置
             PositionOffset = 100, -- 相对于玩家位置的偏移
             DestroyToResetCondition = true, -- 死亡是否重置条件

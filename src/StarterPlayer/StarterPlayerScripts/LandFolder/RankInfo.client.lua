@@ -14,13 +14,7 @@ local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):Wa
 local GameConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("GameConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
-local mainArea
-while true do
-    mainArea = workspace:FindFirstChild("奥林匹斯")
-    if mainArea then
-        break
-    end
-end
+local rankPart = workspace:WaitForChild("RankPart")
 
 -- 当前显示的排行榜类型
 local currentLeaderboardType = 'totalDis'
@@ -186,8 +180,6 @@ end
 
 -- 创建排行榜界面的函数
 local function createRankInterface()
-    local rankPart = mainArea:WaitForChild("RankPart")
-    
     -- 创建SurfaceGui
     surfaceGui = Instance.new('SurfaceGui')
     surfaceGui.Name = 'RankInfoSurfaceGui'

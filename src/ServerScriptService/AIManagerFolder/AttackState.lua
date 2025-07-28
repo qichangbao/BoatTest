@@ -13,6 +13,7 @@ function AttackState:Enter()
     self.timer = 3
     self.isFirst = true
     self.connection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+        dt = dt or 0.01
         local HumanoidRootPart = self.AIManager.NPC:FindFirstChild('HumanoidRootPart')
         if not HumanoidRootPart then
             print("HumanoidRootPart not found")
@@ -75,10 +76,7 @@ function AttackState:Enter()
         end
 
         -- 播放攻击动画
-        -- local animateScript = self.AIManager.NPC:FindFirstChild("Animate")
-        -- if animateScript then
-        --     animateScript.Attack:Fire()
-        -- end
+        self:PlayAnimation()
         
         local damage = self.AIManager.NPC:GetAttribute("Damage")
         if modelType == "Boat" then
@@ -122,8 +120,38 @@ function AttackState:Enter()
     -- end)
 end
 
+-- 播放动画
+function AttackState:PlayAnimation()
+    local humanoid = self.AIManager.Humanoid
+    if not humanoid then
+        return
+    end
+    
+    local animator = humanoid:FindFirstChild("Animator")
+    if not animator then
+        return
+    end
+    
+    -- 查找Shark_Swim动画
+    local animationId = "rbxassetid://77918571383672" -- 这里需要替换为实际的动画ID
+    local animation = Instance.new("Animation")
+    animation.AnimationId = animationId
+    
+    -- 加载并播放动画
+    local animationTrack = animator:LoadAnimation(animation)
+    if animationTrack then
+        animationTrack:Play()
+        animationTrack.Looped = false -- 设置循环播放
+        self.attackAnimationTrack = animationTrack
+    end
+end
+
 function AttackState:Exit()
     print("退出Attack状态")
+    if self.attackAnimationTrack then
+        self.attackAnimationTrack:Stop()
+        self.attackAnimationTrack = nil
+    end
     if self.connection then
         self.connection:Disconnect()
         self.connection = nil
