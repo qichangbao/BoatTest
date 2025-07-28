@@ -18,6 +18,12 @@ function TriggerManager.new()
     local self = setmetatable({}, { __index = TriggerManager })
 
     self:Init()
+
+    for _, player in game.Players:GetPlayers() do
+        for _, condition in ipairs(_allConditions) do
+            condition:StartMonitoring(player)
+        end
+    end
     return self
 end
 

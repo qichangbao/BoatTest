@@ -23,13 +23,13 @@ local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForCh
 
 -- 创建OrderedDataStore用于排行榜
 local TotalDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalDistance")
---TotalDistanceLeaderboard:RemoveAsync(-2)
+--TotalDistanceLeaderboard:RemoveAsync(7689724124)
 local MaxSingleDistanceLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxSingleDistance")
---MaxSingleDistanceLeaderboard:RemoveAsync(-2)
+--MaxSingleDistanceLeaderboard:RemoveAsync(7689724124)
 local TotalSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingTotalTime")
---TotalSailingTimeLeaderboard:RemoveAsync(-2)
+--TotalSailingTimeLeaderboard:RemoveAsync(7689724124)
 local MaxSailingTimeLeaderboard = DataStoreService:GetOrderedDataStore("SailingMaxTime")
---MaxSailingTimeLeaderboard:RemoveAsync(-2)
+--MaxSailingTimeLeaderboard:RemoveAsync(7689724124)
 
 -- 创建普通DataStore用于玩家名称映射
 local PlayerNameStore = DataStoreService:GetDataStore("PlayerNames")

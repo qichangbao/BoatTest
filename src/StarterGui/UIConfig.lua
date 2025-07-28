@@ -141,15 +141,15 @@ local function CreateFrame(parent, title, frameSize, closeCallFunc)
 end
 
 UIConfig.CreateBigFrame = function(parent, title, closeCallFunc)
-    return CreateFrame(parent, title, UDim2.new(0, 700, 0, 400), closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0.8, 0, 0.7, 0), closeCallFunc)
 end
 
 UIConfig.CreateMiddleFrame = function(parent, title, closeCallFunc)
-    return CreateFrame(parent, title, UDim2.new(0, 550, 0, 320), closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0.6, 0, 0.5, 0), closeCallFunc)
 end
 
 UIConfig.CreateSmallFrame = function(parent, title, closeCallFunc)
-    return CreateFrame(parent, title, UDim2.new(0, 400, 0, 250), closeCallFunc)
+    return CreateFrame(parent, title, UDim2.new(0.4, 0, 0.3, 0), closeCallFunc)
 end
 
 return UIConfig

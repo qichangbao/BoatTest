@@ -18,7 +18,8 @@ local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild("UIConfig"))
 local ClientData = require(game:GetService("StarterPlayer"):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
 
-local _buttonSize = UDim2.new(0, 100, 0, 60)
+local _buttonSize = UDim2.new(0.07, 0, 0.1, 0)
+local _bigButtonSize = UDim2.new(0.14, 0, 0.2, 0)
 
 local _screenGui = Instance.new('ScreenGui')
 _screenGui.Name = 'MainUI_GUI'
@@ -28,8 +29,8 @@ _screenGui.Parent = PlayerGui
 local _startBoatButton = Instance.new('TextButton')
 _startBoatButton.Name = 'StartBoatButton'
 _startBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_startBoatButton.Size = _buttonSize
-_startBoatButton.Position = UDim2.new(0, 80, 1, -60)
+_startBoatButton.Size = _bigButtonSize
+_startBoatButton.Position = UDim2.new(0.5, 0, 0.9, 0)
 _startBoatButton.Text = LanguageConfig.Get(10004)
 _startBoatButton.Font = UIConfig.Font
 _startBoatButton.TextScaled = true
@@ -86,8 +87,8 @@ end)
 local _stopBoatButton = Instance.new('TextButton')
 _stopBoatButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _stopBoatButton.Name = 'StopBoatButton'
-_stopBoatButton.Size = _buttonSize
-_stopBoatButton.Position = UDim2.new(0, 80, 1, -60)
+_stopBoatButton.Size = _bigButtonSize
+_stopBoatButton.Position = UDim2.new(0.5, 0, 0.9, 0)
 _stopBoatButton.Text = LanguageConfig.Get(10005)
 _stopBoatButton.Font = UIConfig.Font
 _stopBoatButton.TextScaled = true
@@ -103,31 +104,6 @@ _stopBoatButton.MouseButton1Click:Connect(function()
         boat:Destroy()
     end
     Knit.GetService('BoatAssemblingService'):StopBoat()
-end)
-
--- 创建添加部件按钮
-local _addBoatPartButton = Instance.new('TextButton')
-_addBoatPartButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_addBoatPartButton.Name = 'AddBoatPartButton'
-_addBoatPartButton.Size = _buttonSize
-_addBoatPartButton.Position = UDim2.new(0, 80, 1, -140)
-_addBoatPartButton.Text = LanguageConfig.Get(10006)
-_addBoatPartButton.Font = UIConfig.Font
-_addBoatPartButton.TextScaled = true
-_addBoatPartButton.BackgroundColor3 = Color3.fromRGB(0, 164, 209)
-_addBoatPartButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-_addBoatPartButton.Visible = false
-_addBoatPartButton.Parent = _screenGui
-UIConfig.CreateCorner(_addBoatPartButton)
--- 添加部件按钮点击事件
-_addBoatPartButton.MouseButton1Click:Connect(function()
-    Knit.GetService('BoatAssemblingService'):AddUnusedPartsToBoat(Players.LocalPlayer):andThen(function(tipId)
-        Knit.GetController('UIController').ShowTip:Fire(tipId)
-        _addBoatPartButton.Visible = false
-    end)
-end)
-Knit.GetController('UIController').ShowAddBoatPartButton:Connect(function(isShow)
-    _addBoatPartButton.Visible = isShow
 end)
 
 -- 消息框自动隐藏相关变量
@@ -332,11 +308,12 @@ end)
 -- 金币显示标签
 local _goldLabel = Instance.new('TextLabel')
 _goldLabel.Name = 'GoldLabel'
-_goldLabel.AnchorPoint = Vector2.new(1, 1)
-_goldLabel.Position = UDim2.new(1, -20, 1, -20)
+_goldLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+_goldLabel.Size = UDim2.new(0.1, 0, 0.1, 0)
+_goldLabel.Position = UDim2.new(0, 70, 0.55, 0)
 _goldLabel.Text = LanguageConfig.Get(10007) .. ": " .. ClientData.Gold
 _goldLabel.Font = UIConfig.Font
-_goldLabel.TextSize = 30
+_goldLabel.TextScaled = true
 _goldLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
 _goldLabel.BackgroundTransparency = 1
 _goldLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -419,7 +396,7 @@ local _backpackButton = Instance.new('TextButton')
 _backpackButton.Name = 'BackpackButton'
 _backpackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _backpackButton.Size = _buttonSize
-_backpackButton.Position = UDim2.new(1, -60, 1, -80)
+_backpackButton.Position = UDim2.new(1, -70, 0.35, 0)
 _backpackButton.Text = LanguageConfig.Get(10025)
 _backpackButton.Font = UIConfig.Font
 _backpackButton.TextScaled = true
@@ -436,7 +413,7 @@ local _buffButton = Instance.new('TextButton')
 _buffButton.Name = 'BuffButton'
 _buffButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _buffButton.Size = _buttonSize
-_buffButton.Position = UDim2.new(1, -60, 1, -160)
+_buffButton.Position = UDim2.new(0.8, 0, 0.9, 0)
 _buffButton.Text = "BUFF"
 _buffButton.Font = UIConfig.Font
 _buffButton.TextScaled = true
@@ -454,7 +431,7 @@ local _badgeButton = Instance.new('TextButton')
 _badgeButton.Name = 'BadgeButton'
 _badgeButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _badgeButton.Size = _buttonSize
-_badgeButton.Position = UDim2.new(1, -60, 1, -240)
+_badgeButton.Position = UDim2.new(0, 70, 0.4, 0)
 _badgeButton.Text = LanguageConfig.Get(10118)
 _badgeButton.Font = UIConfig.Font
 _badgeButton.TextScaled = true
@@ -468,23 +445,23 @@ _badgeButton.MouseButton1Click:Connect(function()
 end)
 UIConfig.CreateCorner(_badgeButton)
 
--- 玩家按钮
-local _playersButton = Instance.new('TextButton')
-_playersButton.Name = 'PlayersButton'
-_playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
-_playersButton.Size = _buttonSize
-_playersButton.Position = UDim2.new(1, -60, 1, -320)
-_playersButton.Text = LanguageConfig.Get(10026)
-_playersButton.Font = UIConfig.Font
-_playersButton.TextScaled = true
-_playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
-_playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-_playersButton.Parent = _screenGui
--- 玩家按钮点击事件
-_playersButton.MouseButton1Click:Connect(function()
-    Knit.GetController('UIController').ShowPlayersUI:Fire()
-end)
-UIConfig.CreateCorner(_playersButton)
+-- -- 玩家按钮
+-- local _playersButton = Instance.new('TextButton')
+-- _playersButton.Name = 'PlayersButton'
+-- _playersButton.AnchorPoint = Vector2.new(0.5, 0.5)
+-- _playersButton.Size = _buttonSize
+-- _playersButton.Position = UDim2.new(1, -60, 1, -320)
+-- _playersButton.Text = LanguageConfig.Get(10026)
+-- _playersButton.Font = UIConfig.Font
+-- _playersButton.TextScaled = true
+-- _playersButton.BackgroundColor3 = Color3.fromRGB(103, 80, 164)  -- 深紫罗兰色
+-- _playersButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+-- _playersButton.Parent = _screenGui
+-- -- 玩家按钮点击事件
+-- _playersButton.MouseButton1Click:Connect(function()
+--     Knit.GetController('UIController').ShowPlayersUI:Fire()
+-- end)
+-- UIConfig.CreateCorner(_playersButton)
 
 -- -- 商城按钮
 -- local _shopButton = Instance.new('TextButton')
@@ -509,7 +486,7 @@ local _feedbackButton = Instance.new('TextButton')
 _feedbackButton.Name = 'FeedbackButton'
 _feedbackButton.AnchorPoint = Vector2.new(0.5, 0.5)
 _feedbackButton.Size = _buttonSize
-_feedbackButton.Position = UDim2.new(1, -60, 1, -400)
+_feedbackButton.Position = UDim2.new(1, -70, 0.2, 0)
 _feedbackButton.Text = LanguageConfig.Get(10106)
 _feedbackButton.Font = UIConfig.Font
 _feedbackButton.TextScaled = true
@@ -632,10 +609,10 @@ end
 
 local function Destroy()
     print("MainUI Destroy")
-    if _renderSteppedConnection then
-        _renderSteppedConnection:Disconnect()
-        _renderSteppedConnection = nil
-    end
+    -- if _renderSteppedConnection then
+    --     _renderSteppedConnection:Disconnect()
+    --     _renderSteppedConnection = nil
+    -- end
     
     -- 清理消息框相关资源
     if _messageHideTimer then
@@ -765,7 +742,6 @@ Knit:OnStart():andThen(function()
     Knit.GetService('BoatAssemblingService').UpdateMainUI:Connect(function(data)
         _startBoatButton.Visible = not data.explore
         _stopBoatButton.Visible = data.explore
-        _addBoatPartButton.Visible = false
     end)
     
     Knit.GetController('UIController').AddUI:Fire(_screenGui, Destroy)
@@ -840,6 +816,6 @@ Knit:OnStart():andThen(function()
     end)
 
     -- 创建个人排行榜显示组件
-    createPersonalRankDisplay()
+    -- createPersonalRankDisplay()
     addMessage("system", LanguageConfig.Get(10050))
 end):catch(warn)

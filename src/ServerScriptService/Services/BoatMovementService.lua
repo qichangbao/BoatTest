@@ -61,8 +61,8 @@ function BoatMovementService:ApplyAngular(userId, primaryPart, direction)
         return
     end
     
-    -- 应用固定角速度，使用恒定值
-    local angularSpeed = math.sign(direction.Z) * self.AngularVelocity
+    -- 应用固定角速度，使用恒定值（使用Y轴分量）
+    local angularSpeed = math.sign(direction.Y) * self.AngularVelocity
     bodyAngularVelocity.AngularVelocity = Vector3.new(0, angularSpeed, 0)
 end
 
@@ -115,6 +115,10 @@ function BoatMovementService.Client:UpdateMovement(player, direction, angular)
         return
     end
 
+    -- 调试信息：显示接收到的移动数据
+    print(string.format("服务器接收 - 玩家: %s, 移动: %s, 旋转: %s", 
+        player.Name, tostring(direction), tostring(angular)))
+    
     self.Server.Boats[player.UserId] = {direction = direction, angular = angular, hasPlayer = true}
 end
 

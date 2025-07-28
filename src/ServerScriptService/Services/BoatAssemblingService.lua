@@ -46,15 +46,13 @@ function BoatAssemblingService:CreateBoat(player, boatName)
 
     local curBoatConfig = BoatConfig.GetBoatConfig(boatName)
     local primaryPartName = ''
-    local seatPartName = ''
     for name, data in pairs(curBoatConfig) do
         if data.PartType == 'PrimaryPart' then
             primaryPartName = name
-        elseif data.PartType == 'SeatPart' then
-            seatPartName = name
+            break
         end
     end
-    if primaryPartName == '' or seatPartName == '' then
+    if primaryPartName == '' then
         return
     end
 
@@ -103,6 +101,15 @@ function BoatAssemblingService:CreateBoat(player, boatName)
     primaryPart.CFrame = templatePrimaryPart.CFrame
     primaryPart.Parent = boat
     boat.PrimaryPart = primaryPart
+    
+    -- 设置船只主部件的物理属性（超低密度确保船只浮在水面）
+    primaryPart.CustomPhysicalProperties = PhysicalProperties.new(
+        0.2,   -- 密度（超低密度，确保船只强力浮在水面）
+        0.5,   -- 摩擦力
+        0.1,   -- 弹性
+        1,     -- 弹性权重
+        1      -- 摩擦权重
+    )
 
     -- 监听船的销毁事件
     boat.Destroying:Connect(function()
@@ -235,7 +242,291 @@ function BoatAssemblingService:CreateMoveVelocity(primaryPart)
     end
 end
 
--- 创建船的稳定器
+-- -- 创建船的稳定器
+-- -- @param boat Model 船只模型
+-- function BoatAssemblingService:CreateStabilizer(boat)
+--     if not boat or not boat.PrimaryPart then
+--         warn("CreateStabilizer: 船只或PrimaryPart不存在")
+--         return
+--     end
+    
+--     -- 获取船只的尺寸信息
+--     local boatSize = boat.PrimaryPart.Size
+--     local boatPosition = boat.PrimaryPart.Position
+    
+--     -- 根据船只重量计算稳定器浮力需求（船重量的一半）
+--     local targetBuoyancy = boat.PrimaryPart.AssemblyMass * 0.3
+    
+--     -- 水的密度约为1（Roblox单位），稳定器需要的总体积来产生目标浮力
+--     -- 4个稳定器平均分担浮力
+--     local requiredVolumePerStabilizer = targetBuoyancy / 4
+    
+--     -- 根据船只大小计算稳定器参数
+--     local stabilizerConfig = {
+--         -- 左右稳定器配置
+--         side = {
+--             width = math.max(boatSize.X * 0.3, 1), -- 宽度为船宽的30%，最小1
+--             length = math.max(boatSize.Z * 0.8, 3), -- 长度为船长的80%，最小3
+--             offset = 0 -- 距离船体的偏移量
+--         },
+--         -- 前后稳定器配置
+--         frontBack = {
+--             width = math.max(boatSize.X * 2, 3), -- 宽度为船宽的200%，最小3
+--             length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小1
+--             offset = 0 -- 距离船体的偏移量
+--         }
+--     }
+    
+--     -- 计算左右稳定器高度（基于所需体积）
+--     local sideStabilizerArea = stabilizerConfig.side.width * stabilizerConfig.side.length
+--     local sideStabilizerHeight = math.max(requiredVolumePerStabilizer / sideStabilizerArea, 0.5)
+--     stabilizerConfig.side.height = sideStabilizerHeight
+    
+--     -- 计算前后稳定器高度（基于所需体积）
+--     local frontBackStabilizerArea = stabilizerConfig.frontBack.width * stabilizerConfig.frontBack.length
+--     local frontBackStabilizerHeight = math.max(requiredVolumePerStabilizer / frontBackStabilizerArea, 0.5)
+--     stabilizerConfig.frontBack.height = frontBackStabilizerHeight
+    
+--     -- 创建稳定器Part的通用函数
+--     -- @param name string 稳定器名称
+--     -- @param size Vector3 稳定器大小
+--     -- @param position Vector3 稳定器位置
+--     local function createStabilizerPart(name, size, position)
+--         local part = Instance.new("Part")
+--         part.Name = name
+--         part.Size = size
+--         part.Material = Enum.Material.Wood
+--         part.Anchored = false
+--         part.CanCollide = true
+--         part.Transparency = 1
+--         part.Position = position
+--         part.Parent = boat
+        
+--         -- 创建焊接约束连接到船体
+--         local weldConstraint = Instance.new('WeldConstraint')
+--         weldConstraint.Part0 = boat.PrimaryPart
+--         weldConstraint.Part1 = part
+--         weldConstraint.Parent = part
+        
+--         -- 设置碰撞组
+--         part.CollisionGroup = "BoatStabilizerCollisionGroup"
+        
+--         return part
+--     end
+    
+--     -- 计算稳定器的Y位置（船底下方）
+--     local stabilizerY = boatPosition.Y - boatSize.Y / 2 - stabilizerConfig.side.height / 2
+    
+--     -- 创建左侧稳定器
+--     local leftSize = Vector3.new(
+--         stabilizerConfig.side.width,
+--         stabilizerConfig.side.height,
+--         stabilizerConfig.side.length
+--     )
+--     local leftPosition = Vector3.new(
+--         boatPosition.X - boatSize.X / 2 - stabilizerConfig.side.offset,
+--         stabilizerY,
+--         boatPosition.Z
+--     )
+--     createStabilizerPart("BoatStabilizerLeft", leftSize, leftPosition)
+    
+--     -- 创建右侧稳定器
+--     local rightSize = Vector3.new(
+--         stabilizerConfig.side.width,
+--         stabilizerConfig.side.height,
+--         stabilizerConfig.side.length
+--     )
+--     local rightPosition = Vector3.new(
+--         boatPosition.X + boatSize.X / 2 + stabilizerConfig.side.offset,
+--         stabilizerY,
+--         boatPosition.Z
+--     )
+--     createStabilizerPart("BoatStabilizerRight", rightSize, rightPosition)
+    
+--     -- 创建前方稳定器
+--     local frontSize = Vector3.new(
+--         stabilizerConfig.frontBack.width,
+--         stabilizerConfig.frontBack.height,
+--         stabilizerConfig.frontBack.length
+--     )
+--     local frontPosition = Vector3.new(
+--         boatPosition.X,
+--         stabilizerY,
+--         boatPosition.Z - boatSize.Z / 2 - stabilizerConfig.frontBack.offset
+--     )
+--     createStabilizerPart("BoatStabilizerFront", frontSize, frontPosition)
+    
+--     -- 创建后方稳定器
+--     local backSize = Vector3.new(
+--         stabilizerConfig.frontBack.width,
+--         stabilizerConfig.frontBack.height,
+--         stabilizerConfig.frontBack.length
+--     )
+--     local backPosition = Vector3.new(
+--         boatPosition.X,
+--         stabilizerY,
+--         boatPosition.Z + boatSize.Z / 2 + stabilizerConfig.frontBack.offset
+--     )
+--     createStabilizerPart("BoatStabilizerBack", backSize, backPosition)
+    
+--     print(string.format("为船只创建了4个稳定器，船只尺寸: %.1fx%.1fx%.1f，稳定器高度: 左右%.2f 前后%.2f", 
+--         boatSize.X, boatSize.Y, boatSize.Z, sideStabilizerHeight, frontBackStabilizerHeight))
+-- end
+
+function BoatAssemblingService.Client:AssembleBoat(player, boatName, revivePos)
+    return self.Server:AssembleBoat(player, boatName, revivePos)
+end
+
+
+
+-- -- 创建船的稳定器
+-- -- @param boat Model 船只模型
+-- function BoatAssemblingService:CreateStabilizer(boat)
+--     if not boat or not boat.PrimaryPart then
+--         warn("CreateStabilizer: 船只或PrimaryPart不存在")
+--         return
+--     end
+    
+--     -- 获取船只的尺寸信息
+--     local boatSize = boat.PrimaryPart.Size
+--     local boatPosition = boat.PrimaryPart.Position
+    
+--     -- 根据船只重量计算稳定器浮力需求（船重量的一半）
+--     local targetBuoyancy = boat.PrimaryPart.AssemblyMass * 0.3
+    
+--     -- 水的密度约为1（Roblox单位），稳定器需要的总体积来产生目标浮力
+--     -- 4个稳定器平均分担浮力
+--     local requiredVolumePerStabilizer = targetBuoyancy / 4
+    
+--     -- 根据船只大小计算稳定器参数
+--     local stabilizerConfig = {
+--         -- 左右稳定器配置
+--         side = {
+--             width = math.max(boatSize.X * 0.3, 1), -- 宽度为船宽的30%，最小1
+--             length = math.max(boatSize.Z * 0.8, 3), -- 长度为船长的80%，最小3
+--             offset = 0 -- 距离船体的偏移量
+--         },
+--         -- 前后稳定器配置
+--         frontBack = {
+--             width = math.max(boatSize.X * 2, 3), -- 宽度为船宽的200%，最小3
+--             length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小1
+--             offset = 0 -- 距离船体的偏移量
+--         }
+--     }
+    
+--     -- 计算左右稳定器高度（基于所需体积）
+--     local sideStabilizerArea = stabilizerConfig.side.width * stabilizerConfig.side.length
+--     local sideStabilizerHeight = math.max(requiredVolumePerStabilizer / sideStabilizerArea, 0.5)
+--     stabilizerConfig.side.height = sideStabilizerHeight
+    
+--     -- 计算前后稳定器高度（基于所需体积）
+--     local frontBackStabilizerArea = stabilizerConfig.frontBack.width * stabilizerConfig.frontBack.length
+--     local frontBackStabilizerHeight = math.max(requiredVolumePerStabilizer / frontBackStabilizerArea, 0.5)
+--     stabilizerConfig.frontBack.height = frontBackStabilizerHeight
+    
+--     -- 创建稳定器Part的通用函数
+--     -- @param name string 稳定器名称
+--     -- @param size Vector3 稳定器大小
+--     -- @param position Vector3 稳定器位置
+--     local function createStabilizerPart(name, size, position)
+--         local part = Instance.new("Part")
+--         part.Name = name
+--         part.Size = size
+--         part.Material = Enum.Material.Wood
+--         part.Anchored = false
+--         part.CanCollide = true
+--         part.Transparency = 1
+--         part.Position = position
+--         part.Parent = boat
+        
+--         -- 创建弹簧约束连接到船只
+--         local springConstraint = Instance.new("SpringConstraint")
+        
+--         -- 在船只和稳定器上创建Attachment
+--         local boatAttachment = Instance.new("Attachment")
+--         boatAttachment.Name = name .. "_BoatAttachment"
+--         boatAttachment.Position = Vector3.new(position.X, -boatSize.Y/2, position.Z)
+--         boatAttachment.Parent = boat.PrimaryPart
+        
+--         local stabilizerAttachment = Instance.new("Attachment")
+--         stabilizerAttachment.Name = name .. "_StabilizerAttachment"
+--         stabilizerAttachment.Position = Vector3.new(0, size.Y/2, 0)
+--         stabilizerAttachment.Parent = part
+        
+--         -- 配置弹簧约束
+--         springConstraint.Attachment0 = boatAttachment
+--         springConstraint.Attachment1 = stabilizerAttachment
+--         springConstraint.FreeLength = 3 -- 弹簧自然长度（增加）
+--         springConstraint.Stiffness = 100 -- 弹簧刚度（进一步降低）
+--         springConstraint.Damping = 30 -- 阻尼，防止震荡（进一步降低）
+--         springConstraint.Parent = part
+        
+--         -- 设置碰撞组
+--         part.CollisionGroup = "BoatStabilizerCollisionGroup"
+        
+--         return part
+--     end
+    
+--     -- 计算稳定器的Y位置（船底下方）
+--     local stabilizerY = boatPosition.Y - boatSize.Y / 2 - stabilizerConfig.side.height / 2
+    
+--     -- 创建左侧稳定器
+--     local leftSize = Vector3.new(
+--         stabilizerConfig.side.width,
+--         stabilizerConfig.side.height,
+--         stabilizerConfig.side.length
+--     )
+--     local leftPosition = Vector3.new(
+--         boatPosition.X - boatSize.X / 2 - stabilizerConfig.side.offset,
+--         stabilizerY,
+--         boatPosition.Z
+--     )
+--     createStabilizerPart("BoatStabilizerLeft", leftSize, leftPosition)
+    
+--     -- 创建右侧稳定器
+--     local rightSize = Vector3.new(
+--         stabilizerConfig.side.width,
+--         stabilizerConfig.side.height,
+--         stabilizerConfig.side.length
+--     )
+--     local rightPosition = Vector3.new(
+--         boatPosition.X + boatSize.X / 2 + stabilizerConfig.side.offset,
+--         stabilizerY,
+--         boatPosition.Z
+--     )
+--     createStabilizerPart("BoatStabilizerRight", rightSize, rightPosition)
+    
+--     -- 创建前方稳定器
+--     local frontSize = Vector3.new(
+--         stabilizerConfig.frontBack.width,
+--         stabilizerConfig.frontBack.height,
+--         stabilizerConfig.frontBack.length
+--     )
+--     local frontPosition = Vector3.new(
+--         boatPosition.X,
+--         stabilizerY,
+--         boatPosition.Z - boatSize.Z / 2 - stabilizerConfig.frontBack.offset
+--     )
+--     createStabilizerPart("BoatStabilizerFront", frontSize, frontPosition)
+    
+--     -- 创建后方稳定器
+--     local backSize = Vector3.new(
+--         stabilizerConfig.frontBack.width,
+--         stabilizerConfig.frontBack.height,
+--         stabilizerConfig.frontBack.length
+--     )
+--     local backPosition = Vector3.new(
+--         boatPosition.X,
+--         stabilizerY,
+--         boatPosition.Z + boatSize.Z / 2 + stabilizerConfig.frontBack.offset
+--     )
+--     createStabilizerPart("BoatStabilizerBack", backSize, backPosition)
+    
+--     print(string.format("为船只创建了4个稳定器，船只尺寸: %.1fx%.1fx%.1f，稳定器高度: 左右%.2f 前后%.2f", 
+--         boatSize.X, boatSize.Y, boatSize.Z, sideStabilizerHeight, frontBackStabilizerHeight))
+-- end
+
+-- 创建船的水下浮力稳定器（使用水下Part+约束）
 -- @param boat Model 船只模型
 function BoatAssemblingService:CreateStabilizer(boat)
     if not boat or not boat.PrimaryPart then
@@ -243,116 +534,96 @@ function BoatAssemblingService:CreateStabilizer(boat)
         return
     end
     
-    -- 获取船只的尺寸信息
-    local boatSize = boat.PrimaryPart.Size
-    local boatPosition = boat.PrimaryPart.Position
+    local primaryPart = boat.PrimaryPart
     
-    -- 根据船只大小计算稳定器参数
-    local stabilizerConfig = {
-        -- 左右稳定器配置
-        side = {
-            width = math.max(boatSize.X * 0.3, 1), -- 宽度为船宽的30%，最小5
-            height = math.max(boatSize.Y * 0.2, 1), -- 高度为船高的40%，最小3
-            length = math.max(boatSize.Z * 0.8, 3), -- 长度为船长的80%，最小15
-            offset = 0 -- 距离船体的偏移量
-        },
-        -- 前后稳定器配置
-        frontBack = {
-            width = math.max(boatSize.X * 2, 3), -- 宽度为船宽的80%，最小15
-            height = math.max(boatSize.Y * 0.2, 1), -- 高度为船高的40%，最小3
-            length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小5
-            offset = 0 -- 距离船体的偏移量
-        }
-    }
-    
-    -- 创建稳定器Part的通用函数
-    -- @param name string 稳定器名称
-    -- @param size Vector3 稳定器大小
-    -- @param position Vector3 稳定器位置
-    local function createStabilizerPart(name, size, position)
-        local part = Instance.new("Part")
-        part.Name = name
-        part.Size = size
-        part.Material = Enum.Material.Wood
-        part.Anchored = false
-        part.CanCollide = true
-        part.Transparency = 1
-        part.Position = position
-        part.Parent = boat
-        
-        -- 创建焊接约束连接到船体
-        local weldConstraint = Instance.new('WeldConstraint')
-        weldConstraint.Part0 = boat.PrimaryPart
-        weldConstraint.Part1 = part
-        weldConstraint.Parent = part
-        
-        -- 设置碰撞组
-        part.CollisionGroup = "BoatStabilizerCollisionGroup"
-        
-        return part
+    -- 清理旧的稳定器组件
+    for _, child in pairs(boat:GetChildren()) do
+        if child.Name:find("BoatStabilizer") then
+            child:Destroy()
+        end
     end
     
-    -- 计算稳定器的Y位置（船底下方）
-    local stabilizerY = boatPosition.Y - boatSize.Y / 2 - stabilizerConfig.side.height / 2
+    -- 根据船只大小计算稳定器参数
+    local boatSize = primaryPart.Size
+    local boatPosition = primaryPart.Position
     
-    -- 创建左侧稳定器
-    local leftSize = Vector3.new(
-        stabilizerConfig.side.width,
-        stabilizerConfig.side.height,
-        stabilizerConfig.side.length
-    )
-    local leftPosition = Vector3.new(
-        boatPosition.X - boatSize.X / 2 - stabilizerConfig.side.offset,
-        stabilizerY,
-        boatPosition.Z
-    )
-    createStabilizerPart("BoatStabilizerLeft", leftSize, leftPosition)
+    -- 创建水下浮力块
+    local function createUnderwaterStabilizer(name, size, offset)
+        local stabilizer = Instance.new("Part")
+        stabilizer.Name = name
+        stabilizer.Size = size
+        stabilizer.Material = Enum.Material.ForceField
+        stabilizer.Transparency = 0.8
+        stabilizer.CanCollide = false
+        stabilizer.Anchored = false
+        stabilizer.BrickColor = BrickColor.new("Bright blue")
+        
+        -- 设置浮力属性（适度密度让稳定器沉入水中）
+        stabilizer.CustomPhysicalProperties = PhysicalProperties.new(
+            0.5,    -- 略低于水的密度，减少下拉力
+            0.5,    -- 适中的摩擦
+            0.1,    -- 低弹性
+            1,      -- 摩擦重量
+            1       -- 弹性重量
+        )
+        
+        -- 位置设置在船只下方水中
+        stabilizer.CFrame = primaryPart.CFrame + offset
+        stabilizer.Parent = boat
+        
+        -- 创建弹簧约束连接到船只
+        local springConstraint = Instance.new("SpringConstraint")
+        
+        -- 在船只和稳定器上创建Attachment
+        local boatAttachment = Instance.new("Attachment")
+        boatAttachment.Name = name .. "_BoatAttachment"
+        boatAttachment.Position = Vector3.new(offset.X, -boatSize.Y/2, offset.Z)
+        boatAttachment.Parent = primaryPart
+        
+        local stabilizerAttachment = Instance.new("Attachment")
+        stabilizerAttachment.Name = name .. "_StabilizerAttachment"
+        stabilizerAttachment.Position = Vector3.new(0, size.Y/2, 0)
+        stabilizerAttachment.Parent = stabilizer
+        
+        -- 配置弹簧约束
+        springConstraint.Attachment0 = boatAttachment
+        springConstraint.Attachment1 = stabilizerAttachment
+        springConstraint.FreeLength = 3 -- 弹簧自然长度（增加）
+        springConstraint.Stiffness = 100 -- 弹簧刚度（进一步降低）
+        springConstraint.Damping = 30 -- 阻尼，防止震荡（进一步降低）
+        springConstraint.Parent = stabilizer
+        
+        return stabilizer
+    end
     
-    -- 创建右侧稳定器
-    local rightSize = Vector3.new(
-        stabilizerConfig.side.width,
-        stabilizerConfig.side.height,
-        stabilizerConfig.side.length
-    )
-    local rightPosition = Vector3.new(
-        boatPosition.X + boatSize.X / 2 + stabilizerConfig.side.offset,
-        stabilizerY,
-        boatPosition.Z
-    )
-    createStabilizerPart("BoatStabilizerRight", rightSize, rightPosition)
+    -- 创建适度尺寸的稳定器系统
+    local mainStabilizerSize = Vector3.new(boatSize.X * 0.4, 2, boatSize.Z * 0.4)
     
-    -- 创建前方稳定器
-    local frontSize = Vector3.new(
-        stabilizerConfig.frontBack.width,
-        stabilizerConfig.frontBack.height,
-        stabilizerConfig.frontBack.length
+    -- 主稳定器（船只正下方，适度尺寸）
+    createUnderwaterStabilizer(
+        "BoatStabilizerMain",
+        mainStabilizerSize,
+        Vector3.new(0, -boatSize.Y/2 - 1.5, 0)
     )
-    local frontPosition = Vector3.new(
-        boatPosition.X,
-        stabilizerY,
-        boatPosition.Z - boatSize.Z / 2 - stabilizerConfig.frontBack.offset
-    )
-    createStabilizerPart("BoatStabilizerFront", frontSize, frontPosition)
     
-    -- 创建后方稳定器
-    local backSize = Vector3.new(
-        stabilizerConfig.frontBack.width,
-        stabilizerConfig.frontBack.height,
-        stabilizerConfig.frontBack.length
+    -- 船尾稳定器（适度浮力，防止下沉）
+    local sternStabilizerSize = Vector3.new(boatSize.X * 0.3, 1.5, boatSize.Z * 0.3)
+    createUnderwaterStabilizer(
+        "BoatStabilizerStern",
+        sternStabilizerSize,
+        Vector3.new(0, -boatSize.Y/2 - 1.2, -boatSize.Z/2 - 0.5)
     )
-    local backPosition = Vector3.new(
-        boatPosition.X,
-        stabilizerY,
-        boatPosition.Z + boatSize.Z / 2 + stabilizerConfig.frontBack.offset
-    )
-    createStabilizerPart("BoatStabilizerBack", backSize, backPosition)
     
-    print(string.format("为船只创建了4个稳定器，船只尺寸: %.1fx%.1fx%.1f", 
+    -- 船头稳定器（适度浮力，保持平衡）
+    local bowStabilizerSize = Vector3.new(boatSize.X * 0.3, 1.5, boatSize.Z * 0.3)
+    createUnderwaterStabilizer(
+        "BoatStabilizerBow",
+        bowStabilizerSize,
+        Vector3.new(0, -boatSize.Y/2 - 1.2, boatSize.Z/2 + 0.5)
+    )
+    
+    print(string.format("为船只创建了水下浮力稳定器系统，船只尺寸: %.1fx%.1fx%.1f", 
         boatSize.X, boatSize.Y, boatSize.Z))
-end
-
-function BoatAssemblingService.Client:AssembleBoat(player, boatName, revivePos)
-    return self.Server:AssembleBoat(player, boatName, revivePos)
 end
 
 function BoatAssemblingService:AssembleBoat(player, boatName, revivePos)
@@ -438,19 +709,19 @@ function BoatAssemblingService:AddUnusedPartsToBoat(player)
         return 10018
     end
     local modelName = boat:GetAttribute('ModelName')
-    local curBoatConfig = BoatConfig.GetBoatConfig(boat:GetAttribute('ModelName'))
+    local curBoatConfig = BoatConfig.GetBoatConfig(modelName)
     local boatHP = boat:GetAttribute('Health')
     local boatMaxHP = boat:GetAttribute('MaxHealth')
     local boatSpeed = boat:GetAttribute('Speed')
     local boatMaxSpeed = boat:GetAttribute('MaxSpeed')
     local InventoryService = Knit.GetService("InventoryService")
-    local unusedParts = InventoryService:GetUnusedParts(player, boat:GetAttribute('ModelName'))
-    for _, partInfo in pairs(unusedParts) do
-        self:AttachPartToBoat(boat, partInfo.itemName)
-        boatHP += curBoatConfig[partInfo.itemName].HP
-        boatMaxHP += curBoatConfig[partInfo.itemName].HP
-        boatSpeed += curBoatConfig[partInfo.itemName].speed
-        boatMaxSpeed += curBoatConfig[partInfo.itemName].speed
+    local unusedParts = InventoryService:GetUnusedParts(player, modelName)
+    for itemName, _ in pairs(unusedParts) do
+        self:AttachPartToBoat(boat, itemName)
+        boatHP += curBoatConfig[itemName].HP
+        boatMaxHP += curBoatConfig[itemName].HP
+        boatSpeed += curBoatConfig[itemName].speed
+        boatMaxSpeed += curBoatConfig[itemName].speed
     end
     boat:SetAttribute('Health', math.max(boatHP, 0))
     boat:SetAttribute('MaxHealth', math.max(boatMaxHP, 0))

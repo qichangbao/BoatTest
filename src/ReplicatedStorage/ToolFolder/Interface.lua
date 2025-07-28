@@ -86,6 +86,7 @@ function Interface.InitBoatWaterPos(player, boat, revivePos)
 
     boat:PivotTo(CFrame.new(Vector3.new(x, waterLevel, z)))
 
+    task.wait(0.1)
     -- 玩家登船
     Interface.PlayerToBoat(player, boat)
 end

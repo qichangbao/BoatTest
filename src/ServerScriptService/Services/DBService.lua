@@ -9,10 +9,10 @@ local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitFo
 local _dataTemplate = {
 	Gold = 50,	-- 金币
 	PlayerInventory = {
-		["初级小船1_船身"] = {
-			itemName = "初级小船1_船身",
+		["初级小船_船身"] = {
+			itemName = "初级小船_船身",
 			num = 1,
-			modelName = "初级小船1",
+			modelName = "初级小船",
 			itemType = ItemConfig.BoatTag,
 		},
 	},			-- 背包

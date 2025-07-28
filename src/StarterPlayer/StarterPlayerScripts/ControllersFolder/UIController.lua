@@ -7,7 +7,6 @@ local UIController = Knit.CreateController {
     Name = "UIController",
     UIScripts = {},
     AddUI = Signal.new(),
-    ShowAddBoatPartButton = Signal.new(),
     ShowMessageBox = Signal.new(),
     HideMessageBox = Signal.new(),
     ShowTip = Signal.new(),

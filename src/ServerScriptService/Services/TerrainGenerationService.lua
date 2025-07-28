@@ -30,21 +30,25 @@ local TerrainGenerationService = Knit.CreateService({
 
 function TerrainGenerationService:FillBlock(position)
     task.spawn(function()
-        game.Workspace.Terrain:FillBlock(
-            CFrame.new(position),
-            Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
-            Enum.Material.Water
-        )
+        if game.Workspace.Terrain then
+            game.Workspace.Terrain:FillBlock(
+                CFrame.new(position),
+                Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
+                Enum.Material.Water
+            )
+        end
     end)
 end
 
 function TerrainGenerationService:RemoveBlock(position)
     task.spawn(function()
-        game.Workspace.Terrain:FillBlock(
-            CFrame.new(position),
-            Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
-            Enum.Material.Air
-        )
+        if game.Workspace.Terrain then
+            game.Workspace.Terrain:FillBlock(
+                CFrame.new(position),
+                Vector3.new(self.ChunkSize, self.Depth, self.ChunkSize),
+                Enum.Material.Air
+            )
+        end
     end)
 end
 

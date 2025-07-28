@@ -235,6 +235,7 @@ function BoatWeaponService:FireProjectile(userId, weaponData)
     projectile.TopSurface = Enum.SurfaceType.Smooth
     projectile.BottomSurface = Enum.SurfaceType.Smooth
     projectile.Material = Enum.Material.Neon
+    projectile.Scale = projectile:FindFirstChild("ScaleValue"):GetValue()
     -- 设置炮弹初始位置和朝向（朝向直线轨迹方向）
     projectile:PivotTo(CFrame.lookAt(startPos, endPos))
         

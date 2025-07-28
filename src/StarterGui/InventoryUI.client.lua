@@ -226,7 +226,11 @@ local function UpdateInventoryUI()
         end
     end
 
-    Knit.GetController('UIController').ShowAddBoatPartButton:Fire(isShowAddButton)
+    if isShowAddButton then
+        Knit.GetService('BoatAssemblingService'):AddUnusedPartsToBoat(Players.LocalPlayer):andThen(function(tipId)
+            Knit.GetController('UIController').ShowTip:Fire(tipId)
+        end)
+    end
 
     -- 清空现有物品槽（保留模板）
     for _, child in ipairs(_scrollFrame:GetChildren()) do

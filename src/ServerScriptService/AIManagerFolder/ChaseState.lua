@@ -36,6 +36,11 @@ function ChaseState:Enter()
         local modelType = target:GetAttribute("ModelType")
         if modelType == "Boat" then
             if not target:GetAttribute("Destroying") then
+                if not target.PrimaryPart then
+                    self.AIManager.target = nil
+                    self.AIManager:SetState("Idle")
+                    return
+                end
                 targetPosition = target.PrimaryPart.CFrame.Position
             end
         elseif modelType == "Player" then
