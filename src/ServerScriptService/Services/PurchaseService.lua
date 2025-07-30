@@ -203,15 +203,15 @@ function PurchaseService:KnitInit()
     MarketplaceService.ProcessReceipt = processReceipt
     
     -- 验证开发者产品ID配置
-    self:ValidateDeveloperProductIds()
+    --self:ValidateDeveloperProductIds()
     
-    -- 定期清理过期的待处理购买请求
-    task.spawn(function()
-        while true do
-            wait(60) -- 每分钟清理一次
-            self:CleanupPendingPurchases()
-        end
-    end)
+    -- -- 定期清理过期的待处理购买请求
+    -- task.spawn(function()
+    --     while true do
+    --         task.wait(60) -- 每分钟清理一次
+    --         self:CleanupPendingPurchases()
+    --     end
+    -- end)
 end
 
 function PurchaseService:KnitStart()

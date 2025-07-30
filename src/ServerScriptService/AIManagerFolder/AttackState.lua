@@ -76,7 +76,7 @@ function AttackState:Enter()
         end
 
         -- 播放攻击动画
-        self:PlayAnimation()
+        --self:PlayAnimation()
         
         local damage = self.AIManager.NPC:GetAttribute("Damage")
         if modelType == "Boat" then

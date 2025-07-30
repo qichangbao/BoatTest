@@ -16,7 +16,7 @@ end
 
 function PatrolState:Enter()
     print("进入Patrol状态")
-    self:PlayAnimation()
+    --self:PlayAnimation()
 
     local npcPos = self.AIManager.NPC.HumanoidRootPart.CFrame.Position
     local maxDisForSpawn = self.AIManager.NPC:GetAttribute("MaxDisForSpawn")

@@ -207,11 +207,11 @@ local function createBoatEntry(boatData, yPosition)
             if boatData.canAssemble then
                 -- 设置组装状态
                 ClientData.IsBoatAssembling = true
+                -- 关闭船只选择界面
+                _screenGui.Enabled = false
                 -- 调用船只组装服务
                 Knit.GetService('BoatAssemblingService'):AssembleBoat(boatData.name):andThen(function(tipId)
                     Knit.GetController('UIController').ShowTip:Fire(tipId)
-                    -- 关闭船只选择界面
-                    _screenGui.Enabled = false
                 end)
             end
         end)

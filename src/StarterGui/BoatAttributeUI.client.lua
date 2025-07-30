@@ -264,8 +264,8 @@ local function UpdateCompass()
                 local offset = Vector3.new(landPos.X - boatCFrame.Position.X, 0, landPos.Z - boatCFrame.Position.Z)
                 local direction = offset.Unit
                 
-                local horizontalAngle = math.deg(math.atan2(direction:Dot(rightVector), lookVector:Dot(direction)))  -- 添加负号修正方向
-                local positionRatio = (60 - horizontalAngle) / 120  -- 调整位置比例计算
+                local horizontalAngle = math.deg(math.atan2(-direction:Dot(rightVector), -direction:Dot(lookVector)))  -- 修正：反转方向使船头指向岛屿
+                local positionRatio = (60 - horizontalAngle) / 120  -- 恢复原始位置比例计算
                 
                 -- 根据位置计算透明度
                 local transparency = 1 - math.clamp(1 - math.abs(positionRatio - 0.5)*2, 0, 0.7)

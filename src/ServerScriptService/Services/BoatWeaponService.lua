@@ -217,6 +217,12 @@ function BoatWeaponService:FireProjectile(userId, weaponData)
         return
     end
     
+    local scaleValue = weaponPart:FindFirstChild("ScaleValue")
+    if not scaleValue then
+        warn("武器部件缺少ScaleValue:", weaponPart.Name)
+        return
+    end
+    
     -- 计算发射起始位置和方向
     local weaponCFrame = weaponPart.CFrame
     local startPos = weaponPart.Position + weaponCFrame:VectorToWorldSpace(projectileOffsetPos.Value)
@@ -228,14 +234,15 @@ function BoatWeaponService:FireProjectile(userId, weaponData)
     
     local projectile = projectileTemplate:Clone()
     projectile.Parent = workspace
-    projectile.Name = weaponData.part.Name .. tick()
+    projectile.Name = weaponData.config.ProjectileName .. tick()
     projectile.CanCollide = false
     projectile.Anchored = true -- 锚定炮弹，完全由脚本控制位置
     -- 设置炮弹物理属性
     projectile.TopSurface = Enum.SurfaceType.Smooth
     projectile.BottomSurface = Enum.SurfaceType.Smooth
     projectile.Material = Enum.Material.Neon
-    projectile.Scale = projectile:FindFirstChild("ScaleValue"):GetValue()
+    -- 设置炮弹缩放（使用Size属性而不是ScaleTo方法）
+    projectile.Size = projectile.Size * scaleValue.Value
     -- 设置炮弹初始位置和朝向（朝向直线轨迹方向）
     projectile:PivotTo(CFrame.lookAt(startPos, endPos))
         
@@ -542,11 +549,11 @@ function BoatWeaponService:DamageTarget(targetModel, damage)
 end
 
 function BoatWeaponService:Active(player, active, islandName)
-    if active then
-        self:InitializeBoatWeapons(player.UserId, islandName)
-    else
-        self:DeactivateBoatWeapons(player.UserId)
-    end
+    -- if active then
+    --     self:InitializeBoatWeapons(player.UserId, islandName)
+    -- else
+    --     self:DeactivateBoatWeapons(player.UserId)
+    -- end
 end
 
 function BoatWeaponService:KnitInit()

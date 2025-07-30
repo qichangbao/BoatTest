@@ -256,7 +256,7 @@ function BoatAssemblingService:CreateStabilizer(boat)
     local boatPosition = boat.PrimaryPart.Position
     
     -- 根据船只重量计算稳定器浮力需求（船重量的一半）
-    local targetBuoyancy = boat.PrimaryPart.AssemblyMass * 0.3
+    local targetBuoyancy = boat.PrimaryPart.AssemblyMass
     
     -- 水的密度约为1（Roblox单位），稳定器需要的总体积来产生目标浮力
     -- 4个稳定器平均分担浮力
@@ -266,27 +266,27 @@ function BoatAssemblingService:CreateStabilizer(boat)
     local stabilizerConfig = {
         -- 左右稳定器配置
         side = {
-            width = math.max(boatSize.X * 0.3, 1), -- 宽度为船宽的30%，最小1
-            length = math.max(boatSize.Z * 0.8, 3), -- 长度为船长的80%，最小3
+            width = math.max(boatSize.X * 0.5, 1), -- 宽度为船宽的30%，最小1
+            length = math.max(boatSize.Z * 1, 3), -- 长度为船长的80%，最小3
             offset = 0 -- 距离船体的偏移量
         },
         -- 前后稳定器配置
         frontBack = {
-            width = math.max(boatSize.X * 2, 3), -- 宽度为船宽的200%，最小3
-            length = math.max(boatSize.Z * 0.3, 1), -- 长度为船长的30%，最小1
+            width = math.max(boatSize.X * 1, 3), -- 宽度为船宽的200%，最小3
+            length = math.max(boatSize.Z * 0.5, 1), -- 长度为船长的30%，最小1
             offset = 0 -- 距离船体的偏移量
         }
     }
     
     -- 计算左右稳定器高度（基于所需体积）
     local sideStabilizerArea = stabilizerConfig.side.width * stabilizerConfig.side.length
-    local sideStabilizerHeight = math.max(requiredVolumePerStabilizer / sideStabilizerArea, 0.3)
-    stabilizerConfig.side.height = sideStabilizerHeight
+    local sideStabilizerHeight = requiredVolumePerStabilizer / sideStabilizerArea
+    stabilizerConfig.side.height = sideStabilizerHeight + 1
     
     -- 计算前后稳定器高度（基于所需体积）
     local frontBackStabilizerArea = stabilizerConfig.frontBack.width * stabilizerConfig.frontBack.length
-    local frontBackStabilizerHeight = math.max(requiredVolumePerStabilizer / frontBackStabilizerArea, 0.3)
-    stabilizerConfig.frontBack.height = frontBackStabilizerHeight
+    local frontBackStabilizerHeight = requiredVolumePerStabilizer / frontBackStabilizerArea
+    stabilizerConfig.frontBack.height = frontBackStabilizerHeight + 1
     
     -- 创建稳定器Part的通用函数
     -- @param name string 稳定器名称
@@ -302,6 +302,14 @@ function BoatAssemblingService:CreateStabilizer(boat)
         part.Transparency = 1
         part.Position = position
         part.Parent = boat
+        -- 设置稳定器密度（略低于水的密度，提供适度浮力）
+        part.CustomPhysicalProperties = PhysicalProperties.new(
+            1.1,    -- 密度略低于水
+            0.5,    -- 摩擦
+            0.1,    -- 弹性
+            1,      -- 摩擦重量
+            1       -- 弹性重量
+        )
         
         -- 创建焊接约束连接到船体
         local weldConstraint = Instance.new('WeldConstraint')

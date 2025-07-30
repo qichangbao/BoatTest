@@ -27,7 +27,7 @@ local _frame = UIConfig.CreateBigFrame(_screenGui, LanguageConfig.Get(10118))
 -- 徽章详情显示区域
 local _detailFrame = Instance.new("Frame")
 _detailFrame.Name = "BadgeDetailFrame"
-_detailFrame.Size = UDim2.new(1, -20, 0, 120)
+_detailFrame.Size = UDim2.new(1, -20, 0, 80)  -- 从120减小到80
 _detailFrame.Position = UDim2.new(0, 10, 0, 10)
 _detailFrame.BackgroundColor3 = Color3.fromRGB(35, 39, 56)
 _detailFrame.BackgroundTransparency = 0.1
@@ -44,8 +44,8 @@ _detailStroke.Parent = _detailFrame
 -- 详情区域图标
 local _detailIcon = Instance.new("ImageLabel")
 _detailIcon.Name = "DetailIcon"
-_detailIcon.Size = UDim2.new(0, 80, 0, 80)
-_detailIcon.Position = UDim2.new(0, 20, 0.5, -40)
+_detailIcon.Size = UDim2.new(0, 60, 0, 60)  -- 从80x80减小到60x60
+_detailIcon.Position = UDim2.new(0, 15, 0.5, -30)  -- 调整位置适应新尺寸
 _detailIcon.BackgroundColor3 = Color3.fromRGB(59, 63, 83)
 _detailIcon.BackgroundTransparency = 1
 _detailIcon.BorderSizePixel = 0
@@ -58,8 +58,8 @@ UIConfig.CreateCorner(_detailIcon, UDim.new(0, 8))
 local _detailName = Instance.new("TextLabel")
 _detailName.Name = "DetailName"
 _detailName.Text = LanguageConfig.Get(10122)
-_detailName.Size = UDim2.new(1, -120, 0, 30)
-_detailName.Position = UDim2.new(0, 110, 0, 15)
+_detailName.Size = UDim2.new(1, -100, 0, 25)  -- 调整尺寸适应更小的详情区域
+_detailName.Position = UDim2.new(0, 85, 0, 10)  -- 调整位置
 _detailName.TextColor3 = Color3.fromRGB(255, 255, 255)
 _detailName.Font = UIConfig.Font
 _detailName.TextScaled = true
@@ -72,8 +72,8 @@ _detailName.Parent = _detailFrame
 local _detailDesc = Instance.new("TextLabel")
 _detailDesc.Name = "DetailDesc"
 _detailDesc.Text = LanguageConfig.Get(10119)
-_detailDesc.Size = UDim2.new(1, -120, 0, 50)
-_detailDesc.Position = UDim2.new(0, 110, 0, 45)
+_detailDesc.Size = UDim2.new(1, -100, 0, 35)  -- 调整尺寸
+_detailDesc.Position = UDim2.new(0, 85, 0, 35)  -- 调整位置
 _detailDesc.TextColor3 = Color3.fromRGB(180, 180, 180)
 _detailDesc.Font = UIConfig.Font
 _detailDesc.TextScaled = true
@@ -87,8 +87,8 @@ _detailDesc.Parent = _detailFrame
 local _detailStatus = Instance.new("TextLabel")
 _detailStatus.Name = "DetailStatus"
 _detailStatus.Text = ""
-_detailStatus.Size = UDim2.new(0, 100, 0, 25)
-_detailStatus.Position = UDim2.new(1, -110, 0, 15)
+_detailStatus.Size = UDim2.new(0, 80, 0, 20)  -- 调整尺寸
+_detailStatus.Position = UDim2.new(1, -90, 0, 10)  -- 调整位置
 _detailStatus.TextColor3 = Color3.fromRGB(46, 204, 113)
 _detailStatus.Font = UIConfig.Font
 _detailStatus.TextScaled = true
@@ -102,8 +102,8 @@ UIConfig.CreateCorner(_detailStatus, UDim.new(0, 4))
 
 -- 徽章滚动区域
 local _scrollFrame = Instance.new("ScrollingFrame")
-_scrollFrame.Size = UDim2.new(1, -20, 1, -150)
-_scrollFrame.Position = UDim2.new(0, 10, 0, 140)
+_scrollFrame.Size = UDim2.new(1, -20, 1, -110)  -- 从-150调整到-110，增加徽章区域高度
+_scrollFrame.Position = UDim2.new(0, 10, 0, 100)  -- 从140调整到100，向上移动
 _scrollFrame.BackgroundTransparency = 1
 _scrollFrame.ScrollBarThickness = 8
 _scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -120,9 +120,13 @@ _paddingFrame.Parent = _scrollFrame
 
 -- 网格布局
 local _gridLayout = Instance.new("UIGridLayout")
-_gridLayout.CellSize = UDim2.new(0.18, 0, 0.35, 0)
-_gridLayout.CellPadding = UDim2.new(0.025, 0, 0.04, 0)
-_gridLayout.FillDirectionMaxCells = 5
+_gridLayout.CellSize = UDim2.new(0.15, 0, 0.5, 0)  -- 按比例设置，每行6个徽章，正方形
+_gridLayout.CellPadding = UDim2.new(0.02, 0, 0.1, 0)  -- 按比例设置间距
+_gridLayout.FillDirectionMaxCells = 6  -- 每行6个徽章
+_gridLayout.StartCorner = Enum.StartCorner.TopLeft
+_gridLayout.FillDirection = Enum.FillDirection.Horizontal
+_gridLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+_gridLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 _gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
 _gridLayout.Parent = _scrollFrame
 
@@ -135,41 +139,41 @@ end)
 -- 创建徽章模板
 local _badgeTemplate = Instance.new("ImageButton")
 _badgeTemplate.Name = "BadgeTemplate"
-_badgeTemplate.Size = UDim2.new(0.18, 0, 0.35, 0)
-_badgeTemplate.BackgroundColor3 = Color3.fromRGB(45, 49, 66)
-_badgeTemplate.BackgroundTransparency = 0.2
+_badgeTemplate.Size = UDim2.new(0.15, 0, 0.5, 0)  -- 按比例设置徽章大小
+_badgeTemplate.BackgroundTransparency = 1  -- 完全透明，不显示底板
 _badgeTemplate.BorderSizePixel = 0
 _badgeTemplate.Visible = false
-UIConfig.CreateCorner(_badgeTemplate, UDim.new(0, 12))
 
--- 添加边框效果
-local _stroke = Instance.new("UIStroke")
-_stroke.Color = Color3.fromRGB(86, 92, 120)
-_stroke.Thickness = 2
-_stroke.Parent = _badgeTemplate
-
--- 徽章图标
+-- 徽章图标（圆形）
 local _iconImage = Instance.new("ImageLabel")
 _iconImage.Name = "IconImage"
 _iconImage.Image = "rbxassetid://0" -- 默认空图片
-_iconImage.Size = UDim2.new(1, 0, 1, 0)
+_iconImage.Size = UDim2.new(1, 0, 1, 0)  -- 填满整个按钮
 _iconImage.Position = UDim2.new(0, 0, 0, 0)
 _iconImage.BackgroundTransparency = 1
 _iconImage.ScaleType = Enum.ScaleType.Fit
+_iconImage.ImageColor3 = Color3.fromRGB(255, 255, 255)  -- 默认白色
 _iconImage.Parent = _badgeTemplate
+-- 创建圆形遮罩
+local _iconCorner = Instance.new("UICorner")
+_iconCorner.CornerRadius = UDim.new(0.5, 0)  -- 50%圆角，形成圆形
+_iconCorner.Parent = _iconImage
 
 -- 完成标记（仅已完成徽章显示）
-local _completedMark = Instance.new("TextLabel")
+local _completedMark = Instance.new("ImageLabel")
 _completedMark.Name = "CompletedMark"
-_completedMark.Text = "✓"
-_completedMark.Size = UDim2.new(0, 30, 0, 30)
-_completedMark.Position = UDim2.new(1, -35, 0, 5)
-_completedMark.TextColor3 = Color3.fromRGB(46, 204, 113)
-_completedMark.Font = UIConfig.Font
-_completedMark.TextScaled = true
-_completedMark.BackgroundTransparency = 1
+_completedMark.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"  -- 可以替换为勾选图标
+_completedMark.Size = UDim2.new(0.3, 0, 0.3, 0)  -- 相对大小
+_completedMark.Position = UDim2.new(0.7, 0, 0, 0)  -- 右上角
+_completedMark.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+_completedMark.BackgroundTransparency = 0.2
+_completedMark.BorderSizePixel = 0
 _completedMark.Visible = false
 _completedMark.Parent = _badgeTemplate
+-- 完成标记圆形
+local _markCorner = Instance.new("UICorner")
+_markCorner.CornerRadius = UDim.new(0.5, 0)
+_markCorner.Parent = _completedMark
 
 -- 选择框（表示当前选中的徽章）
 local _selectionFrame = Instance.new("Frame")
@@ -184,9 +188,9 @@ _selectionFrame.Parent = _badgeTemplate
 -- 选择框边框
 local _selectionStroke = Instance.new("UIStroke")
 _selectionStroke.Color = Color3.fromRGB(255, 215, 0) -- 金色边框
-_selectionStroke.Thickness = 3
+_selectionStroke.Thickness = 2  -- 更细的选择边框
 _selectionStroke.Parent = _selectionFrame
-UIConfig.CreateCorner(_selectionFrame, UDim.new(0, 15))
+UIConfig.CreateCorner(_selectionFrame, UDim.new(0, 10))  -- 更小的圆角
 
 -- 全局变量：当前选中的徽章
 local _selectedBadge = nil
@@ -295,7 +299,6 @@ local function CreateBadgeUI()
         
         -- 设置徽章UI元素引用
         local iconImage = newBadge:FindFirstChild('IconImage')
-        local completedMark = newBadge:FindFirstChild('CompletedMark')
         
         -- 设置徽章图标
         if badgeData.info.IconImageId and badgeData.info.IconImageId > 0 then
@@ -307,13 +310,13 @@ local function CreateBadgeUI()
         
         -- 设置徽章状态显示
         if badgeData.hasBadge then
-            newBadge.BackgroundColor3 = Color3.fromRGB(46, 204, 113) -- 绿色背景
-            newBadge.ImageColor3 = Color3.fromRGB(255, 255, 255) -- 正常颜色
-            completedMark.Visible = true
+            -- 已获得徽章：高亮显示
+            iconImage.ImageColor3 = Color3.fromRGB(255, 255, 255) -- 正常亮度
+            iconImage.ImageTransparency = 0 -- 完全不透明
         else
-            newBadge.BackgroundColor3 = Color3.fromRGB(45, 49, 66) -- 默认背景
-            newBadge.ImageColor3 = Color3.fromRGB(255, 255, 255)
-            completedMark.Visible = false
+            -- 未获得徽章：调暗显示
+            iconImage.ImageColor3 = Color3.fromRGB(100, 100, 100) -- 暗灰色
+            iconImage.ImageTransparency = 0.5 -- 半透明
         end
             
         -- 点击事件：选择徽章并显示详情
@@ -345,20 +348,21 @@ local function UpdateBadgeStatus()
         local badgeData = ClientData.BadgeData[badgeId]
         
         if badgeData then
-            local completedMark = badgeItem.button:FindFirstChild('CompletedMark')
-            
             -- 更新拥有状态
             badgeItem.hasBadge = badgeData.hasBadge
             
+            local iconImage = badgeItem.button:FindFirstChild('IconImage')
             if badgeData.hasBadge then
-                badgeItem.button.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-                if completedMark then
-                    completedMark.Visible = true
+                -- 已获得徽章：高亮显示
+                if iconImage then
+                    iconImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+                    iconImage.ImageTransparency = 0
                 end
             else
-                badgeItem.button.BackgroundColor3 = Color3.fromRGB(45, 49, 66)
-                if completedMark then
-                    completedMark.Visible = false
+                -- 未获得徽章：调暗显示
+                if iconImage then
+                    iconImage.ImageColor3 = Color3.fromRGB(100, 100, 100)
+                    iconImage.ImageTransparency = 0.5
                 end
             end
         end

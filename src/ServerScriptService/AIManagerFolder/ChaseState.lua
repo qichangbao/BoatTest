@@ -18,7 +18,7 @@ end
 function ChaseState:Enter()
     print("进入Chase状态")
     -- 播放怪物移动动画
-    self:PlayAnimation()
+    --self:PlayAnimation()
 
     self:FindNearestModel()
     

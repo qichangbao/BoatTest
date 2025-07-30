@@ -21,7 +21,8 @@ function AIManager.new(name, position, isWaterMonster, deadCallFunc)
         end
     end
 
-    self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
+    self.NPC:PivotTo(CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector))
+    --self.NPC.HumanoidRootPart.CFrame = CFrame.new(position, self.NPC.HumanoidRootPart.CFrame.LookVector)
     for _, part in ipairs(self.NPC:GetDescendants()) do
         if part:IsA("BasePart") then
             part.CollisionGroup = "MonsterCollisionGroup"
@@ -34,7 +35,7 @@ function AIManager.new(name, position, isWaterMonster, deadCallFunc)
         error("NPC模型必须包含Humanoid组件")
     end
     
-    self:InitializeAttributes(name)
+    self:InitializeAttributes(name, position)
 
     self.CurrentState = nil
     self.States = {
@@ -56,7 +57,7 @@ function AIManager.new(name, position, isWaterMonster, deadCallFunc)
     return self
 end
 
-function AIManager:InitializeAttributes(name)
+function AIManager:InitializeAttributes(name, position)
     local config = MonsterConfig[name]
     if config then
         self.NPC:SetAttribute('Type', config.Type)
@@ -66,7 +67,7 @@ function AIManager:InitializeAttributes(name)
         self.NPC:SetAttribute('PatrolRadius', config.PatrolRadius)
         self.NPC:SetAttribute('RespawnTime', config.RespawnTime)
         self.NPC:SetAttribute("MaxDisForSpawn", config.MaxDisForSpawn)
-        self.NPC:SetAttribute("SpawnPosition", self.NPC.PrimaryPart.CFrame.Position)
+        self.NPC:SetAttribute("SpawnPosition", position)
         self.NPC.Humanoid.MaxHealth = config.Health
         self.NPC.Humanoid.Health = config.Health
         self.NPC.Humanoid.WalkSpeed = config.WalkSpeed
