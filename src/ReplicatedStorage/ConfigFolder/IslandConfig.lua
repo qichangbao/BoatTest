@@ -1,7 +1,11 @@
+local ReplicatedStorage = game:GetService('ReplicatedStorage')
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+
 local IslandConfig = {
     IsLand = {
         [1] = {
             Name = "奥林匹斯",
+            DisplayName = LanguageConfig.Get(10139),
             Position = Vector3.new(0, 0, 0),
             ModelName = "岛屿1",
         },

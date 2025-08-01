@@ -422,7 +422,7 @@ for _, data in ipairs(IslandConfig.IsLand) do
     table.insert(_allLand, data)
 
     local land = workspace:WaitForChild(data.Name)
-    CreateBillBoard(land, data.Name, -1)
+    CreateBillBoard(land, data.DisplayName, -1)
 end
 
 Knit:OnStart():andThen(function()

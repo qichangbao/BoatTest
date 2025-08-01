@@ -5,6 +5,7 @@ local Knit = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Kn
 local DataStoreService = game:GetService("DataStoreService")
 local SystemStore = DataStoreService:GetDataStore("SystemStore")
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 
 local _dataTemplate = {
 	Gold = 50,	-- 金币

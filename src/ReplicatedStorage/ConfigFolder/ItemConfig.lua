@@ -1,3 +1,6 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+
 local ItemConfig = {}
 ItemConfig.BoatTag = "船"
 
@@ -12,6 +15,7 @@ local _data = {
                 Parts = {
                     ["初级小船_船身"] = {
                         itemName = "初级小船_船身", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "初级小船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -20,6 +24,7 @@ local _data = {
                     },
                     ["初级小船_旗帜"] = {
                         itemName = "初级小船_旗帜", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "初级小船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -28,6 +33,7 @@ local _data = {
                     },
                     ["初级小船_桅杆"] = {
                         itemName = "初级小船_桅杆", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "初级小船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -36,6 +42,7 @@ local _data = {
                     },
                     ["初级小船_绳子"] = {
                         itemName = "初级小船_绳子", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "初级小船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -51,6 +58,7 @@ local _data = {
                 Parts = {
                     ["2级船_船身"] = {
                         itemName = "2级船_船身", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -59,6 +67,7 @@ local _data = {
                     },
                     ["2级船_前杠"] = {
                         itemName = "2级船_前杠", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -67,6 +76,7 @@ local _data = {
                     },
                     ["2级船_桅杆"] = {
                         itemName = "2级船_桅杆", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -75,14 +85,16 @@ local _data = {
                     },
                     ["2级船_舵"] = {
                         itemName = "2级船_舵", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
                         sellPrice = 10, 
                         Random = 10
                     },
-                    ["2级船_船舵"] = {
-                        itemName = "2级船_船舵", 
+                    ["2级船_舵盘"] = {
+                        itemName = "2级船_舵盘", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -91,6 +103,7 @@ local _data = {
                     },
                     ["2级船_船锚"] = {
                         itemName = "2级船_船锚", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -99,6 +112,7 @@ local _data = {
                     },
                     ["2级船_风帆1"] = {
                         itemName = "2级船_风帆1", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -107,6 +121,7 @@ local _data = {
                     },
                     ["2级船_风帆2"] = {
                         itemName = "2级船_风帆2", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -115,6 +130,7 @@ local _data = {
                     },
                     ["2级船_驾驶室"] = {
                         itemName = "2级船_驾驶室", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -123,6 +139,7 @@ local _data = {
                     },
                     ["2级船_前炮"] = {
                         itemName = "2级船_前炮", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -131,6 +148,7 @@ local _data = {
                     },
                     ["2级船_右炮"] = {
                         itemName = "2级船_右炮", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 
@@ -139,6 +157,7 @@ local _data = {
                     },
                     ["2级船_左炮"] = {
                         itemName = "2级船_左炮", 
+                        displayName = LanguageConfig.Get(10123),
                         modelName = "2级船",
                         itemType = ItemConfig.BoatTag,
                         icon = "rbxassetid://12345678", 

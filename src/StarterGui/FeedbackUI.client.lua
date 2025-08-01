@@ -102,7 +102,7 @@ local confirmButton = UIConfig.CreateConfirmButton(contentFrame, function()
     feedbackTextBox.Text = ""
     _screenGui.Enabled = false
 end)
-confirmButton.Position = UDim2.new(0.5, 0, 1, -40)
+confirmButton.Position = UDim2.new(0.5, 0, 1, -20)
 
 -- 等待Knit启动
 Knit:OnStart():andThen(function()

@@ -117,10 +117,27 @@ local Text = {
 	[10116] = {zh_cn = "首次组建一艘完成的船", en_us = "Shipbuilder"},
 	[10117] = {zh_cn = "拥有第二艘船", en_us = "Fleet Begins"},
 	[10118] = {zh_cn = "徽章", en_us = "Badge"},
-	[10119] = {zh_cn = "点击下方的徽章来查看详细信息", en_us = "点击下方的徽章来查看详细信息"},
-	[10120] = {zh_cn = "已获得", en_us = "已获得"},
-	[10121] = {zh_cn = "未获得", en_us = "未获得"},
-	[10122] = {zh_cn = "选择一个徽章查看详情", en_us = "选择一个徽章查看详情"},
+	[10119] = {zh_cn = "点击下方的徽章来查看详细信息", en_us = "Click the badges below to see more details"},
+	[10120] = {zh_cn = "已获得", en_us = "Obtained"},
+	[10121] = {zh_cn = "未获得", en_us = "Not obtained"},
+	[10122] = {zh_cn = "选择一个徽章查看详情", en_us = "Select a badge to view details"},
+	[10123] = {zh_cn = "初级小船 船身", en_us = "Primary Boat Hull"},
+	[10124] = {zh_cn = "初级小船 旗帜", en_us = "Primary Boat Flag"},
+	[10125] = {zh_cn = "初级小船 桅杆", en_us = "Primary Boat Mast"},
+	[10126] = {zh_cn = "初级小船 绳子", en_us = "Primary Boat Rope"},
+	[10127] = {zh_cn = "2级船 船身", en_us = "Tier 2 Ship Hull"},
+	[10128] = {zh_cn = "2级船 前杆", en_us = "Tier 2 Bowsprit"},
+	[10129] = {zh_cn = "2级船 桅杆", en_us = "Tier 2 Mast"},
+	[10130] = {zh_cn = "2级船 舵", en_us = "Tier 2 Rudder"},
+	[10131] = {zh_cn = "2级船 舵盘", en_us = "Tier 2 Wheel"},
+	[10132] = {zh_cn = "2级船 锚", en_us = "Tier 2 Anchor"},
+	[10133] = {zh_cn = "2级船 风帆1", en_us = "Tier 2 Sail 1"},
+	[10134] = {zh_cn = "2级船 风帆2", en_us = "Tier 2 Sail 2"},
+	[10135] = {zh_cn = "2级船 驾驶室", en_us = "Tier 2 Wheelhouse"},
+	[10136] = {zh_cn = "2级船 前炮", en_us = "Tier 2 Front Cannon"},
+	[10137] = {zh_cn = "2级船 右炮", en_us = "Tier 2 Right Cannon"},
+	[10138] = {zh_cn = "2级船 左炮", en_us = "Tier 2 Left Cannon"},
+	[10139] = {zh_cn = "奥林匹斯", en_us = "Olympus"},
 }
 
 local Players = game:GetService("Players")
@@ -136,7 +153,7 @@ if RunService:IsClient() and Players.LocalPlayer then
     end)
     
     if success and countryCode then
-        if countryCode == "CN" then
+        if countryCode ~= "CN" then
             curCountryCode = 'zh_cn'
         else
             curCountryCode = 'en_us'

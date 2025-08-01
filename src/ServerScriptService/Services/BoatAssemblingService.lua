@@ -7,6 +7,7 @@ local Interface = require(ReplicatedStorage:WaitForChild("ToolFolder"):WaitForCh
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BoatConfig'))
 local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('ItemConfig'))
 local BadgeConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('BadgeConfig'))
+local IslandConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild('IslandConfig'))
 
 local BoatAssemblingService = Knit.CreateService({
     Name = 'BoatAssemblingService',
@@ -747,6 +748,10 @@ function BoatAssemblingService:StopBoat(player)
     if not playerBoat then
         local landName = Interface.InitPlayerPos(player)
         if landName then
+            local isLand = IslandConfig.FindIsLand(landName)
+            if isLand then
+                landName = isLand.DisplayName
+            end
             local start = landName:find("_")
             if start then
                 landName = landName:sub(1, start - 1)
@@ -762,6 +767,10 @@ function BoatAssemblingService:StopBoat(player)
     task.wait(0.1)
     local landName = Interface.InitPlayerPos(player)
     if landName then
+        local isLand = IslandConfig.FindIsLand(landName)
+        if isLand then
+            landName = isLand.DisplayName
+        end
         local start = landName:find("_")
         if start then
             landName = landName:sub(1, start - 1)

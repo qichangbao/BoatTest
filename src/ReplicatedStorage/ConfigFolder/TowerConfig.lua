@@ -1,4 +1,5 @@
-local LanguageConfig = require(script.Parent:WaitForChild("LanguageConfig"))
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
 
 local TowerConfig = {
     Tower1 = {

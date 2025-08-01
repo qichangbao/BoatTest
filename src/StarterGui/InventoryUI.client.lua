@@ -10,6 +10,7 @@ local Players = game:GetService('Players')
 local Knit = require(ReplicatedStorage.Packages.Knit.Knit)
 local BoatConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("BoatConfig"))
 local LanguageConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("LanguageConfig"))
+local ItemConfig = require(ReplicatedStorage:WaitForChild("ConfigFolder"):WaitForChild("ItemConfig"))
 local PlayerGui = Players.LocalPlayer:WaitForChild('PlayerGui')
 local UIConfig = require(script.Parent:WaitForChild('UIConfig'))
 local ClientData = require(game:GetService('StarterPlayer'):WaitForChild("StarterPlayerScripts"):WaitForChild("ClientData"))
@@ -252,6 +253,11 @@ local function UpdateInventoryUI()
         if not model or not model[itemData.itemName] then
             continue
         end
+        
+        local itemConfig = ItemConfig.GetItemConfig(itemData.itemName)
+        if not itemConfig then
+            continue
+        end
 
         -- 克隆物品模板并初始化
         local newItem = _itemTemplate:Clone()
@@ -261,7 +267,7 @@ local function UpdateInventoryUI()
 
         local partConfig = model[itemData.itemName]
         -- 初始化物品信息
-        newItem:FindFirstChild('NameBackground'):FindFirstChild('NameText').Text = itemData.itemName
+        newItem:FindFirstChild('NameBackground'):FindFirstChild('NameText').Text = itemConfig.displayName
         newItem:FindFirstChild('StatsContainer'):FindFirstChild('HpText').Text = "HP: " .. partConfig.HP
         newItem:FindFirstChild('StatsContainer'):FindFirstChild('SpeedText').Text = "Speed: " .. partConfig.speed
         -- 更新物品数量 - 现在CountText在CountBackground内部
